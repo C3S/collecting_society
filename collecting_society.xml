@@ -1,0 +1,582 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <menuitem name="Collecting Society" id="menu_collecting_society"/>
+        <menuitem name="Configuration" parent="menu_collecting_society"
+            id="menu_configuration" sequence="0" icon="tryton-preferences"/>
+
+        <record model="ir.ui.icon" id="c3s_icon">
+            <field name="name">tryton-c3s-logo</field>
+            <field name="path">icons/c3s-flame-small.svg</field>
+        </record>
+        <record model="ir.ui.menu"
+            id="menu_collecting_society">
+            <field name="icon">tryton-c3s-logo</field>
+        </record>
+
+        <record model="ir.ui.view" id="client_form">
+            <field name="model">client</field>
+            <field name="type">form</field>
+            <field name="name">client_form</field>
+        </record>
+        <record model="ir.ui.view" id="client_list">
+            <field name="model">client</field>
+            <field name="type">tree</field>
+            <field name="name">client_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_client">
+            <field name="name">Client</field>
+            <field name="res_model">client</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_client_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="client_list"/>
+            <field name="act_window" ref="act_client"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_client_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="client_form"/>
+            <field name="act_window" ref="act_client"/>
+        </record>
+        <menuitem parent="menu_collecting_society"
+            action="act_client" sequence="5"
+            id="menu_client"/>
+
+        <record model="ir.ui.view" id="artist_form">
+            <field name="model">artist</field>
+            <field name="type">form</field>
+            <field name="name">artist_form</field>
+        </record>
+        <record model="ir.ui.view" id="artist_list">
+            <field name="model">artist</field>
+            <field name="type">tree</field>
+            <field name="name">artist_list</field>
+        </record>
+        <record model="ir.ui.view" id="artist_tree">
+            <field name="model">artist</field>
+            <field name="type">tree</field>
+            <field name="field_childs">solo_artists</field>
+            <field name="name">artist_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_artist">
+            <field name="name">Artist</field>
+            <field name="res_model">artist</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_artist_view_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_list"/>
+            <field name="act_window" ref="act_artist"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_artist_view_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_form"/>
+            <field name="act_window" ref="act_artist"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_artist"
+            id="menu_artist" sequence="10"/>
+
+        <record model="ir.action.act_window" id="act_artist_tree">
+            <field name="name">Artists</field>
+            <field name="res_model">artist</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_tree_view_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_tree"/>
+            <field name="act_window" ref="act_artist_tree"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_tree_view_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_form"/>
+            <field name="act_window" ref="act_artist_tree"/>
+        </record>
+        <menuitem parent="menu_artist" action="act_artist_tree"
+            id="menu_artist_tree" sequence="10"/>
+
+        <record model="ir.ui.view" id="creation_form">
+            <field name="model">creation</field>
+            <field name="type">form</field>
+            <field name="name">creation_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_tree">
+            <field name="model">creation</field>
+            <field name="type">tree</field>
+            <field name="name">creation_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation">
+            <field name="name">Creation</field>
+            <field name="res_model">creation</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_tree"/>
+            <field name="act_window" ref="act_creation"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_form"/>
+            <field name="act_window" ref="act_creation"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_creation"
+            sequence="40" id="menu_creation"/>
+
+
+        <record model="ir.ui.view" id="creation_original_derivative_form">
+            <field name="model">creation.original.derivative</field>
+            <field name="type">form</field>
+            <field name="name">creation_original_derivative_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_original_derivative_list">
+            <field name="model">creation.original.derivative</field>
+            <field name="type">tree</field>
+            <field name="name">creation_original_derivative_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_original_derivative">
+            <field name="name">Creation Original Derivative</field>
+            <field name="res_model">creation.original.derivative</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_original_derivative_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_original_derivative_list"/>
+            <field name="act_window" ref="act_creation_original_derivative"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_original_derivative_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_original_derivative_form"/>
+            <field name="act_window" ref="act_creation_original_derivative"/>
+        </record>
+        <menuitem parent="menu_creation" action="act_creation_original_derivative"
+            sequence="40" id="menu_creation_original_derivative"/>
+
+        <record model="ir.ui.view" id="creation_contribution_form">
+            <field name="model">creation.contribution</field>
+            <field name="type">form</field>
+            <field name="name">creation_contribution_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_contribution_list">
+            <field name="model">creation.contribution</field>
+            <field name="type">tree</field>
+            <field name="name">creation_contribution_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_contribution">
+            <field name="name">Creation Contribution</field>
+            <field name="res_model">creation.contribution</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_contribution_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_contribution_list"/>
+            <field name="act_window" ref="act_creation_contribution"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_creation_contribution_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_contribution_form"/>
+            <field name="act_window" ref="act_creation_contribution"/>
+        </record>
+        <menuitem parent="menu_creation" action="act_creation_contribution"
+            sequence="20" id="menu_creation_contribution"/>
+
+
+        <record model="ir.ui.view" id="creation_role_form">
+            <field name="model">creation.role</field>
+            <field name="type">form</field>
+            <field name="name">creation_role_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_role_list">
+            <field name="model">creation.role</field>
+            <field name="type">tree</field>
+            <field name="name">creation_role_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_role">
+            <field name="name">Creation Role</field>
+            <field name="res_model">creation.role</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_role_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_role_list"/>
+            <field name="act_window" ref="act_creation_role"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_role_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_role_form"/>
+            <field name="act_window" ref="act_creation_role"/>
+        </record>
+        <menuitem parent="menu_configuration" action="act_creation_role"
+            sequence="20" id="menu_creation_role"/>
+
+        <record model="ir.ui.view" id="license_form">
+            <field name="model">license</field>
+            <field name="type">form</field>
+            <field name="name">license_form</field>
+        </record>
+        <record model="ir.ui.view" id="license_tree">
+            <field name="model">license</field>
+            <field name="type">tree</field>
+            <field name="name">license_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_license">
+            <field name="name">License</field>
+            <field name="res_model">license</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_license_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="license_tree"/>
+            <field name="act_window" ref="act_license"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_license_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="license_form"/>
+            <field name="act_window" ref="act_license"/>
+        </record>
+        <menuitem parent="menu_configuration" action="act_license"
+            sequence="20" id="menu_license"/>
+
+        <record model="ir.ui.view" id="creation_license_form">
+            <field name="model">creation.license</field>
+            <field name="type">form</field>
+            <field name="name">creation_license_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_license_tree">
+            <field name="model">creation.license</field>
+            <field name="type">tree</field>
+            <field name="name">creation_license_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_license">
+            <field name="name">Creation License</field>
+            <field name="res_model">creation.license</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_license_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_license_tree"/>
+            <field name="act_window" ref="act_creation_license"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_license_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_license_form"/>
+            <field name="act_window" ref="act_creation_license"/>
+        </record>
+
+        <record model="ir.ui.view" id="utilisation_form">
+            <field name="model">creation.utilisation</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_tree">
+            <field name="model">creation.utilisation</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation">
+            <field name="name">Utilisation</field>
+            <field name="res_model">creation.utilisation</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_tree"/>
+            <field name="act_window" ref="act_utilisation"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_form"/>
+            <field name="act_window" ref="act_utilisation"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_utilisation"
+            sequence="50" id="menu_utilisation"/>
+
+        <record model="ir.ui.view" id="distribution_form">
+            <field name="model">distribution</field>
+            <field name="type">form</field>
+            <field name="name">distribution_form</field>
+        </record>
+        <record model="ir.ui.view" id="distribution_list">
+            <field name="model">distribution</field>
+            <field name="type">tree</field>
+            <field name="name">distribution_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_distribution">
+            <field name="name">Distribution</field>
+            <field name="res_model">distribution</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="distribution_list"/>
+            <field name="act_window" ref="act_distribution"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="distribution_form"/>
+            <field name="act_window" ref="act_distribution"/>
+        </record>
+        <menuitem parent="menu_collecting_society"
+            action="act_distribution"
+            sequence="60" id="menu_distribution"/>
+
+        <record model="ir.ui.view" id="distribution_allocation_form">
+            <field name="model">distribution.allocation</field>
+            <field name="type">form</field>
+            <field name="name">distribution_allocation_form</field>
+        </record>
+        <record model="ir.ui.view" id="distribution_allocation_tree">
+            <field name="model">distribution.allocation</field>
+            <field name="type">tree</field>
+            <field name="name">distribution_allocation_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_distribution_allocation">
+            <field name="name">Allocation</field>
+            <field name="res_model">distribution.allocation</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_allocation_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="distribution_allocation_tree"/>
+            <field name="act_window" ref="act_distribution_allocation"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_allocation_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="distribution_allocation_form"/>
+            <field name="act_window" ref="act_distribution_allocation"/>
+        </record>
+        <menuitem parent="menu_distribution"
+            action="act_distribution_allocation"
+            sequence="60" id="menu_distribution_allocation"/>
+
+        <record model="ir.sequence.type" id="sequence_type_artist">
+            <field name="name">Artist</field>
+            <field name="code">artist</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_artist_group_admin">
+            <field name="sequence_type" ref="sequence_type_artist"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_artist">
+            <field name="name">Artist</field>
+            <field name="code">artist</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_creation">
+            <field name="name">Creation</field>
+            <field name="code">creation</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_creation_group_admin">
+            <field name="sequence_type" ref="sequence_type_creation"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_creation">
+            <field name="name">Creation</field>
+            <field name="code">creation</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_contribution">
+            <field name="name">Contribution</field>
+            <field name="code">contribution</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_contribution_group_admin">
+            <field name="sequence_type" ref="sequence_type_contribution"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_contribution">
+            <field name="name">Contribution</field>
+            <field name="code">contribution</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_utilisation">
+            <field name="name">Utilisation</field>
+            <field name="code">creation.utilisation</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_utilisation_group_admin">
+            <field name="sequence_type" ref="sequence_type_utilisation"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        _^<record model="ir.sequence" id="sequence_utilisation">
+            <field name="name">Utilisation</field>
+            <field name="code">creation.utilisation</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_distribution">
+            <field name="name">Distribution</field>
+            <field name="code">distribution</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_distribution_group_admin">
+            <field name="sequence_type" ref="sequence_type_distribution"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_distribution">
+            <field name="name">Distribution</field>
+            <field name="code">distribution</field>
+        </record>
+
+        <record model="ir.ui.view" id="creation_identifier_form">
+            <field name="model">creation.identification.identifier</field>
+            <field name="type">form</field>
+            <field name="name">creation_identifier_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_identifier_tree">
+            <field name="model">creation.identification.identifier</field>
+            <field name="type">tree</field>
+            <field name="name">creation_identifier_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_identifier">
+            <field name="name">Identifier</field>
+            <field name="res_model">creation.identification.identifier</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_identifier_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_identifier_tree"/>
+            <field name="act_window" ref="act_creation_identifier"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_identifier_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_identifier_form"/>
+            <field name="act_window" ref="act_creation_identifier"/>
+        </record>
+
+        <record model="ir.ui.view" id="creation_identification_form">
+            <field name="model">creation.identification</field>
+            <field name="type">form</field>
+            <field name="name">creation_identification_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_identification_tree">
+            <field name="model">creation.identification</field>
+            <field name="type">tree</field>
+            <field name="name">creation_identification_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_identification">
+            <field name="name">Identification</field>
+            <field name="res_model">creation.identification</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_identification_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_identification_tree"/>
+            <field name="act_window" ref="act_creation_identification"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_identification_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_identification_form"/>
+            <field name="act_window" ref="act_creation_identification"/>
+        </record>
+        <menuitem parent="menu_creation"
+            action="act_creation_identification" sequence="100"
+            id="menu_creation_identification"/>
+
+        <record model="ir.ui.view" id="utilisation_imp_form">
+            <field name="model">creation.utilisation.imp</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_imp_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_imp_tree">
+            <field name="model">creation.utilisation.imp</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_imp_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_imp">
+            <field name="name">Utilisation IMP</field>
+            <field name="res_model">creation.utilisation.imp</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_utilisation_imp_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_imp_tree"/>
+            <field name="act_window" ref="act_utilisation_imp"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_utilisation_imp_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_imp_form"/>
+            <field name="act_window" ref="act_utilisation_imp"/>
+        </record>
+        <menuitem parent="menu_utilisation"
+            action="act_utilisation_imp"
+            id="menu_utilisation_imp"/>
+
+        <record model="ir.action.wizard" id="act_utilisation_imp_identify">
+            <field
+                name="name">Identify IMP Utilisations</field>
+            <field
+                name="wiz_name">creation.utilisation.imp.identify</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_imp_identify_keyword1">
+            <field name="action" ref="act_utilisation_imp_identify"/>
+            <field name="keyword">form_action</field>
+            <field name="model">creation.utilisation.imp,-1</field>
+        </record>
+        <menuitem name="Identify IMP Utilisations"
+            parent="menu_utilisation"
+            action="act_utilisation_imp_identify"
+            id="menu_utilisation_imp_identify"/>
+
+        <record model="ir.ui.view" id="utilisation_imp_identify_start_view_form">
+            <field name="model">creation.utilisation.imp.identify.start</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_imp_identify_start_form</field>
+        </record>
+
+        <record model="ir.action.wizard" id="act_distribution_distribute">
+            <field
+                name="name">Distribute</field>
+            <field
+                name="wiz_name">distribution.distribute</field>
+        </record>
+        <record model="ir.action.keyword" id="act_distribution_distribute_keyword1">
+            <field name="action" ref="act_distribution_distribute"/>
+            <field name="keyword">form_action</field>
+            <field name="model">distribution,-1</field>
+        </record>
+        <!--
+        <menuitem name="Distribute"
+            parent="menu_distribution"
+            action="act_distribution_distribute"
+            id="menu_distribution_distribute"/>
+        -->
+
+        <record model="ir.ui.view" id="distribution_distribute_start_view_form">
+            <field name="model">distribution.distribute.start</field>
+            <field name="type">form</field>
+            <field name="name">distribution_distribute_start_form</field>
+        </record>
+
+    </data>
+</tryton>

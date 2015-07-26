@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tree string="Creation - Original - Derivative">
+    <field name="original_creation"/>
+    <field name="derivative_creation"/>
+    <field name="allocation_type"/>
+</tree>

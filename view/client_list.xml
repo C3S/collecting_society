@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tree string="Client">
+    <field name="web_user"/>
+    <field name="uuid"/>
+    <field name="player_name"/>
+    <field name="player_version"/>
+    <field name="plugin_name"/>
+    <field name="plugin_version"/>
+    <field name="plugin_vendor"/>
+    <field name="active"/>
+</tree>

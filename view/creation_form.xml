@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form string="Creation" col="6">
+    <label name="title"/>
+    <field name="title" xexpand="1"/>
+    <label name="code"/>
+    <field name="code"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+        <!-- Add here some checkboxes ! -->
+    </group>
+    <newline/>
+    <label name="artist"/>
+    <field name="artist"/>
+    <notebook colspan="6">
+        <page string="Contributions" id="contributions">
+            <field name="contributions" colspan="6"/>
+        </page>
+        <page string="Licenses" id="licenses">
+            <field name="licenses" colspan="6"/>
+        </page>
+        <page string="Originals/Derivatives" id="originals-derivatives">
+            <field name="original_relations" colspan="6"/>
+            <field name="derivative_relations" colspan="6"/>
+        </page>
+        <page string="Identifiers" id="identifiers">
+            <field name="identifiers" colspan="4"/>
+        </page>
+    </notebook>
+    <label name="state"/>
+    <field name="state" colspan="5"/>
+</form>

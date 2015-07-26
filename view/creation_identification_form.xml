@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form string="Identification">
+    <label name="creation"/>
+    <field name="creation"/>
+    <field name="identifiers" colspan="4"/>
+    <separator string="ID3" id="id3" colspan="4"/>
+    <field name= "id3" colspan="4"/>
+</form>

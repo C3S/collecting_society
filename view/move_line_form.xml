@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the
+full copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/notebook/page[@id='info']/field[@name='party']"
+            position="after">
+        <label name="artist"/>
+        <field name="artist"/>
+        <!--
+        <label name="contribution"/>
+        <field name="contribution"/>
+        <label name="utilisation"/>
+        <field name="utilisation"/>
+        -->
+    </xpath>
+</data>

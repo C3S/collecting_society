@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/notebook" position="inside">
+        <page string="Artists" id="artists">
+            <label name="default_solo_artist"/>
+            <field name="default_solo_artist" colspan="3"/>
+            <field name="artists" colspan="4"/>
+        </page>
+        <page string="IMP" id="imp">
+            <label name="pocket_account"/>
+            <field name="pocket_account"/>
+            <label name="pocket_balance"/>
+            <field name="pocket_balance"/>
+            <label name="pocket_budget"/>
+            <field name="pocket_budget"/>
+        </page>
+    </xpath>
+</data>

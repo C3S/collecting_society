@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<data>
+    <xpath
+            expr="/tree/field[@name='email']"
+            position="after">
+        <field name="party"/>
+        <field name="nickname"/>
+        <field name="default_role"/>
+        <field name="clients"/>
+        <field name="show_creative_info"/>
+    </xpath>
+</data>

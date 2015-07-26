@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tree string="Artist">
+    <field name="code"/>
+    <field name="rec_name"/>
+    <field name="party"/>
+    <field name="payee"/>
+    <field name="valid_payee"/>
+    <field name="group"/>
+    <field name="hat_balance"/>
+    <field name="invitation_token" tree_invisible="1"/>
+    <field name="active" tree_invisible="1"/>
+</tree>

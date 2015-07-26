@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form string="Utilisation IMP">
+    <label name="client"/>
+    <field name="client"/>
+    <label name="state"/>
+    <field name="state"/>
+    <newline/>
+    <label name="time_played"/>
+    <field name="time_played"/>
+    <label name="time_submitted"/>
+    <field name="time_submitted"/>
+    <newline/>
+    <label name="fingerprint"/>
+    <field name="fingerprint"/>
+    <label name="fingerprinting_algorithm"/>
+    <field name="fingerprinting_algorithm"/>
+    <label name="fingerprinting_version"/>
+    <field name="fingerprinting_version"/>
+    <newline/>
+    <label name="title"/>
+    <field name="title"/>
+    <label name="artist"/>
+    <field name="artist"/>
+    <label name="release"/>
+    <field name="release"/>
+    <label name="track_number"/>
+    <field name="track_number"/>
+    <label name="duration"/>
+    <field name="duration"/>
+    <label name="utilisation"/>
+    <field name="utilisation"/>
+</form>

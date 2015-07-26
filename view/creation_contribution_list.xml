@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains
+     the full copyright notices and license terms. -->
+<tree string="Creation Contribution">
+    <field name="creation"/>
+    <field name="artist"/>
+    <field name="type"/>
+    <field name="roles_list"/>
+</tree>

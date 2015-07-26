@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!-- The COPYRIGHT file at the top level of this repository contains the full
+     copyright notices and license terms. -->
+<tryton>
+    <data>
+        <!--
+
+             Extend existing views
+
+        -->
+        <record model="ir.ui.view" id="web_user_view_form">
+            <field name="model">web.user</field>
+            <field name="inherit" ref="web_user.user_view_form"/>
+            <field name="name">web_user_form</field>
+        </record>
+        <record model="ir.ui.view" id="web_user_view_list">
+            <field name="model">web.user</field>
+            <field name="inherit" ref="web_user.user_view_list"/>
+            <field name="name">web_user_list</field>
+        </record>
+        <!--
+
+             Add new views
+
+        -->
+        <record model="ir.ui.view" id="web_user_role_form">
+            <field name="model">web.user.role</field>
+            <field name="type">form</field>
+            <field name="name">web_user_role_form</field>
+        </record>
+        <record model="ir.ui.view" id="web_user_role_list">
+            <field name="model">web.user.role</field>
+            <field name="type">tree</field>
+            <field name="name">web_user_role_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_web_user_role">
+            <field name="name">Web User Role</field>
+            <field name="res_model">web.user.role</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_web_user_role_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="web_user_role_list"/>
+            <field name="act_window" ref="act_web_user_role"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_web_user_role_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="web_user_role_form"/>
+            <field name="act_window" ref="act_web_user_role"/>
+        </record>
+        <menuitem parent="web_user.menu_user_form"
+            action="act_web_user_role" sequence="5"
+            id="menu_web_user_role"/>
+        <!--
+             Initial Data
+        -->
+        <record model="web.user.role" id="web_user_role_creative">
+            <field name="name">Creative</field>
+            <field name="code">creative</field>
+        </record>
+        <record model="web.user.role" id="web_user_role_imp">
+            <field name="name">IMP</field>
+            <field name="code">imp</field>
+        </record>
+        <record model="web.user.role" id="web_user_role_impd">
+            <field name="name">IMP</field>
+            <field name="code">imp</field>
+        </record>
+    </data>
+</tryton>

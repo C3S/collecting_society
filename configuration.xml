@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton. The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="configuration_view_form">
+            <field name="model">collecting_society.configuration</field>
+            <field name="type">form</field>
+            <field name="name">configuration_form</field>
+        </record>
+        <record model="ir.action.act_window" id="act_configuration_form">
+            <field name="name">Collecting Society Configuration</field>
+            <field name="res_model">collecting_society.configuration</field>
+        </record>
+        <record model="ir.action.act_window.view"
+            id="act_configuration_view1">
+            <field name="sequence" eval="1"/>
+            <field name="view" ref="configuration_view_form"/>
+            <field name="act_window" ref="act_configuration_form"/>
+        </record>
+        <menuitem parent="menu_configuration"
+            action="act_configuration_form"
+            id="menu_collecting_society_configuration"
+            sequence="0" icon="tryton-list"/>
+
+        <record model="ir.property" id="property_artist_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'artist_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_artist'))"/>
+        </record>
+        <record model="ir.property" id="property_creation_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'creation_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_creation'))"/>
+        </record>
+        <record model="ir.property" id="property_contribution_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'contribution_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_contribution'))"/>
+        </record>
+        <record model="ir.property" id="property_utilisation_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'utilisation_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_utilisation'))"/>
+        </record>
+        <record model="ir.property" id="property_distribution_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'distribution_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_distribution'))"/>
+        </record>
+
+    </data>
+</tryton>

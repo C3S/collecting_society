@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form string="Artist" col="6">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="code"/>
+    <field name="code"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="group"/>
+        <field name="group" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+        <!-- Add here some checkboxes ! -->
+    </group>
+    <label name="party"/>
+    <field name="party"/>
+    <notebook colspan="6">
+        <page string="General" id="general" col="6">
+            <group id="misc" colspan="6" col="10">
+                <group id="image" colspan="1" col="1" xexpand="0">
+                    <separator string="Picture" id="picture" xexpand="0"/>
+                    <field name="picture_data" widget="image"
+                        height="200" width="200" readonly="1"
+                        img_width="200" img_height="200"
+                        yexpand="0" xexpand="0"/>
+                    <field name="picture_data" xexpand="0"/>
+                </group>
+                <group id="description" colspan="9" col="1" yfill="1">
+                    <separator name="description" yfill="0"/>
+                    <field name="description" yexpand="1" yfill="1"/>
+                </group>
+            </group>
+            <field name="solo_artists" colspan="6"/>
+            <field name="group_artists" colspan="6"/>
+        </page>
+        <page string="Accounting" id="accounting" col="6">
+            <label name="hat_account"/>
+            <field name="hat_account"/>
+            <label name="hat_balance"/>
+            <field name="hat_balance"/>
+            <newline/>
+            <label name="payee"/>
+            <field name="payee"/>
+            <label name="valid_payee"/>
+            <field name="valid_payee"/>
+            <newline/>
+            <label name="bank_account_number"/>
+            <field name="bank_account_number"/>
+            <label name="bank_account_owner"/>
+            <field name="bank_account_owner"/>
+            <group string="Proposal" id="proposal" colspan="6" col="6"
+                states="{'invisible': Not(Bool(Eval('group')))}" yexpand="1" yfill="1">
+                <label name="payee_proposal"/>
+                <field name="payee_proposal"/>
+                <field name="payee_acceptances" colspan="6"/>
+            </group>
+        </page>
+        <page string="Access" id="access" col="6">
+            <label name="invitation_token"/>
+            <field name="invitation_token" colspan="5"/>
+            <field name="access_parties" colspan="6"/>
+        </page>
+    </notebook>
+</form>

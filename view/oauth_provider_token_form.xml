@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form string="Oauth Provider Token">
+    <label name="user_id"/>
+    <field name="user_id"/>
+    <label name="access_token"/>
+    <field name="access_token"/>
+    <label name="refresh_token"/>
+    <field name="refresh_token"/>
+    <label name="expires_in"/>
+    <field name="expires_in"/>
+    <label name="revoked"/>
+    <field name="revoked"/>
+    <label name="revocation_date"/>
+    <field name="revocation_date"/>
+    <label name="client"/>
+    <field name="client"/>
+</form>

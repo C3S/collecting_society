@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="oauth_provider_client_form">
+            <field name="model">oauth2.provider.client</field>
+            <field name="type">form</field>
+            <field name="name">oauth_provider_client_form</field>
+        </record>
+        <record model="ir.ui.view" id="oauth_provider_client_tree">
+            <field name="model">oauth2.provider.client</field>
+            <field name="type">tree</field>
+            <field name="name">oauth_provider_client_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_oauth_provider_client">
+            <field name="name">Oauth Provider Client</field>
+            <field name="res_model">oauth2.provider.client</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_client_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="oauth_provider_client_tree"/>
+            <field name="act_window" ref="act_oauth_provider_client"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_client_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="oauth_provider_client_form"/>
+            <field name="act_window" ref="act_oauth_provider_client"/>
+        </record>
+        <menuitem parent="menu_configuration"
+            action="act_oauth_provider_client"
+            id="menu_oauth_provider_client"/>
+
+        <record model="ir.ui.view" id="oauth_provider_redirect_uri_form">
+            <field name="model">oauth2.provider.redirect_uri</field>
+            <field name="type">form</field>
+            <field name="name">oauth_provider_redirect_uri_form</field>
+        </record>
+        <record model="ir.ui.view" id="oauth_provider_redirect_uri_tree">
+            <field name="model">oauth2.provider.redirect_uri</field>
+            <field name="type">tree</field>
+            <field name="name">oauth_provider_redirect_uri_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_oauth_provider_redirect_uri">
+            <field name="name">Oauth Provider Redirect URI</field>
+            <field name="res_model">oauth2.provider.redirect_uri</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_redirect_uri_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="oauth_provider_redirect_uri_tree"/>
+            <field name="act_window" ref="act_oauth_provider_redirect_uri"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_redirect_uri_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="oauth_provider_redirect_uri_form"/>
+            <field name="act_window" ref="act_oauth_provider_redirect_uri"/>
+        </record>
+        <menuitem parent="menu_oauth_provider_client"
+            action="act_oauth_provider_redirect_uri"
+            id="menu_oauth_provider_redirect_uri"/>
+
+        <record model="ir.ui.view" id="oauth_provider_code_form">
+            <field name="model">oauth2.provider.code</field>
+            <field name="type">form</field>
+            <field name="name">oauth_provider_code_form</field>
+        </record>
+        <record model="ir.ui.view" id="oauth_provider_code_tree">
+            <field name="model">oauth2.provider.code</field>
+            <field name="type">tree</field>
+            <field name="name">oauth_provider_code_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_oauth_provider_code">
+            <field name="name">Oauth Provider Code</field>
+            <field name="res_model">oauth2.provider.code</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_code_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="oauth_provider_code_tree"/>
+            <field name="act_window" ref="act_oauth_provider_code"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_code_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="oauth_provider_code_form"/>
+            <field name="act_window" ref="act_oauth_provider_code"/>
+        </record>
+        <menuitem parent="menu_oauth_provider_client"
+            action="act_oauth_provider_code"
+            id="menu_oauth_provider_code"/>
+
+        <record model="ir.ui.view" id="oauth_provider_token_form">
+            <field name="model">oauth2.provider.token</field>
+            <field name="type">form</field>
+            <field name="name">oauth_provider_token_form</field>
+        </record>
+        <record model="ir.ui.view" id="oauth_provider_token_tree">
+            <field name="model">oauth2.provider.token</field>
+            <field name="type">tree</field>
+            <field name="name">oauth_provider_token_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_oauth_provider_token">
+            <field name="name">Oauth Provider Token</field>
+            <field name="res_model">oauth2.provider.token</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_token_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="oauth_provider_token_tree"/>
+            <field name="act_window" ref="act_oauth_provider_token"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_oauth_provider_token_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="oauth_provider_token_form"/>
+            <field name="act_window" ref="act_oauth_provider_token"/>
+        </record>
+        <menuitem parent="menu_oauth_provider_client"
+            action="act_oauth_provider_token"
+            id="menu_oauth_provider_token"/>
+    </data>
+</tryton>

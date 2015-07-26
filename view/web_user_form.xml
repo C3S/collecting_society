@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<data>
+    <xpath expr="/form/field[@name='parties']"
+        position="replace">
+    </xpath>
+    <xpath
+            expr="/form/field[@name='password']"
+            position="after">
+        <label name="party"/>
+        <field name="party"/>
+        <label name="nickname"/>
+        <field name="nickname"/>
+        <label name="user"/>
+        <field name="user"/>
+        <group col="20" colspan="2" id="checkboxes">
+            <label name="show_creative_info"/>
+            <field name="show_creative_info" xexpand="0" width="25"/>
+            <!-- Add here some checkboxes ! -->
+        </group>
+        <newline/>
+        <group colspan="4" col="20" id="avatar-clients">
+            <group id="avatar">
+                <field name="picture_data" widget="image"
+                    height="200" width="200" readonly="1"
+                    img_width="200" img_height="200"
+                    yexpand="0" xexpand="0"/>
+                <newline/>
+                <field name="picture_data" xexpand="0"/>
+            </group>
+            <field name="clients" colspan="19" xexpand="1" xfill="1"/>
+        </group>
+        <notebook colspan="4">
+            <page string="Roles" id="roles" col="4">
+                <label name="default_role"/>
+                <field name="default_role" colspan="3"/>
+                <field name="roles" colspan="4"/>
+            </page>
+            <page string="Opt-In" id="opt-in" col="4">
+                <label name="opt_in_state"/>
+                <field name="opt_in_state"/>
+                <label name="opt_in_uuid"/>
+                <field name="opt_in_uuid"/>
+                <label name="opt_in_timestamp"/>
+                <field name="opt_in_timestamp"/>
+                <label name="opt_out_timestamp"/>
+                <field name="opt_out_timestamp"/>
+            </page>
+        </notebook>
+    </xpath>
+</data>
