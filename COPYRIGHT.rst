@@ -4,7 +4,7 @@ Core Application
 c3s.ado - collection of services helpful for setting up a collecting society.
 
 Copyright (C) 2014-2015 Udo Spallek <udono@virtual-things.biz>
-Copyright (C) 2014-2015 Korbinian Preisler
+Copyright (C) 2014-2015 Korbinian Preisler <timitos@virtual-things.biz>
 Copyright (C) 2014-2015 virtual things <info@virtual-things.biz>
 Copyright (C) 2014-2015 Cultural Commons Collecting Society SCE mbH (C3S SCE)
 
