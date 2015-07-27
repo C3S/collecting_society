@@ -38,7 +38,7 @@ questions on the Tryton bug tracker, mailing list, wiki or IRC channel:
   irc://irc.freenode.net/tryton
 
 
-Copyright / Licence
+Copyright / License
 -------------------
 
 For infos on copyright and licenses, see ``./COPYRIGHT.rst``
