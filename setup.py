@@ -43,7 +43,7 @@ setup(
     name='%s_%s' % (PREFIX, MODULE),
     version=version_info,
     description='Tryton module %s from %s' % (MODULE, PREFIX),
-    long_description=read('README'),
+    long_description=read('README.rst'),
     author='virtual things',
     author_email='info@virtual-things.biz',
     url='http://www.virtual-things.biz',
