@@ -42,9 +42,3 @@ Copyright / Licence
 -------------------
 
 For infos on copyright and licenses, see ``./COPYRIGHT.rst``
-
-
-Contributors
-------------
-
-For a list of contributors, see ``./CONTRIBUTORS.rst``
