@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# For copyright and license terms, see COPYRIGHT.rst (top level of repository)
+# Repository: https://github.com/C3S/collecting_society
 from setuptools import setup
 import re
 import os
@@ -63,7 +65,7 @@ setup(
         'Intended Audience :: Developers',
         'Intended Audience :: Financial and Insurance Industry',
         'Intended Audience :: Legal Industry',
-        'License :: OSI Approved :: GNU General Public License (GPL)',
+        'License :: OSI Approved :: GNU Affero General Public License v3',
         'Natural Language :: English',
         'Natural Language :: German',
         'Operating System :: OS Independent',
@@ -71,9 +73,8 @@ setup(
         'Topic :: Office/Business',
         'Topic :: Office/Business :: Financial :: Accounting',
         'Topic :: Artistic Software',
-
     ],
-    license='GPL-3',
+    license='AGPL-3',
     install_requires=requires,
     zip_safe=False,
     entry_points="""

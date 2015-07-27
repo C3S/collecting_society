@@ -4,10 +4,12 @@ collecting_society
 The collecting_society module from c3s for the Tryton application
 platform.
 
+
 Installing
 ----------
 
-See INSTALL
+See ``./INSTALL.rst``
+
 
 Support
 -------
@@ -35,12 +37,14 @@ questions on the Tryton bug tracker, mailing list, wiki or IRC channel:
   http://wiki.tryton.org/
   irc://irc.freenode.net/tryton
 
-License
--------
 
-See LICENSE
+Copyright / Licence
+-------------------
 
-Copyright
----------
+For infos on copyright and licenses, see ``./COPYRIGHT.rst``
 
-See COPYRIGHT
+
+Contributors
+------------
+
+For a list of contributors, see ``./CONTRIBUTORS.rst``

@@ -1,5 +1,5 @@
-# The COPYRIGHT file at the top level of this repository contains the full
-# copyright notices and license terms.
+# For copyright and license terms, see COPYRIGHT.rst (top level of repository)
+# Repository: https://github.com/C3S/collecting_society
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import Pool, PoolMeta
