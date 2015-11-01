@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Release">
+    <field name="title"/>
+    <field name="release_date"/>
+    <field name="online_release_date"/>
+    <field name="distribution_territory"/>
+    <field name="release_cancellation_date"/>
+    <field name="online_cancellation_date"/>
+    <field name="label"/>
+    <field name="label_order_number"/>
+    <field name="isrc_code"/>
+    <field name="producer"/>
+    <field name="production_date"/>
+    <field name="copyright_owner"/>
+    <field name="copyright_date"/>
+    <field name="neighbouring_rights_society"/>
+    <field name="ean_upc_code"/>
+    <field name="number_mediums"/>
+    <field name="warning"/>
+</tree>
