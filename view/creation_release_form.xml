@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Creation Release">
+    <label name="creation"/>
+    <field name="creation"/>
+    <label name="release"/>
+    <field name="release"/>
+    <label name="medium_number"/>
+    <field name="medium_number"/>
+    <label name="track_number"/>
+    <field name="track_number"/>
+</form>

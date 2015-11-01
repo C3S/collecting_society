@@ -22,13 +22,21 @@ __all__ = [
     'ArtistPayeeAcceptance',
     'Identifier',
     'Identification',
+    'License',
     'Creation',
+    'CreationLicense',
+
     'CreationOriginalDerivative',
     'CreationContribution',
+
+    'Label',
+    'Release',
+    'CreationRelease',
+    'Genre',
+    'ReleaseGenre',
+
     'CreationRole',
     'ContributionRole',
-    'License',
-    'CreationLicense',
     'Distribution',
     'Allocation',
     'Utilisation',
@@ -422,6 +430,43 @@ class Identification(ModelSQL, ModelView):
         return (self.creation.title if self.creation else 'unknown')
 
 
+class License(ModelSQL, ModelView):
+    'License'
+    __name__ = 'license'
+    name = fields.Char('Name', required=True, select=True)
+    code = fields.Char('Code', required=True, select=True)
+
+    @classmethod
+    def __setup__(cls):
+        super(License, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+        cls._order.insert(1, ('name', 'ASC'))
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, licenses, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(License, cls).copy(licenses, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('name',) + tuple(clause[1:]),
+        ]
+
+
 class Creation(ModelSQL, ModelView):
     'Creation'
     __name__ = 'creation'
@@ -454,6 +499,14 @@ class Creation(ModelSQL, ModelView):
         'creation.original.derivative', 'derivative_creation',
         'Originating Relations', states=STATES, depends=DEPENDS,
         help='All creations originating the actual creation')
+    releases = fields.One2Many(
+        'creation.release', 'creation', 'Releases',
+        help='The releases of this creation.')
+    time = fields.Char('Time', help='The playing time of the creation.')
+    genres = fields.Many2Many(
+        'release.genre', 'release', 'genre', 'Genres',
+        help='The genres of the creation.')
+
     state = fields.Selection(
         [
             ('on_approval', 'On Approval'),
@@ -520,9 +573,109 @@ class Creation(ModelSQL, ModelView):
         ]
 
 
+class CreationLicense(ModelSQL, ModelView):
+    'Creation - License'
+    __name__ = 'creation.license'
+    creation = fields.Many2One('creation', 'Creation', required=True)
+    license = fields.Many2One('license', 'License', required=True)
+
+
+class Label(ModelSQL, ModelView):
+    'Label'
+    __name__ = 'label'
+
+    name = fields.Char('Name', help='The name of the label.')
+    party = fields.Many2One(
+        'party.party', 'Party', help='The legal party of the label')
+    gvl_code = fields.Char(
+        'GVL Code', help='The label code of the german '
+        '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
+
+
+class Release(ModelSQL, ModelView):
+    'Release'
+    __name__ = 'release'
+    _rec_name = 'title'
+
+    title = fields.Char('Title')
+    creations = fields.One2Many(
+        'creation.release', 'release', 'Creations',
+        help='The creations included in the release')
+    neighbouring_rights_society = fields.Many2One(
+        'party.party', 'Neighbouring Rights Society',
+        help='Representing collecting society/PRO for neighbouring rights.'
+    )  # -1
+    label = fields.Many2One(
+        'label', 'Label', help='The lable of the release.')
+    ean_upc_code = fields.Integer('EAN/UPC Code', help='The EAN/UPC Code')
+    number_mediums = fields.Integer(
+        'Number of Mediums', help='The number of mediums.')
+    label_order_number = fields.Char(
+        'Label Order Number', help='The label order number.')
+    release_date = fields.Date('Release Date', help='Date of (first) release.')
+    release_cancellation_date = fields.Date(
+        'Release Cancellation Date', help='Date of release cancellation')  # -1
+    online_release_date = fields.Date(
+        'Online Release Date', help='The Date of digital online release.')
+    online_cancellation_date = fields.Date(
+        'Online Cancellation Date',
+        help='Date of online release cancellation.')  # -1
+    copyright_date = fields.Date(
+        'Copyright Date', help='Date of the copyright.')
+    copyright_owner = fields.Many2One(
+        'party.party', 'Copyright Owner', help='Copyright owning party.')
+    production_date = fields.Date(
+        'Production Date', help='Date of production.')  # -1
+    producer = fields.Many2One('party.party', 'Producer')  # -1
+    genres = fields.Many2Many(
+        'release.genre', 'release', 'genre', 'Genres',
+        help='The genres of the release.')
+    distribution_territory = fields.Char(
+        'Distribution Territory')  # many2one, -1
+    isrc_code = fields.Char(
+        'ISRC Code',
+        help='The International Standard Recording Code of the release')
+    warning = fields.Char(
+        'Warning', help='A warning note for this release.')  # many2one, -1
+
+
+class CreationRelease(ModelSQL, ModelView):
+    'Creation Release'
+    __name__ = 'creation.release'
+
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True)
+    release = fields.Many2One(
+        'release', 'Release', required=True)
+    medium_number = fields.Integer(
+        'Medium Number', help=u'The number of the medium on CD, LP, ...')
+    track_number = fields.Integer(
+        'Track Number', help='Track number on the medium')
+
+
+class Genre(ModelSQL, ModelView):
+    'Genre'
+    __name__ = 'genre'
+
+    name = fields.Char('Name', help='The name of the genre.')
+    description = fields.Text(
+        'Description', help='The description of the genre.')
+
+
+class ReleaseGenre(ModelSQL):
+    'Release - Genre'
+    __name__ = 'release.genre'
+
+    release = fields.Many2One(
+        'release', 'Release', required=True, select=True)
+    genre = fields.Many2One(
+        'genre', 'Genre', required=True, select=True)
+
+
 class CreationOriginalDerivative(ModelSQL, ModelView):
     'Creation - Original - Derivative'
     __name__ = 'creation.original.derivative'
+
     original_creation = fields.Many2One(
         'creation', 'Original Creation', select=True, required=True)
     derivative_creation = fields.Many2One(
@@ -566,6 +719,29 @@ class CreationContribution(ModelSQL, ModelView):
         help='The roles the artist takes in this creation')
     roles_list = fields.Function(
         fields.Char('Roles List'), 'on_change_with_roles_list')
+    composition_copyright_date = fields.Date(
+        'Composition Copyright Date')
+    composition_copyright_owner = fields.Many2One(
+        'party.party', 'Composition Copyright Owner')
+    composition_license = fields.Many2One(
+        'creation.license', 'License')
+    composition_publishing_date = fields.Date(
+        'Composition Publishing Date')
+    composition_publisher = fields.Many2One(
+        'party.party', 'Composition Publisher',
+        help='Composition Publishing Entity')
+    lyrics_copyright_date = fields.Date(
+        'Lyrics Copyright Date')
+    lyrics_copyright_artist = fields.Many2One(
+        'artist', 'Lyrics Copyright Artist')
+    lyrics_license = fields.Many2One(
+        'creation.license', 'License')
+    lyrics_publishing_date = fields.Date(
+        'Lyrics Publishing Date')
+    lyrics_publisher = fields.Many2One(
+        'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
+    collecting_society = fields.Many2One(
+        'party.party', 'Collecting Society')
 
     @fields.depends('roles')
     def on_change_with_roles_list(self, name=None):
@@ -597,50 +773,6 @@ class ContributionRole(ModelSQL):
     contribution = fields.Many2One(
         'creation.contribution', 'Contribution', required=True, select=True)
     role = fields.Many2One('creation.role', 'Role', required=True, select=True)
-
-
-class License(ModelSQL, ModelView):
-    'License'
-    __name__ = 'license'
-    name = fields.Char('Name', required=True, select=True)
-    code = fields.Char('Code', required=True, select=True)
-
-    @classmethod
-    def __setup__(cls):
-        super(License, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the license must be unique.')
-        ]
-        cls._order.insert(1, ('name', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, licenses, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(License, cls).copy(licenses, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('name',) + tuple(clause[1:]),
-        ]
-
-
-class CreationLicense(ModelSQL, ModelView):
-    'Creation - License'
-    __name__ = 'creation.license'
-    creation = fields.Many2One('creation', 'Creation', required=True)
-    license = fields.Many2One('license', 'License', required=True)
 
 
 class Distribution(ModelSQL, ModelView):
