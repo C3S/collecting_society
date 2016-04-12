@@ -13,6 +13,7 @@ from .configuration import *
 def register():
     Pool.register(
         BankAccount,
+        BankAccountNumber,
         Artist,
         ArtistArtist,
         ArtistPayeeAcceptance,
@@ -54,6 +55,10 @@ def register():
         Oauth2Code,
         Oauth2Token,
         Party,
+        PartyCategory,
+        ContactMechanism,
+        Category,
+        Address,
         module='collecting_society', type_='model')
     Pool.register(
         UtilisationIMPIdentify,

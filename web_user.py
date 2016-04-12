@@ -34,6 +34,7 @@ _OPT_IN_STATES = [
 class WebUserRole(ModelSQL, ModelView):
     "Web User Role"
     __name__ = 'web.user.role'
+    _history = True
 
     name = fields.Char(
         'Name', required=True, select=True, translate=True,
@@ -45,6 +46,7 @@ class WebUserRole(ModelSQL, ModelView):
 
 class WebUser:
     __name__ = 'web.user'
+    _history = True
     _rec_name = 'email'
     nickname = fields.Char(
         'Nickname', help='The name shown to other users')
@@ -285,6 +287,7 @@ class WebUserResUser(ModelSQL):
 class WebUserWebUserRole(ModelSQL, ModelView):
     "Web User - Web User Role"
     __name__ = 'web.user-web.user.role'
+    _history = True
 
     user = fields.Many2One(
         'web.user', 'User', ondelete='CASCADE', select=True, required=True)
@@ -295,6 +298,7 @@ class WebUserWebUserRole(ModelSQL, ModelView):
 
 class WebUserParty:
     __name__ = 'web.user-party.party'
+    _history = True
 
     @classmethod
     def __setup__(cls):
