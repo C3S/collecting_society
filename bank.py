@@ -6,11 +6,18 @@ from trytond.pool import PoolMeta
 
 __all__ = [
     'BankAccount',
+    'BankAccountNumber',
 ]
 __metaclass__ = PoolMeta
 
 
 class BankAccount():
     __name__ = 'bank.account'
+    _history = True
     owner = fields.One2One(
         'bank.account-party.party', 'account', 'owner', 'Owner')
+
+
+class BankAccountNumber():
+    __name__ = 'bank.account.number'
+    _history = True

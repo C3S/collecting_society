@@ -59,6 +59,7 @@ SEPARATOR = u' /25B6 '
 class Client(ModelSQL, ModelView):
     'Client'
     __name__ = 'client'
+    _history = True
     _rec_name = 'uuid'
     web_user = fields.Many2One('web.user', 'Web User', required=True)
     uuid = fields.Char(
@@ -99,6 +100,7 @@ class Client(ModelSQL, ModelView):
 class Artist(ModelSQL, ModelView):
     'Artist'
     __name__ = 'artist'
+    _history = True
     name = fields.Char(
         'Name', required=True, select=True, states=STATES, depends=DEPENDS)
     code = fields.Char(
@@ -390,6 +392,7 @@ class Artist(ModelSQL, ModelView):
 class ArtistArtist(ModelSQL):
     'Artist - Artist'
     __name__ = 'artist-artist'
+    _history = True
     group_artist = fields.Many2One(
         'artist', 'Group Artist', required=True, select=True)
     solo_artist = fields.Many2One(
@@ -399,6 +402,7 @@ class ArtistArtist(ModelSQL):
 class ArtistPayeeAcceptance(ModelSQL):
     'Artist Payee Acceptance'
     __name__ = 'artist.payee.acceptance'
+    _history = True
     artist = fields.Many2One(
         'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
     party = fields.Many2One(
@@ -408,6 +412,7 @@ class ArtistPayeeAcceptance(ModelSQL):
 class Identifier(ModelSQL, ModelView):
     'Identifier'
     __name__ = 'creation.identification.identifier'
+    _history = True
     _rec_name = 'identifier'
     identification = fields.Many2One(
         'creation.identification', 'Identification',
@@ -418,6 +423,7 @@ class Identifier(ModelSQL, ModelView):
 class Identification(ModelSQL, ModelView):
     'Identification'
     __name__ = 'creation.identification'
+    _history = True
     identifiers = fields.One2Many(
         'creation.identification.identifier', 'identification', 'Identifiers',
         help='The identifiers of the creation')
@@ -433,6 +439,7 @@ class Identification(ModelSQL, ModelView):
 class License(ModelSQL, ModelView):
     'License'
     __name__ = 'license'
+    _history = True
     name = fields.Char('Name', required=True, select=True)
     code = fields.Char('Code', required=True, select=True)
 
@@ -470,6 +477,7 @@ class License(ModelSQL, ModelView):
 class Creation(ModelSQL, ModelView):
     'Creation'
     __name__ = 'creation'
+    _history = True
     title = fields.Char(
         'Title', required=True, select=True, states=STATES, depends=DEPENDS,
         help='The title or name of the creation')
@@ -576,6 +584,7 @@ class Creation(ModelSQL, ModelView):
 class CreationLicense(ModelSQL, ModelView):
     'Creation - License'
     __name__ = 'creation.license'
+    _history = True
     creation = fields.Many2One('creation', 'Creation', required=True)
     license = fields.Many2One('license', 'License', required=True)
 
@@ -583,6 +592,7 @@ class CreationLicense(ModelSQL, ModelView):
 class Label(ModelSQL, ModelView):
     'Label'
     __name__ = 'label'
+    _history = True
 
     name = fields.Char('Name', help='The name of the label.')
     party = fields.Many2One(
@@ -595,6 +605,7 @@ class Label(ModelSQL, ModelView):
 class Release(ModelSQL, ModelView):
     'Release'
     __name__ = 'release'
+    _history = True
     _rec_name = 'title'
 
     title = fields.Char('Title')
@@ -642,6 +653,7 @@ class Release(ModelSQL, ModelView):
 class CreationRelease(ModelSQL, ModelView):
     'Creation Release'
     __name__ = 'creation.release'
+    _history = True
 
     creation = fields.Many2One(
         'creation', 'Creation', required=True)
@@ -656,6 +668,7 @@ class CreationRelease(ModelSQL, ModelView):
 class Genre(ModelSQL, ModelView):
     'Genre'
     __name__ = 'genre'
+    _history = True
 
     name = fields.Char('Name', help='The name of the genre.')
     description = fields.Text(
@@ -665,6 +678,7 @@ class Genre(ModelSQL, ModelView):
 class ReleaseGenre(ModelSQL):
     'Release - Genre'
     __name__ = 'release.genre'
+    _history = True
 
     release = fields.Many2One(
         'release', 'Release', required=True, select=True)
@@ -675,6 +689,7 @@ class ReleaseGenre(ModelSQL):
 class CreationOriginalDerivative(ModelSQL, ModelView):
     'Creation - Original - Derivative'
     __name__ = 'creation.original.derivative'
+    _history = True
 
     original_creation = fields.Many2One(
         'creation', 'Original Creation', select=True, required=True)
@@ -697,6 +712,7 @@ class CreationOriginalDerivative(ModelSQL, ModelView):
 class CreationContribution(ModelSQL, ModelView):
     'Creation Contribution'
     __name__ = 'creation.contribution'
+    _history = True
 
     creation = fields.Many2One(
         'creation', 'Creation', required=True, select=True)
@@ -759,6 +775,7 @@ class CreationContribution(ModelSQL, ModelView):
 class CreationRole(ModelSQL, ModelView):
     'Roles'
     __name__ = 'creation.role'
+    _history = True
 
     name = fields.Char(
         'Name', required=True, translate=True, help='The name of the role')
@@ -769,6 +786,7 @@ class CreationRole(ModelSQL, ModelView):
 class ContributionRole(ModelSQL):
     'Contribution - Role'
     __name__ = 'creation.contribution-creation.role'
+    _history = True
 
     contribution = fields.Many2One(
         'creation.contribution', 'Contribution', required=True, select=True)

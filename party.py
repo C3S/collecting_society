@@ -8,13 +8,14 @@ from trytond.transaction import Transaction
 
 
 __all__ = [
-    'Party',
+    'Party', 'PartyCategory', 'ContactMechanism', 'Category', 'Address'
 ]
 __metaclass__ = PoolMeta
 
 
 class Party:
     __name__ = 'party.party'
+    _history = True
 
     artists = fields.One2Many('artist', 'party', 'Artists')
     default_solo_artist = fields.Many2One(
@@ -64,3 +65,23 @@ class Party:
     @staticmethod
     def default_pocket_budget():
         return Decimal('0')
+
+
+class PartyCategory():
+    __name__ = 'party.party-party.category'
+    _history = True
+
+
+class ContactMechanism():
+    __name__ = 'party.contact_mechanism'
+    _history = True
+
+
+class Category():
+    __name__ = 'party.category'
+    _history = True
+
+
+class Address():
+    __name__ = 'party.address'
+    _history = True
