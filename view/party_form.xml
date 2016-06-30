@@ -3,6 +3,10 @@
      Repository: https://github.com/C3S/collecting_society -->
 <data>
     <xpath expr="/form/notebook" position="inside">
+        <page string="Collecting Societies" id="cs">
+            <label name="member_c3s"/>
+            <field name="member_c3s"/>
+        </page>
         <page string="Artists" id="artists">
             <label name="default_solo_artist"/>
             <field name="default_solo_artist" colspan="3"/>
