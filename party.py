@@ -18,6 +18,7 @@ class Party:
     _history = True
 
     member_c3s = fields.Boolean('Member of C3S')
+    member_c3s_token = fields.Char('C3S Membership Token')
     artists = fields.One2Many('artist', 'party', 'Artists')
     default_solo_artist = fields.Many2One(
         'artist', 'Default Solo Artist',

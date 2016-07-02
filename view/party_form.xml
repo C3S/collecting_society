@@ -6,6 +6,8 @@
         <page string="Collecting Societies" id="cs">
             <label name="member_c3s"/>
             <field name="member_c3s"/>
+            <label name="member_c3s_token"/>
+            <field name="member_c3s_token"/>
         </page>
         <page string="Artists" id="artists">
             <label name="default_solo_artist"/>
