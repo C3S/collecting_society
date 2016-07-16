@@ -22,7 +22,6 @@ __all__ = [
     'WebUserWebUserRole',
     'WebUserParty',
 ]
-__metaclass__ = PoolMeta
 _OPT_IN_STATES = [
     ('new', 'New'),
     ('mail-sent', 'Mail Sent'),
@@ -45,6 +44,7 @@ class WebUserRole(ModelSQL, ModelView):
 
 
 class WebUser:
+    __metaclass__ = PoolMeta
     __name__ = 'web.user'
     _history = True
     _rec_name = 'email'
@@ -277,7 +277,7 @@ class WebUserResUser(ModelSQL):
                 'Error!\n'
                 'A web user can only be linked to one Tryton user.\n'
                 'The used web user is already linked to another Tryton user.'),
-            ('party_uniq', 'UNIQUE("res_user")',
+            ('res_user_uniq', 'UNIQUE("res_user")',
                 'Error!\n'
                 'A Tryton user can only be linked to one web user.\n'
                 'The used Tryton user is already linked to another web user.'),
@@ -297,6 +297,7 @@ class WebUserWebUserRole(ModelSQL, ModelView):
 
 
 class WebUserParty:
+    __metaclass__ = PoolMeta
     __name__ = 'web.user-party.party'
     _history = True
 
