@@ -4,19 +4,19 @@
 <tree string="Release">
     <field name="title"/>
     <field name="release_date"/>
-    <field name="online_release_date"/>
-    <field name="distribution_territory"/>
-    <field name="release_cancellation_date"/>
-    <field name="online_cancellation_date"/>
+    <field name="online_release_date" tree_invisible="1"/>
+    <field name="distribution_territory" tree_invisible="1"/>
+    <field name="release_cancellation_date" tree_invisible="1"/>
+    <field name="online_cancellation_date" tree_invisible="1"/>
     <field name="label"/>
-    <field name="label_order_number"/>
+    <field name="label_order_number" tree_invisible="1"/>
     <field name="isrc_code"/>
     <field name="producer"/>
     <field name="production_date"/>
     <field name="copyright_owner"/>
     <field name="copyright_date"/>
-    <field name="neighbouring_rights_society"/>
+    <field name="neighbouring_rights_society" tree_invisible="1"/>
     <field name="ean_upc_code"/>
     <field name="number_mediums"/>
-    <field name="warning"/>
+    <field name="warning" tree_invisible="1"/>
 </tree>

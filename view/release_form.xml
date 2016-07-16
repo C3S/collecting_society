@@ -1,51 +1,46 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Release" col="3">
-    <group id="1" col="2" colspan="1">
+<form string="Release" col="6">
         <label name="title"/>
         <field name="title"/>
         <label name="label"/>
         <field name="label"/>
+        <label name="number_mediums"/>
+        <field name="number_mediums"/>
+
         <label name="label_order_number"/>
         <field name="label_order_number"/>
         <label name="isrc_code"/>
         <field name="isrc_code"/>
         <label name="ean_upc_code"/>
         <field name="ean_upc_code"/>
+
         <label name="neighbouring_rights_society"/>
         <field name="neighbouring_rights_society"/>
-
-    </group>
-    <group id="2" col="2" colspan="1">
         <label name="copyright_owner"/>
         <field name="copyright_owner"/>
         <label name="copyright_date"/>
         <field name="copyright_date"/>
+
         <label name="producer"/>
         <field name="producer"/>
         <label name="production_date"/>
         <field name="production_date"/>
-        <newline/>
         <label name="distribution_territory"/>
         <field name="distribution_territory"/>
-    </group>
-    <group id="3" col="2" colspan="1">
+
         <label name="release_date"/>
         <field name="release_date"/>
         <label name="release_cancellation_date"/>
         <field name="release_cancellation_date"/>
+        <newline/>
         <label name="online_release_date"/>
         <field name="online_release_date"/>
         <label name="online_cancellation_date"/>
         <field name="online_cancellation_date"/>
         <label name="warning"/>
         <field name="warning"/>
-        <label name="number_mediums"/>
-        <field name="number_mediums"/>
-    </group>
     <field name="creations" colspan="6"/>
     <field name="genres" colspan="6"/>
 </form>
-
-
