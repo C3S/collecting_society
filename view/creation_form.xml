@@ -16,17 +16,19 @@
     <field name="artist"/>
     <notebook colspan="6">
         <page string="Contributions" id="contributions">
-            <field name="contributions" colspan="6"/>
+            <field name="contributions" colspan="4"/>
         </page>
         <page string="Licenses" id="licenses">
-            <field name="licenses" colspan="6"/>
+            <field name="licenses" colspan="4"/>
         </page>
         <page string="Originals/Derivatives" id="originals-derivatives">
-            <field name="original_relations" colspan="6"/>
-            <field name="derivative_relations" colspan="6"/>
+            <field name="original_relations" colspan="4"/>
+            <field name="derivative_relations" colspan="4"/>
         </page>
-        <page string="Identifiers" id="identifiers">
-            <field name="identifiers" colspan="4"/>
+        <page string="Content" id="content" col="6">
+            <label name="content"/>
+            <field name="content" colspan="5"/>
+            <field name="identifiers" colspan="6"/>
         </page>
     </notebook>
     <label name="state"/>

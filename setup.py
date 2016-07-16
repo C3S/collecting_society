@@ -30,7 +30,7 @@ if not (dev_branch % 2):  # dev_branch is a release branch
     dev_branch -= 1
 next_branch = dev_branch + 2
 branch_range = str(dev_branch / 10), str(next_branch / 10)
-requires = []
+requires = ['hurry.filesize']
 
 for dep in info.get('depends', []):
     if not re.match(r'(ir|res|webdav)(\W|$)', dep):

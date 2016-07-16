@@ -1,11 +1,13 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
+import os
 import uuid
 import datetime
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
 from sql.functions import CharLength
+import hurry.filesize
 
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.wizard import Wizard, StateView, Button, StateTransition
@@ -24,6 +26,8 @@ __all__ = [
     'Identification',
     'License',
     'Creation',
+    'Content',
+    'CreationContent',
     'CreationLicense',
 
     'CreationOriginalDerivative',
@@ -521,6 +525,9 @@ class Creation(ModelSQL, ModelView):
             ('approved', 'Approved'),
             ('rejected', 'Rejected'),
         ], 'State', states=STATES, depends=DEPENDS)
+    content = fields.One2One(
+        'creation-content', 'creation', 'content',  'Content',
+        help='The content of the creation.')
     active = fields.Boolean('Active')
 
     @classmethod
@@ -578,6 +585,119 @@ class Creation(ModelSQL, ModelView):
             'OR',
             ('code',) + tuple(clause[1:]),
             ('title',) + tuple(clause[1:]),
+        ]
+
+
+class Content(ModelSQL, ModelView):
+    'Content'
+    __name__ = 'content'
+    creation = fields.One2One(
+        'creation-content', 'content', 'creation', 'Creation',
+        help='The creation of the content.')
+    user = fields.Many2One(
+        'res.user', 'User', help='The user which provided the content.')
+    name = fields.Char('File Name', required=True)
+    extension = fields.Function(
+        fields.Char('Extension'), 'on_change_with_extension')
+    mime_type = fields.Char('Mime Type', help='The media or content type.')
+    category = fields.Selection(
+        [
+            ('audio', 'Audio')
+        ], 'Category', required=True, help='The category of content.')
+    length = fields.Float(
+        'Length', digits=(16, 6),
+        help='The length or duration of the audio content in seconds [s].',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    channels = fields.Integer(
+        'Channels', help='The number of sound channels.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    sample_rate = fields.Integer(
+        'Sample Rate', help='Sample rate in Hertz [Hz][1/s].',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    sample_width = fields.Integer(
+        'Sample Width', help='Sample width in Bits.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
+    original_data = fields.Many2One(
+        'ir.attachment', 'Original Data',
+        domain=[('resource', '=', (__name__, Eval('id')))],
+        states={'readonly': Eval('active_id', 0) < 1}, depends=['active_id'],
+        help='The data of the original content.')
+    preview_data = fields.Many2One(
+        'ir.attachment', 'Preview Data',
+        domain=[('resource', '=', (__name__, Eval('id')))],
+        states={'readonly': Eval('active_id', 0) < 1}, depends=['active_id'],
+        help='The data of the preview content.')
+    archive = fields.Char(
+        'Archive', help='The external reference of of the archive where the '
+        'content is archived.')
+
+    @classmethod
+    def __setup__(cls):
+        super(Content, cls).__setup__()
+        cls._order.insert(1, ('name', 'ASC'))
+
+    @staticmethod
+    def default_category():
+        return 'audio'
+
+    @fields.depends('name')
+    def on_change_with_extension(self, name=None):
+        return os.path.splitext(self.name)[1].lstrip('.')
+
+    def get_currency_digits(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency.digits
+        return 2
+
+    def get_rec_name(self, name):
+        result = '%s: %s %s %s %sHz %sBit' % (
+            self.name,
+            hurry.filesize.size(self.size, system=hurry.filesize.si)
+            if self.size else '0M',
+            (
+                "{:.0f}:{:02.0f}".format(*divmod(self.length, 60))
+                if self.length else '00:00'
+            ),
+            (
+                'none' if self.channels in (None, 0) else
+                'mono' if self.channels == 1 else
+                'stereo' if self.channels == 2 else
+                'multi'
+            ),
+            self.sample_rate if self.sample_rate else '0',
+            self.sample_width if self.sample_width else '0',
+        )
+        return result
+
+
+class CreationContent(ModelSQL, ModelView):
+    'Creation - Content'
+    __name__ = 'creation-content'
+    _history = True
+    creation = fields.Many2One(
+        'creation', 'Creation', ondelete='CASCADE', select=True, required=True)
+    content = fields.Many2One(
+        'content', 'Content', ondelete='CASCADE', select=True, required=True)
+
+    @classmethod
+    def __setup__(cls):
+        super(CreationContent, cls).__setup__()
+        cls._sql_constraints = [
+            ('creation_uniq', 'UNIQUE("creation")',
+                'Error!\n'
+                'A creation can only be linked to one and only one content.\n'
+                'The used creation is already linked to another content.'),
+            ('content_uniq', 'UNIQUE("content")',
+                'Error!\n'
+                'A content can only be linked to one and only one creation.\n'
+                'The used content is already linked to another creation.'),
         ]
 
 

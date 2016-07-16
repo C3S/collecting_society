@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Content">
+    <field name="creation"/>
+    <field name="name"/>
+    <field name="size">
+        <suffix string="Byte" name="size"/>
+    </field>
+    <field name="user"/>
+    <field name="mime_type"/>
+    <field name="length">
+        <suffix string="s" name="length"/>
+    </field>
+    <field name="channels"/>
+    <field name="sample_rate">
+        <suffix string="Hz" name="sample_rate"/>
+    </field>
+    <field name="sample_width">
+        <suffix string="Bit" name="sample_width"/>
+    </field>
+
+</tree>

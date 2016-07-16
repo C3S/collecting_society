@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Content" col="6">
+    <label name="creation"/>
+    <field name="creation"/>
+    <newline/>
+    <label name="name"/>
+    <field name="name"/>
+    <label name="extension"/>
+    <field name="extension"/>
+    <label name="size"/>
+    <field name="size"/>
+    <newline/>
+    <label name="category"/>
+    <field name="category"/>
+    <label name="mime_type"/>
+    <field name="mime_type"/>
+    <label name="length"/>
+    <field name="length"/>
+
+    <newline/>
+    <label name="channels"/>
+    <field name="channels"/>
+    <label name="sample_rate"/>
+    <field name="sample_rate"/>
+    <label name="sample_width"/>
+    <field name="sample_width"/>
+    <label name="user"/>
+    <field name="user"/>
+    <label name="original_data"/>
+    <field name="original_data"/>
+    <label name="preview_data"/>
+    <field name="preview_data"/>
+    <label name="archive"/>
+    <field name="archive"/>
+</form>

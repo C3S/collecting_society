@@ -7,5 +7,6 @@
     <field name="artist"/>
     <field name="contributions"/>
     <field name="licenses"/>
+    <field name="content"/>
     <field name="active" tree_invisible="1"/>
 </tree>

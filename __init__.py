@@ -35,6 +35,8 @@ def register():
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
+        Content,
+        CreationContent,
         Label,
         Release,
         CreationRelease,
