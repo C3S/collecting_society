@@ -28,10 +28,11 @@
     <field name="sample_width"/>
     <label name="user"/>
     <field name="user"/>
-    <label name="original_data"/>
-    <field name="original_data"/>
-    <label name="preview_data"/>
-    <field name="preview_data"/>
+    <label name="path"/>
+    <field name="path" widget="url"/>
+    <label name="preview_path"/>
+    <field name="preview_path" widget="url"/>
+
     <label name="archive"/>
     <field name="archive"/>
 </form>

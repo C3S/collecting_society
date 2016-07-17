@@ -19,5 +19,4 @@
     <field name="sample_width">
         <suffix string="Bit" name="sample_width"/>
     </field>
-
 </tree>

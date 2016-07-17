@@ -622,18 +622,10 @@ class Content(ModelSQL, ModelView):
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
     size = fields.BigInteger('Size', help='The size of the content in Bytes.')
-    original_data = fields.Many2One(
-        'ir.attachment', 'Original Data',
-        domain=[('resource', '=', (__name__, Eval('id')))],
-        states={'readonly': Eval('active_id', 0) < 1}, depends=['active_id'],
-        help='The data of the original content.')
-    preview_data = fields.Many2One(
-        'ir.attachment', 'Preview Data',
-        domain=[('resource', '=', (__name__, Eval('id')))],
-        states={'readonly': Eval('active_id', 0) < 1}, depends=['active_id'],
-        help='The data of the preview content.')
+    path = fields.Char('Path')
+    preview_path = fields.Char('Preview Path')
     archive = fields.Char(
-        'Archive', help='The external reference of of the archive where the '
+        'Archive', help='The external reference of the archive where the '
         'content is archived.')
 
     @classmethod
