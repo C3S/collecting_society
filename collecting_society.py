@@ -591,12 +591,18 @@ class Creation(ModelSQL, ModelView):
 class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
+    _history = True
     creation = fields.One2One(
         'creation-content', 'content', 'creation', 'Creation',
         help='The creation of the content.')
     user = fields.Many2One(
-        'res.user', 'User', help='The user which provided the content.')
+        'res.user', 'User', help='The user which provided the content.',
+        required=True)
     name = fields.Char('File Name', required=True)
+    uuid = fields.Char('UUID', required=True)
+    archive = fields.Char(
+        'Archive', help='The external reference of the archive where the '
+        'content is archived.', required=True)
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
     mime_type = fields.Char('Mime Type', help='The media or content type.')
@@ -624,14 +630,15 @@ class Content(ModelSQL, ModelView):
     size = fields.BigInteger('Size', help='The size of the content in Bytes.')
     path = fields.Char('Path')
     preview_path = fields.Char('Preview Path')
-    archive = fields.Char(
-        'Archive', help='The external reference of the archive where the '
-        'content is archived.')
 
     @classmethod
     def __setup__(cls):
         super(Content, cls).__setup__()
         cls._order.insert(1, ('name', 'ASC'))
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the content must be unique.'),
+        ]
 
     @staticmethod
     def default_category():
