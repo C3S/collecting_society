@@ -27,6 +27,7 @@ __all__ = [
     'License',
     'Creation',
     'Content',
+    'Fingerprintlog',
     'CreationContent',
     'CreationLicense',
 
@@ -592,6 +593,7 @@ class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
     _history = True
+    # active = fields.Boolean('Active')
     creation = fields.One2One(
         'creation-content', 'content', 'creation', 'Creation',
         help='The creation of the content.')
@@ -603,6 +605,14 @@ class Content(ModelSQL, ModelView):
     archive = fields.Char(
         'Archive', help='The external reference of the archive where the '
         'content is archived.', required=True)
+    processing_state = fields.Selection(
+        [
+            ('uploaded', 'Upload finished'),
+            ('previewed', 'Preview created'),
+            ('fingerprinted', 'Fingerprint created'),
+            ('archived', 'Archived'),
+            ('deleted', 'Deleted'),
+        ], 'State', required=True, help='The processing state of the content.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
     mime_type = fields.Char('Mime Type', help='The media or content type.')
@@ -630,6 +640,8 @@ class Content(ModelSQL, ModelView):
     size = fields.BigInteger('Size', help='The size of the content in Bytes.')
     path = fields.Char('Path')
     preview_path = fields.Char('Preview Path')
+    fingerprintlogs = fields.One2Many(
+        'content.fingerprintlog', 'content', 'Fingerprintlogs')
 
     @classmethod
     def __setup__(cls):
@@ -674,6 +686,25 @@ class Content(ModelSQL, ModelView):
             self.sample_width if self.sample_width else '0',
         )
         return result
+
+
+class Fingerprintlog(ModelSQL, ModelView):
+    'Fingerprintlog'
+    __name__ = 'content.fingerprintlog'
+    _history = True
+    content = fields.Many2One('content', 'Content', required=True)
+    user = fields.Many2One(
+        'res.user', 'User', help='The user which fingerprinted the content.',
+        required=True)
+    timestamp = fields.DateTime(
+        'Timestamp', required=True, select=True,
+        help='Point in time of fingerprinting')
+    fingerprinting_algorithm = fields.Char(
+        'Algorithm', required=True,
+        help='Fingerprinting mechanism of the content, e.g. echoprint')
+    fingerprinting_version = fields.Char(
+        'Version', required=True, help='Fingerprinting algorithm version '
+        'of the content')
 
 
 class CreationContent(ModelSQL, ModelView):

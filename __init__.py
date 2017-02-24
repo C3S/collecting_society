@@ -36,6 +36,7 @@ def register():
         CreationContribution,
         CreationRole,
         Content,
+        Fingerprintlog,
         CreationContent,
         Label,
         Release,

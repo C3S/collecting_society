@@ -4,6 +4,8 @@
 <form string="Content" col="6">
     <label name="creation"/>
     <field name="creation"/>
+    <label name="processing_state"/>
+    <field name="processing_state"/>
     <newline/>
     <label name="name"/>
     <field name="name"/>
@@ -35,4 +37,6 @@
 
     <label name="archive"/>
     <field name="archive"/>
+
+    <field name="fingerprintlogs" colspan="19" xexpand="1" xfill="1"/>
 </form>

@@ -8,6 +8,7 @@
         <suffix string="Byte" name="size"/>
     </field>
     <field name="user"/>
+    <field name="processing_state"/>
     <field name="mime_type"/>
     <field name="length">
         <suffix string="s" name="length"/>
@@ -19,4 +20,5 @@
     <field name="sample_width">
         <suffix string="Bit" name="sample_width"/>
     </field>
+    <field name="fingerprintlogs"/>
 </tree>
