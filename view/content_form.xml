@@ -35,6 +35,8 @@
     <label name="preview_path"/>
     <field name="preview_path" widget="url"/>
 
+    <label name="uuid"/>
+    <field name="uuid"/>
     <label name="archive"/>
     <field name="archive"/>
 
