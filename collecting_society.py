@@ -604,7 +604,7 @@ class Content(ModelSQL, ModelView):
     uuid = fields.Char('UUID', required=True)
     archive = fields.Char(
         'Archive', help='The external reference of the archive where the '
-        'content is archived.', required=True)
+        'content is archived.')
     processing_state = fields.Selection(
         [
             ('uploaded', 'Upload finished'),
