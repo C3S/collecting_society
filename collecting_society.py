@@ -617,6 +617,12 @@ class Content(ModelSQL, ModelView):
             ('rejected', 'Rejected'),
             ('unkown', 'Unknown'),
         ], 'State', required=True, help='The processing state of the content.')
+    rejection_reason = fields.Selection(
+        [
+            ('checksum_collision', 'Upload finished'),
+            ('fingerprint_collision', 'Preview created'),
+            ('format_error', 'Checksum created'),
+        ], 'State', required=True, help='The reason of the rejection.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
     mime_type = fields.Char('Mime Type', help='The media or content type.')
