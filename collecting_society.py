@@ -609,9 +609,13 @@ class Content(ModelSQL, ModelView):
         [
             ('uploaded', 'Upload finished'),
             ('previewed', 'Preview created'),
+            ('checksummed', 'Checksum created'),
             ('fingerprinted', 'Fingerprint created'),
+            ('dropped', 'Dropped'),
             ('archived', 'Archived'),
             ('deleted', 'Deleted'),
+            ('rejected', 'Rejected'),
+            ('unkown', 'Unknown'),
         ], 'State', required=True, help='The processing state of the content.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
