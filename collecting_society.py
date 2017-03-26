@@ -619,6 +619,7 @@ class Content(ModelSQL, ModelView):
         ], 'State', required=True, help='The processing state of the content.')
     rejection_reason = fields.Selection(
         [
+            (None, ''),
             ('checksum_collision', 'Duplicate Checksum'),
             ('fingerprint_collision', 'Duplicate Fingerprint'),
             ('format_error', 'Format Error'),
