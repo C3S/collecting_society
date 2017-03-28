@@ -593,7 +593,6 @@ class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
     _history = True
-    # active = fields.Boolean('Active')
     creation = fields.One2One(
         'creation-content', 'content', 'creation', 'Creation',
         help='The creation of the content.')
@@ -623,7 +622,9 @@ class Content(ModelSQL, ModelView):
             ('checksum_collision', 'Duplicate Checksum'),
             ('fingerprint_collision', 'Duplicate Fingerprint'),
             ('format_error', 'Format Error'),
-        ], 'Reason', help='The reason of the rejection.')
+        ], 'Reason', states={
+            'invisible': Eval('processing_state') != 'rejected'
+        }, depends=['processing_state'], help='The reason of the rejection.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
     mime_type = fields.Char('Mime Type', help='The media or content type.')
