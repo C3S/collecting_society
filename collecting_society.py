@@ -593,7 +593,6 @@ class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
     _history = True
-    # active = fields.Boolean('Active')
     creation = fields.One2One(
         'creation-content', 'content', 'creation', 'Creation',
         help='The creation of the content.')
@@ -604,15 +603,28 @@ class Content(ModelSQL, ModelView):
     uuid = fields.Char('UUID', required=True)
     archive = fields.Char(
         'Archive', help='The external reference of the archive where the '
-        'content is archived.', required=True)
+        'content is archived.')
     processing_state = fields.Selection(
         [
             ('uploaded', 'Upload finished'),
             ('previewed', 'Preview created'),
+            ('checksummed', 'Checksum created'),
             ('fingerprinted', 'Fingerprint created'),
+            ('dropped', 'Dropped'),
             ('archived', 'Archived'),
             ('deleted', 'Deleted'),
+            ('rejected', 'Rejected'),
+            ('unkown', 'Unknown'),
         ], 'State', required=True, help='The processing state of the content.')
+    rejection_reason = fields.Selection(
+        [
+            (None, ''),
+            ('checksum_collision', 'Duplicate Checksum'),
+            ('fingerprint_collision', 'Duplicate Fingerprint'),
+            ('format_error', 'Format Error'),
+        ], 'Reason', states={
+            'invisible': Eval('processing_state') != 'rejected'
+        }, depends=['processing_state'], help='The reason of the rejection.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
     mime_type = fields.Char('Mime Type', help='The media or content type.')
