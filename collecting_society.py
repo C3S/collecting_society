@@ -631,6 +631,8 @@ class Content(ModelSQL, ModelView):
             ('checksum_collision', 'Duplicate Checksum'),
             ('fingerprint_collision', 'Duplicate Fingerprint'),
             ('format_error', 'Format Error'),
+            ('no_fingerprint', 'No Fingerprint'),
+            ('lossy_compression', 'Lossy Compression'),
         ], 'Reason', states={
             'invisible': Eval('processing_state') != 'rejected'
         }, depends=['processing_state'], help='The reason of the rejection.')
