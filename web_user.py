@@ -82,6 +82,8 @@ class WebUser:
         help='The universally unique identifier of the opt-in of a web user')
     opt_in_timestamp = fields.DateTime('Date of Opt-in')
     opt_out_timestamp = fields.DateTime('Date of Opt-out')
+    abuse_rank = fields.Integer(
+        'Abuse Rank', help='Times of potential abuse.')
 
     @classmethod
     def __setup__(cls):
