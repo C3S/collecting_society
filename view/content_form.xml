@@ -6,8 +6,11 @@
     <field name="creation"/>
     <label name="processing_state"/>
     <field name="processing_state"/>
+    <newline/>
     <label name="rejection_reason"/>
     <field name="rejection_reason"/>
+    <label name="mediation"/>
+    <field name="mediation"/>
     <newline/>
     <label name="name"/>
     <field name="name"/>

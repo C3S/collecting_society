@@ -654,6 +654,9 @@ class Content(ModelSQL, ModelView):
     preview_path = fields.Char('Preview Path')
     fingerprintlogs = fields.One2Many(
         'content.fingerprintlog', 'content', 'Fingerprintlogs')
+    mediation = fields.Boolean('Mediation', states={
+            'invisible': Eval('processing_state') != 'rejected'
+        }, depends=['processing_state'])
 
     @classmethod
     def __setup__(cls):
