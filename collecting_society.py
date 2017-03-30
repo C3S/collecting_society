@@ -614,8 +614,17 @@ class Content(ModelSQL, ModelView):
             ('archived', 'Archived'),
             ('deleted', 'Deleted'),
             ('rejected', 'Rejected'),
-            ('unkown', 'Unknown'),
+            ('unknown', 'Unknown'),
         ], 'State', required=True, help='The processing state of the content.')
+    processing_hostname = fields.Char(
+        'Processer', states={
+            'invisible': Or(
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived',
+                Eval('processing_state') == 'unknown'
+            )
+        }, depends=['processing_state'],
+        help='The hostname of the processing machine.')
     rejection_reason = fields.Selection(
         [
             (None, ''),
@@ -654,9 +663,7 @@ class Content(ModelSQL, ModelView):
     preview_path = fields.Char('Preview Path')
     fingerprintlogs = fields.One2Many(
         'content.fingerprintlog', 'content', 'Fingerprintlogs')
-    mediation = fields.Boolean('Mediation', states={
-            'invisible': Eval('processing_state') != 'rejected'
-        }, depends=['processing_state'])
+    mediation = fields.Boolean('Mediation')
 
     @classmethod
     def __setup__(cls):
