@@ -1098,7 +1098,6 @@ class Checksum(ModelSQL, ModelView):
         'Begin', help='The position of the first byte of the Checksum.')
     end = fields.Integer(
         'End', help='The position of the last byte of the Checksum.')
-    
 
 
 class Content(ModelSQL, ModelView):
