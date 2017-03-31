@@ -36,6 +36,7 @@ def register():
         CreationContribution,
         CreationRole,
         # Uuid,
+        Checksum,
         Content,
         Fingerprintlog,
         CreationContent,

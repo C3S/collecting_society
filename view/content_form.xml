@@ -53,6 +53,9 @@
         <page string="Duplicates" id="duplicates">
             <field name="duplicates" colspan="4"/>
         </page>
+        <page string="Checksums" id="checksums">
+            <field name="checksums" colspan="4"/>
+        </page>
         <page string="Fingerprintlogs" id="fingerprintlogs">
             <field name="fingerprintlogs" colspan="4"/>
         </page>

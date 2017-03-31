@@ -284,6 +284,66 @@
             sequence="45" id="menu_genre"/>
 
 
+        <record model="ir.ui.view" id="content_fingerprintlog_form">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">form</field>
+            <field name="name">content_fingerprintlog_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_fingerprintlog_list">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">tree</field>
+            <field name="name">content_fingerprintlog_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_fingerprintlog">
+            <field name="name">Fingerprintlog</field>
+            <field name="res_model">content.fingerprintlog</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_fingerprintlog_list"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_fingerprintlog_form"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_fingerprintlog"
+            sequence="20" id="menu_content_fingerprintlog"/>
+
+        <record model="ir.ui.view" id="content_checksum_form">
+            <field name="model">checksum</field>
+            <field name="type">form</field>
+            <field name="name">content_checksum_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_checksum_list">
+            <field name="model">checksum</field>
+            <field name="type">tree</field>
+            <field name="name">content_checksum_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_checksum">
+            <field name="name">Checksum</field>
+            <field name="res_model">checksum</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_checksum_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_checksum_list"/>
+            <field name="act_window" ref="act_content_checksum"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_checksum_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_checksum_form"/>
+            <field name="act_window" ref="act_content_checksum"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_checksum"
+            sequence="40" id="menu_content_checksum"/>
+
+
+
         <record model="ir.ui.view" id="creation_original_derivative_form">
             <field name="model">creation.original.derivative</field>
             <field name="type">form</field>

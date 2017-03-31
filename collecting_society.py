@@ -39,6 +39,7 @@ __all__ = [
 
     # Archive
     # 'Uuid',
+    'Checksum',
     'Content',
 
     # Accounting,
@@ -804,13 +805,40 @@ class ContributionRole(ModelSQL):
 #         'Uuid', required=True, help='The Uuid String.')
 
 
+class Checksum(ModelSQL, ModelView):
+    'Checksum'
+    __name__ = 'checksum'
+    _history = True
+    origin = fields.Reference(
+        'Origin', [('content', 'Content')],
+        help='The originating data of the checksum')
+    code = fields.Char(
+        'Checksum', help='The string of the Checksum.')
+    timestamp = fields.DateTime(
+        'Timestamp', help='The point in time of the Checksum.')
+    begin = fields.Integer(
+        'Begin', help='The position of the first byte of the Checksum.')
+    end = fields.Integer(
+        'End', help='The position of the last byte of the Checksum.')
+    algorithm = fields.Char(
+        'Algorithm', help='The algorithm for the Checksum.')
+
+
 class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
     _history = True
-    creation = fields.One2One(
-        'creation-content', 'content', 'creation', 'Creation',
-        help='The creation of the content.')
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the Content.')
+    name = fields.Char(
+        'File Name', required=True, help='The name of the file.')
+    extension = fields.Function(
+        fields.Char('Extension'), 'on_change_with_extension')
+    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
+    path = fields.Char('Path')
+    preview_path = fields.Char('Preview Path')
+    mime_type = fields.Char('Mime Type', help='The media or content type.')
+    mediation = fields.Boolean('Mediation')
     duplicate_of = fields.Many2One(
         'content', 'Duplicate of',
         domain=[('duplicate_of', '=', None)],
@@ -833,13 +861,20 @@ class Content(ModelSQL, ModelView):
     user = fields.Many2One(
         'res.user', 'User', help='The user which provided the content.',
         required=True)
-    name = fields.Char(
-        'File Name', required=True, help='The name of the file.')
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the Content.')
+    fingerprintlogs = fields.One2Many(
+        'content.fingerprintlog', 'content', 'Fingerprintlogs')
+    checksums = fields.One2Many(
+        'checksum', 'origin', 'Checksums', help='The checksums of the content.')
     archive = fields.Char(
         'Archive', help='The external reference of the archive where the '
         'content is archived.')
+    category = fields.Selection(
+        [
+            ('audio', 'Audio')
+        ], 'Category', required=True, help='The category of content.')
+    creation = fields.One2One(
+        'creation-content', 'content', 'creation', 'Creation',
+        help='The creation of the content.')
     processing_state = fields.Selection(
         [
             ('uploaded', 'Upload finished'),
@@ -872,13 +907,6 @@ class Content(ModelSQL, ModelView):
         ], 'Reason', states={
             'invisible': Eval('processing_state') != 'rejected'
         }, depends=['processing_state'], help='The reason of the rejection.')
-    extension = fields.Function(
-        fields.Char('Extension'), 'on_change_with_extension')
-    mime_type = fields.Char('Mime Type', help='The media or content type.')
-    category = fields.Selection(
-        [
-            ('audio', 'Audio')
-        ], 'Category', required=True, help='The category of content.')
     length = fields.Float(
         'Length', digits=(16, 6),
         help='The length or duration of the audio content in seconds [s].',
@@ -896,12 +924,6 @@ class Content(ModelSQL, ModelView):
         'Sample Width', help='Sample width in Bits.',
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
-    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
-    path = fields.Char('Path')
-    preview_path = fields.Char('Preview Path')
-    fingerprintlogs = fields.One2Many(
-        'content.fingerprintlog', 'content', 'Fingerprintlogs')
-    mediation = fields.Boolean('Mediation')
 
     @classmethod
     def __setup__(cls):
