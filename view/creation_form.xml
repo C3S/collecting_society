@@ -14,6 +14,8 @@
     <newline/>
     <label name="artist"/>
     <field name="artist"/>
+    <label name="default_license"/>
+    <field name="default_license"/>
     <notebook colspan="6">
         <page string="Contributions" id="contributions">
             <field name="contributions" colspan="4"/>

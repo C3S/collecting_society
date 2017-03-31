@@ -447,6 +447,7 @@ class License(ModelSQL, ModelView):
     _history = True
     name = fields.Char('Name', required=True, select=True)
     code = fields.Char('Code', required=True, select=True)
+    freedom_rank = fields.Integer('Freedom Rank')
 
     @classmethod
     def __setup__(cls):
@@ -455,7 +456,7 @@ class License(ModelSQL, ModelView):
             ('code_uniq', 'UNIQUE(code)',
              'The code of the license must be unique.')
         ]
-        cls._order.insert(1, ('name', 'ASC'))
+        cls._order.insert(1, ('freedom_rank', 'ASC'))
 
     @staticmethod
     def order_code(tables):
@@ -501,6 +502,9 @@ class Creation(ModelSQL, ModelView):
     licenses = fields.One2Many(
         'creation.license', 'creation', 'Licenses', states=STATES,
         depends=DEPENDS)
+    default_license = fields.Function(
+        fields.Many2One('license', 'Default License'),
+        'get_default_license', searcher='search_default_license')
     identifiers = fields.One2Many(
         'creation.identification', 'creation', 'Identifiers',
         states=STATES, depends=DEPENDS)
@@ -559,6 +563,17 @@ class Creation(ModelSQL, ModelView):
             else '<unknown artist>',
             self.title if self.title else '<unknown title>')
         return result
+
+    def get_default_license(self, name):
+        default = None
+        for creationlicense in self.licenses:
+            license = creationlicense.license
+            if not default or license.freedom_rank > default.freedom_rank:
+                default = license
+        return default.id
+
+    def search_default_license(self, name):
+        return self.get_default_license(name)
 
     @classmethod
     def create(cls, vlist):
