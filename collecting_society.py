@@ -18,41 +18,51 @@ from trytond.pyson import Eval, Bool, Or, And
 
 
 __all__ = [
-    'Client',
+
+    # Creative
     'Artist',
     'ArtistArtist',
     'ArtistPayeeAcceptance',
-    'Identifier',
-    'Identification',
     'License',
     'Creation',
-    'Content',
-    'Fingerprintlog',
-    'CreationContent',
     'CreationLicense',
-
     'CreationOriginalDerivative',
     'CreationContribution',
-
+    'CreationContent',
     'Label',
     'Release',
     'CreationRelease',
     'Genre',
     'ReleaseGenre',
-
     'CreationRole',
     'ContributionRole',
-    'Distribution',
+
+    # Archive
+    # 'Uuid',
+    'Content',
+
+    # Accounting,
     'Allocation',
     'Utilisation',
-    'Utilisation',
+    'Distribution',
+    'DistributeStart',
+    'Distribute',
+
+    # Events
+    'Client',
+    'Identifier',
+    'Identification',
+    'Fingerprintlog',
+
+    # Adore
     'UtilisationIMP',
     'UtilisationIMPIdentifyStart',
     'UtilisationIMPIdentify',
-    'DistributeStart',
-    'Distribute',
+
+    # Tryton
     'STATES',
     'DEPENDS',
+
 ]
 STATES = {
     'readonly': ~Eval('active'),
@@ -782,6 +792,18 @@ class ContributionRole(ModelSQL):
 ##############################################################################
 
 
+# class Uuid(ModelSQL):
+#     'Uuid'
+#     __name__ = 'uuid'
+#     _history = True
+#     timestamp = fields.DateTime(
+#         'Timestamp', required=True, help='Point in time of Uuid generation.')
+#     algorithm = fields.Char(
+#         'Algorithm', required=True, help='The Uuid generation algorithm.')
+#     code = fields.Text(
+#         'Uuid', required=True, help='The Uuid String.')
+
+
 class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
@@ -811,8 +833,10 @@ class Content(ModelSQL, ModelView):
     user = fields.Many2One(
         'res.user', 'User', help='The user which provided the content.',
         required=True)
-    name = fields.Char('File Name', required=True)
-    uuid = fields.Char('UUID', required=True)
+    name = fields.Char(
+        'File Name', required=True, help='The name of the file.')
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the Content.')
     archive = fields.Char(
         'Archive', help='The external reference of the archive where the '
         'content is archived.')

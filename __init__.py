@@ -35,6 +35,7 @@ def register():
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
+        # Uuid,
         Content,
         Fingerprintlog,
         CreationContent,
