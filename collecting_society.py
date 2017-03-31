@@ -14,7 +14,7 @@ from trytond.wizard import Wizard, StateView, Button, StateTransition
 
 from trytond.transaction import Transaction
 from trytond.pool import Pool
-from trytond.pyson import Eval, Bool, Or
+from trytond.pyson import Eval, Bool, Or, And
 
 
 __all__ = [
@@ -611,6 +611,25 @@ class Content(ModelSQL, ModelView):
     creation = fields.One2One(
         'creation-content', 'content', 'creation', 'Creation',
         help='The creation of the content.')
+    duplicate_of = fields.Many2One(
+        'content', 'Duplicate of',
+        domain=[('duplicate_of', '=', None)],
+        states={
+            'invisible': And(
+                Eval('rejection_reason') != 'checksum_collision',
+                Eval('rejection_reason') != 'fingerprint_collision'
+            )
+        }, depends=['rejection_reason'],
+        help='The original duplicated Content.')
+    duplicates = fields.One2Many(
+        'content', 'duplicate_of', 'Duplicates',
+        domain=[
+            (
+                'rejection_reason', 'in',
+                ['checksum_collision', 'fingerprint_collision']
+            ),
+        ], depends=['rejection_reason'],
+        help='The original duplicated Content.')
     user = fields.Many2One(
         'res.user', 'User', help='The user which provided the content.',
         required=True)

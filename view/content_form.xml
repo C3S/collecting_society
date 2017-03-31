@@ -13,6 +13,8 @@
     <field name="mediation"/>
     <label name="processing_hostname"/>
     <field name="processing_hostname"/>
+    <label name="duplicate_of"/>
+    <field name="duplicate_of"/>
     <newline/>
     <label name="name"/>
     <field name="name"/>
@@ -47,5 +49,12 @@
     <label name="archive"/>
     <field name="archive"/>
 
-    <field name="fingerprintlogs" colspan="19" xexpand="1" xfill="1"/>
+    <notebook colspan="6">
+        <page string="Duplicates" id="duplicates">
+            <field name="duplicates" colspan="4"/>
+        </page>
+        <page string="Fingerprintlogs" id="fingerprintlogs">
+            <field name="fingerprintlogs" colspan="4"/>
+        </page>
+    </notebook>
 </form>
