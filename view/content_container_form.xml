@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Container">
+    <label name="label"/>
+    <field name="label"/>
+    <label name="closed"/>
+    <field name="closed"/>
+    <newline/>
+    <label name="storage"/>
+    <field name="storage"/>
+    <label name="version"/>
+    <field name="version"/>
+    <newline/>
+    <label name="storehouse"/>
+    <field name="storehouse"/>
+    <label name="location"/>
+    <field name="location"/>
+</form>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Filesystems">
+    <field name="uuid_partition"/>
+    <field name="uuid_raid"/>
+    <field name="uuid_raid_sub"/>
+    <field name="uuid_crypto"/>
+    <field name="uuid_lvm"/>
+    <field name="uuid_filesystem"/>
+    <field name="partition_number"/>
+</tree>

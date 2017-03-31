@@ -29,7 +29,9 @@
     <field name="mime_type"/>
     <label name="length"/>
     <field name="length"/>
-
+    <newline/>
+    <label name="archive"/>
+    <field name="archive"/>
     <newline/>
     <label name="channels"/>
     <field name="channels"/>

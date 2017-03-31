@@ -38,6 +38,14 @@ __all__ = [
     'ContributionRole',
 
     # Archive
+    'ContainerLabel',
+    'ArchiveLabel',
+    'Container',
+    'Archive',
+    'Storehouse',
+    'Harddisk',
+    'Filesystem',
+    'HarddiskTest',
     # 'Uuid',
     'Checksum',
     'Content',
@@ -793,6 +801,271 @@ class ContributionRole(ModelSQL):
 ##############################################################################
 
 
+class ContainerLabel(ModelSQL, ModelView):
+    'Container Label'
+    __name__ = 'container.label'
+    _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Containers.')
+    containers = fields.One2Many(
+        'container', 'label', 'Container',
+        help='The Containers with this Label.')
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.container_label_sequence.id)
+        return super(ContainerLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, creations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(ContainerLabel, cls).copy(creations, default=default)
+
+
+class ArchiveLabel(ModelSQL, ModelView):
+    'Archive Label'
+    __name__ = 'archive.label'
+    _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Archives.')
+    archives = fields.One2Many(
+        'archive', 'label', 'Archives',
+        help="The Archives with this Label.")
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.archive_label_sequence.id)
+        return super(ArchiveLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, creations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(ArchiveLabel, cls).copy(creations, default=default)
+
+
+class Container(ModelSQL, ModelView):
+    'Container'
+    __name__ = 'container'
+    _history = True
+    label = fields.Many2One(
+        'container.label', 'Label', required=True,
+        help='The Label of the Container.')
+    storehouse = fields.Many2One(
+        'storehouse', 'Storehouse', required=True,
+        help='The Storehouse of the Container.')
+    storage = fields.Reference(
+        'Storage', [('harddisk', 'Harddisk')], required=True,
+        help='The physical realization of the Container.')
+    version = fields.Integer(
+        'Version', required=True,
+        help='The version of the Container Label.')
+    location = fields.Char(
+        'Location', help='The local position of the Container.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Container.')
+
+
+class Archive(ModelSQL, ModelView):
+    'Archive'
+    __name__ = 'archive'
+    _history = True
+    label = fields.Many2One(
+        'archive.label', 'Label', required=True,
+        help='The Label of the Archive.')
+    storage = fields.Reference(
+        'Storage', [('harddisk.filesystem', 'Filesystem')], required=True,
+        help='The physical realization of the Archive.')
+    contents = fields.One2Many(
+        'content', 'archive', 'Contents', help='The Contents of the Archive.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Archive.')
+
+
+class Storehouse(ModelSQL, ModelView):
+    'Storehouse'
+    __name__ = 'storehouse'
+    _history = True
+    code = fields.Char(
+        'Code', required=True,
+        help='The Code of the Storehouse.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user of the Storehouse.')
+    containers = fields.One2Many(
+        'container', 'storehouse', 'Containers',
+        help='The containers in the Storehouse.')
+
+
+class Harddisk(ModelSQL, ModelView):
+    'Harddisk'
+    __name__ = 'harddisk'
+    _history = True
+    container = fields.Function(
+        fields.Many2One('container', 'Container'), 'get_container')
+    raid_type = fields.Char(
+        'Raid Type', required=True,
+        help='The type of the Raid.')
+    raid_number = fields.Char(
+        'Raid Number', required=True,
+        help='The current number of the harddisk in the Raid.')
+    raid_total = fields.Char(
+        'Raid Total', required=True,
+        help='The total number of harddisks in the Raid.')
+    filesystems = fields.One2Many(
+        'harddisk.filesystem', 'harddisk', 'Filesystems',
+        help='The Filesystems on the Harddisk.')
+    uuid_host = fields.Char(
+        'Uuid Host', required=True, help='The uuid of the Host.')
+    uuid_harddisk = fields.Char(
+        'Uuid Harddisk', required=True, help='The uuid of the Harddisk.')
+    checksum_harddisk = fields.Many2One(
+        'checksum', 'Checksum Harddisk',
+        help='The Checksum of the Harddisk.')
+    tests = fields.One2Many(
+        'harddisk.test', 'harddisk', 'Integrity Tests',
+        help='The integrity tests of the Harddisk.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user of the Storehouse.')
+    online = fields.Boolean(
+        'Online', help='The online status of the harddisk.')
+    state = fields.Selection(
+        [
+            ('setup', 'Setup'),
+            ('in_use', 'In Use'),
+            ('out_of_order', 'Out of Order'),
+        ], 'State', required=True, sort=False,
+        help='The usage state of the Harddisk.')
+    # closed = fields.Function(container.closed)
+    # status = fields.Function(status of last harddisk test)
+    # sticker_text = fields.Function(text of sticker)
+    # sticker_pdf = fields.Function(pdf of sticker)
+
+    def get_container(self, name):
+        Container = Pool().get('container')
+        container = Container.search(
+            [('storage', '=', 'harddisk,%s' % self.id)], limit=1)
+        if not container:
+            return None
+        return container[0].id
+
+
+class Filesystem(ModelSQL, ModelView):
+    'Filesystem'
+    __name__ = 'harddisk.filesystem'
+    _history = True
+    archive = fields.Function(
+        fields.Many2One('archive', 'Archive'), 'get_archive')
+    harddisk = fields.Many2One(
+        'harddisk', 'Harddisk', required=True,
+        help='The Harddisk on which the filesystem resides.')
+    uuid_partition = fields.Char(
+        'Uuid Partition', required=True, help='The uuid of the Partition.')
+    uuid_raid = fields.Char(
+        'Uuid Raid', required=True, help='The uuid of the Raid.')
+    uuid_raid_sub = fields.Char(
+        'Uuid Raid Sub', required=True, help='The uuid of the Raid Sub.')
+    uuid_crypto = fields.Char(
+        'Uuid Crypto', required=True, help='The uuid of the Crypto.')
+    uuid_lvm = fields.Char(
+        'Uuid Lvm', required=True, help='The uuid of the Lvm.')
+    uuid_filesystem = fields.Char(
+        'Uuid Filesystem', required=True, help='The uuid of the Filesystem.')
+    checksum_partition = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Partition.')
+    checksum_raid = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Raid.')
+    checksum_raid_sub = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Raid Sub.')
+    checksum_crypto = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Crypto.')
+    checksum_lvm = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Lvm.')
+    checksum_filesystem = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Filesystem.')
+    partition_number = fields.Integer(
+        'Partition Number', required=True,
+        help='The number of the partition on the Harddisk.')
+    # closed = fields.Function(archive.closed)
+
+    def get_container(self, name):
+        Archive = Pool().get('archive')
+        archive = Archive.search(
+            [('storage', '=', 'archive,%s' % self.id)], limit=1)
+        if not archive:
+            return None
+        return archive[0].id
+
+
+class HarddiskTest(ModelSQL, ModelView):
+    'Harddisk Test'
+    __name__ = 'harddisk.test'
+    _history = True
+    harddisk = fields.Many2One(
+        'harddisk', 'Harddisk', required=True,
+        help='The harddisk which was tested.')
+    user = user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user which executed the Test.')
+    timestamp = fields.DateTime(
+        'Timestamp', required=True,
+        help='The point in time of the Test.')
+    status = fields.Selection(
+        [
+            ('sane', 'Sane'),
+            ('error_harddisk', 'Harddisk Error'),
+            ('error_partition', 'Partition Error'),
+            ('error_raid', 'Raid Error'),
+            ('error_raid_sub', 'Raid Sub Error'),
+            ('error_crypto', 'Crypto Error'),
+            ('error_lvm', 'Lvm Error'),
+            ('error_filesystem', 'Filesystem Error'),
+        ], 'State', required=True, sort=False,
+        help='The usage state of the Harddisk.')
+
+
 # class Uuid(ModelSQL):
 #     'Uuid'
 #     __name__ = 'uuid'
@@ -810,7 +1083,10 @@ class Checksum(ModelSQL, ModelView):
     __name__ = 'checksum'
     _history = True
     origin = fields.Reference(
-        'Origin', [('content', 'Content')],
+        'Origin', [
+            ('content', 'Content'),
+            ('harddisk', 'Harddisk')
+        ],
         help='The originating data of the checksum')
     code = fields.Char(
         'Checksum', help='The string of the Checksum.')
@@ -859,15 +1135,15 @@ class Content(ModelSQL, ModelView):
         ], depends=['rejection_reason'],
         help='The original duplicated Content.')
     user = fields.Many2One(
-        'res.user', 'User', help='The user which provided the content.',
-        required=True)
+        'res.user', 'User', required=True,
+        help='The user which provided the content.')
     fingerprintlogs = fields.One2Many(
         'content.fingerprintlog', 'content', 'Fingerprintlogs')
     checksums = fields.One2Many(
-        'checksum', 'origin', 'Checksums', help='The checksums of the content.')
-    archive = fields.Char(
-        'Archive', help='The external reference of the archive where the '
-        'content is archived.')
+        'checksum', 'origin', 'Checksums',
+        help='The checksums of the content.')
+    archive = fields.Many2One(
+        'archive', 'Archive', help='The Archive of the Content.')
     category = fields.Selection(
         [
             ('audio', 'Audio')
@@ -1047,10 +1323,12 @@ class Fingerprintlog(ModelSQL, ModelView):
     'Fingerprintlog'
     __name__ = 'content.fingerprintlog'
     _history = True
-    content = fields.Many2One('content', 'Content', required=True)
+    content = fields.Many2One(
+        'content', 'Content', required=True,
+        help='The fingerprinted content.')
     user = fields.Many2One(
-        'res.user', 'User', help='The user which fingerprinted the content.',
-        required=True)
+        'res.user', 'User', required=True,
+        help='The user which fingerprinted the content.')
     timestamp = fields.DateTime(
         'Timestamp', required=True, select=True,
         help='Point in time of fingerprinting')
@@ -1058,8 +1336,8 @@ class Fingerprintlog(ModelSQL, ModelView):
         'Algorithm', required=True,
         help='Fingerprinting mechanism of the content, e.g. echoprint')
     fingerprinting_version = fields.Char(
-        'Version', required=True, help='Fingerprinting algorithm version '
-        'of the content')
+        'Version', required=True,
+        help='Fingerprinting algorithm version of the content')
 
 
 ##############################################################################

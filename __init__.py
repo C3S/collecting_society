@@ -35,9 +35,20 @@ def register():
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
-        # Uuid,
+
+        # Archive
         Checksum,
+        # 'Uuid',
+        Storehouse,
+        ContainerLabel,
+        ArchiveLabel,
+        Container,
+        Archive,
+        Harddisk,
+        Filesystem,
+        HarddiskTest,
         Content,
+
         Fingerprintlog,
         CreationContent,
         Label,

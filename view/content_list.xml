@@ -22,5 +22,6 @@
         <suffix string="Bit" name="sample_width"/>
     </field>
     <field name="fingerprintlogs"/>
+    <field name="archive"/>
     <field name="mediation"/>
 </tree>
