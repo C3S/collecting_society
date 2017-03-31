@@ -1089,15 +1089,16 @@ class Checksum(ModelSQL, ModelView):
         ],
         help='The originating data of the checksum')
     code = fields.Char(
-        'Checksum', help='The string of the Checksum.')
+        'Checksum', required=True, help='The string of the Checksum.')
     timestamp = fields.DateTime(
-        'Timestamp', help='The point in time of the Checksum.')
+        'Timestamp', required=True, help='The point in time of the Checksum.')
+    algorithm = fields.Char(
+        'Algorithm', required=True, help='The algorithm for the Checksum.')
     begin = fields.Integer(
         'Begin', help='The position of the first byte of the Checksum.')
     end = fields.Integer(
         'End', help='The position of the last byte of the Checksum.')
-    algorithm = fields.Char(
-        'Algorithm', help='The algorithm for the Checksum.')
+    
 
 
 class Content(ModelSQL, ModelView):
