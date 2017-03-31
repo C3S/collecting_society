@@ -9,6 +9,13 @@
     <label name="rejection_reason"/>
     <field name="rejection_reason"/>
     <newline/>
+    <label name="mediation"/>
+    <field name="mediation"/>
+    <label name="processing_hostname"/>
+    <field name="processing_hostname"/>
+    <label name="duplicate_of"/>
+    <field name="duplicate_of"/>
+    <newline/>
     <label name="name"/>
     <field name="name"/>
     <label name="extension"/>
@@ -22,7 +29,9 @@
     <field name="mime_type"/>
     <label name="length"/>
     <field name="length"/>
-
+    <newline/>
+    <label name="archive"/>
+    <field name="archive"/>
     <newline/>
     <label name="channels"/>
     <field name="channels"/>
@@ -42,5 +51,15 @@
     <label name="archive"/>
     <field name="archive"/>
 
-    <field name="fingerprintlogs" colspan="19" xexpand="1" xfill="1"/>
+    <notebook colspan="6">
+        <page string="Duplicates" id="duplicates">
+            <field name="duplicates" colspan="4"/>
+        </page>
+        <page string="Checksums" id="checksums">
+            <field name="checksums" colspan="4"/>
+        </page>
+        <page string="Fingerprintlogs" id="fingerprintlogs">
+            <field name="fingerprintlogs" colspan="4"/>
+        </page>
+    </notebook>
 </form>

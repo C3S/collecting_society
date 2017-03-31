@@ -14,45 +14,64 @@ from trytond.wizard import Wizard, StateView, Button, StateTransition
 
 from trytond.transaction import Transaction
 from trytond.pool import Pool
-from trytond.pyson import Eval, Bool, Or
+from trytond.pyson import Eval, Bool, Or, And
 
 
 __all__ = [
-    'Client',
+
+    # Creative
     'Artist',
     'ArtistArtist',
     'ArtistPayeeAcceptance',
-    'Identifier',
-    'Identification',
     'License',
     'Creation',
-    'Content',
-    'Fingerprintlog',
-    'CreationContent',
     'CreationLicense',
-
     'CreationOriginalDerivative',
     'CreationContribution',
-
+    'CreationContent',
     'Label',
     'Release',
     'CreationRelease',
     'Genre',
     'ReleaseGenre',
-
     'CreationRole',
     'ContributionRole',
-    'Distribution',
+
+    # Archive
+    'ContainerLabel',
+    'ArchiveLabel',
+    'Container',
+    'Archive',
+    'Storehouse',
+    'Harddisk',
+    'Filesystem',
+    'HarddiskTest',
+    # 'Uuid',
+    'Checksum',
+    'Content',
+
+    # Accounting,
     'Allocation',
     'Utilisation',
-    'Utilisation',
+    'Distribution',
+    'DistributeStart',
+    'Distribute',
+
+    # Events
+    'Client',
+    'Identifier',
+    'Identification',
+    'Fingerprintlog',
+
+    # Adore
     'UtilisationIMP',
     'UtilisationIMPIdentifyStart',
     'UtilisationIMPIdentify',
-    'DistributeStart',
-    'Distribute',
+
+    # Tryton
     'STATES',
     'DEPENDS',
+
 ]
 STATES = {
     'readonly': ~Eval('active'),
@@ -61,45 +80,9 @@ DEPENDS = ['active']
 SEPARATOR = u' /25B6 '
 
 
-class Client(ModelSQL, ModelView):
-    'Client'
-    __name__ = 'client'
-    _history = True
-    _rec_name = 'uuid'
-    web_user = fields.Many2One('web.user', 'Web User', required=True)
-    uuid = fields.Char(
-        'UUID', required=True, help='The universally unique identifier '
-        'of the client used by a web user')
-    player_name = fields.Char(
-        'Player Name', required=True,
-        help='Name of the media player used by the client')
-    player_version = fields.Char(
-        'Player Version',
-        help='Version of the client media player used by the client')
-    plugin_name = fields.Char(
-        'Plugin Name', help='Name of the plugin used by the media player')
-    plugin_version = fields.Char(
-        'Plugin Version', help='The version of the plugin used '
-        'by the media player')
-    plugin_vendor = fields.Char(
-        'Plugin Vendor', help='Vendor of the plugin used by the media player')
-    active = fields.Boolean('Active')
-
-    @staticmethod
-    def default_active():
-        return True
-
-    @classmethod
-    def __setup__(cls):
-        super(Client, cls).__setup__()
-        cls._sql_constraints += [
-            ('uuid_uniq', 'UNIQUE(uuid)',
-                'The UUID of the client must be unique.'),
-        ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
+##############################################################################
+# Creative
+##############################################################################
 
 
 class Artist(ModelSQL, ModelView):
@@ -414,39 +397,13 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class Identifier(ModelSQL, ModelView):
-    'Identifier'
-    __name__ = 'creation.identification.identifier'
-    _history = True
-    _rec_name = 'identifier'
-    identification = fields.Many2One(
-        'creation.identification', 'Identification',
-        help='The identification of a creation for this identifier')
-    identifier = fields.Text('Identifier')
-
-
-class Identification(ModelSQL, ModelView):
-    'Identification'
-    __name__ = 'creation.identification'
-    _history = True
-    identifiers = fields.One2Many(
-        'creation.identification.identifier', 'identification', 'Identifiers',
-        help='The identifiers of the creation')
-    creation = fields.Many2One(
-        'creation', 'Creation', help='The creation identified by '
-        'the identifiers')
-    id3 = fields.Text('ID3', help='ID3 tag')
-
-    def get_rec_name(self, name):
-        return (self.creation.title if self.creation else 'unknown')
-
-
 class License(ModelSQL, ModelView):
     'License'
     __name__ = 'license'
     _history = True
     name = fields.Char('Name', required=True, select=True)
     code = fields.Char('Code', required=True, select=True)
+    freedom_rank = fields.Integer('Freedom Rank')
 
     @classmethod
     def __setup__(cls):
@@ -455,7 +412,7 @@ class License(ModelSQL, ModelView):
             ('code_uniq', 'UNIQUE(code)',
              'The code of the license must be unique.')
         ]
-        cls._order.insert(1, ('name', 'ASC'))
+        cls._order.insert(1, ('freedom_rank', 'ASC'))
 
     @staticmethod
     def order_code(tables):
@@ -501,6 +458,9 @@ class Creation(ModelSQL, ModelView):
     licenses = fields.One2Many(
         'creation.license', 'creation', 'Licenses', states=STATES,
         depends=DEPENDS)
+    default_license = fields.Function(
+        fields.Many2One('license', 'Default License'),
+        'get_default_license', searcher='search_default_license')
     identifiers = fields.One2Many(
         'creation.identification', 'creation', 'Identifiers',
         states=STATES, depends=DEPENDS)
@@ -560,6 +520,17 @@ class Creation(ModelSQL, ModelView):
             self.title if self.title else '<unknown title>')
         return result
 
+    def get_default_license(self, name):
+        default = None
+        for creationlicense in self.licenses:
+            license = creationlicense.license
+            if not default or license.freedom_rank > default.freedom_rank:
+                default = license
+        return default.id
+
+    def search_default_license(self, name):
+        return self.get_default_license(name)
+
     @classmethod
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
@@ -589,134 +560,12 @@ class Creation(ModelSQL, ModelView):
         ]
 
 
-class Content(ModelSQL, ModelView):
-    'Content'
-    __name__ = 'content'
+class CreationLicense(ModelSQL, ModelView):
+    'Creation - License'
+    __name__ = 'creation.license'
     _history = True
-    creation = fields.One2One(
-        'creation-content', 'content', 'creation', 'Creation',
-        help='The creation of the content.')
-    user = fields.Many2One(
-        'res.user', 'User', help='The user which provided the content.',
-        required=True)
-    name = fields.Char('File Name', required=True)
-    uuid = fields.Char('UUID', required=True)
-    archive = fields.Char(
-        'Archive', help='The external reference of the archive where the '
-        'content is archived.')
-    processing_state = fields.Selection(
-        [
-            ('uploaded', 'Upload finished'),
-            ('previewed', 'Preview created'),
-            ('checksummed', 'Checksum created'),
-            ('fingerprinted', 'Fingerprint created'),
-            ('dropped', 'Dropped'),
-            ('archived', 'Archived'),
-            ('deleted', 'Deleted'),
-            ('rejected', 'Rejected'),
-            ('unkown', 'Unknown'),
-        ], 'State', required=True, help='The processing state of the content.')
-    rejection_reason = fields.Selection(
-        [
-            (None, ''),
-            ('checksum_collision', 'Duplicate Checksum'),
-            ('fingerprint_collision', 'Duplicate Fingerprint'),
-            ('format_error', 'Format Error'),
-        ], 'Reason', states={
-            'invisible': Eval('processing_state') != 'rejected'
-        }, depends=['processing_state'], help='The reason of the rejection.')
-    extension = fields.Function(
-        fields.Char('Extension'), 'on_change_with_extension')
-    mime_type = fields.Char('Mime Type', help='The media or content type.')
-    category = fields.Selection(
-        [
-            ('audio', 'Audio')
-        ], 'Category', required=True, help='The category of content.')
-    length = fields.Float(
-        'Length', digits=(16, 6),
-        help='The length or duration of the audio content in seconds [s].',
-        states={'invisible': Eval('category') != 'audio'},
-        depends=['category'])
-    channels = fields.Integer(
-        'Channels', help='The number of sound channels.',
-        states={'invisible': Eval('category') != 'audio'},
-        depends=['category'])
-    sample_rate = fields.Integer(
-        'Sample Rate', help='Sample rate in Hertz [Hz][1/s].',
-        states={'invisible': Eval('category') != 'audio'},
-        depends=['category'])
-    sample_width = fields.Integer(
-        'Sample Width', help='Sample width in Bits.',
-        states={'invisible': Eval('category') != 'audio'},
-        depends=['category'])
-    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
-    path = fields.Char('Path')
-    preview_path = fields.Char('Preview Path')
-    fingerprintlogs = fields.One2Many(
-        'content.fingerprintlog', 'content', 'Fingerprintlogs')
-
-    @classmethod
-    def __setup__(cls):
-        super(Content, cls).__setup__()
-        cls._order.insert(1, ('name', 'ASC'))
-        cls._sql_constraints += [
-            ('uuid_uniq', 'UNIQUE(uuid)',
-                'The UUID of the content must be unique.'),
-        ]
-
-    @staticmethod
-    def default_category():
-        return 'audio'
-
-    @fields.depends('name')
-    def on_change_with_extension(self, name=None):
-        return os.path.splitext(self.name)[1].lstrip('.')
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
-
-    def get_rec_name(self, name):
-        result = '%s: %s %s %s %sHz %sBit' % (
-            self.name,
-            hurry.filesize.size(self.size, system=hurry.filesize.si)
-            if self.size else '0M',
-            (
-                "{:.0f}:{:02.0f}".format(*divmod(self.length, 60))
-                if self.length else '00:00'
-            ),
-            (
-                'none' if self.channels in (None, 0) else
-                'mono' if self.channels == 1 else
-                'stereo' if self.channels == 2 else
-                'multi'
-            ),
-            self.sample_rate if self.sample_rate else '0',
-            self.sample_width if self.sample_width else '0',
-        )
-        return result
-
-
-class Fingerprintlog(ModelSQL, ModelView):
-    'Fingerprintlog'
-    __name__ = 'content.fingerprintlog'
-    _history = True
-    content = fields.Many2One('content', 'Content', required=True)
-    user = fields.Many2One(
-        'res.user', 'User', help='The user which fingerprinted the content.',
-        required=True)
-    timestamp = fields.DateTime(
-        'Timestamp', required=True, select=True,
-        help='Point in time of fingerprinting')
-    fingerprinting_algorithm = fields.Char(
-        'Algorithm', required=True,
-        help='Fingerprinting mechanism of the content, e.g. echoprint')
-    fingerprinting_version = fields.Char(
-        'Version', required=True, help='Fingerprinting algorithm version '
-        'of the content')
+    creation = fields.Many2One('creation', 'Creation', required=True)
+    license = fields.Many2One('license', 'License', required=True)
 
 
 class CreationContent(ModelSQL, ModelView):
@@ -741,14 +590,6 @@ class CreationContent(ModelSQL, ModelView):
                 'A content can only be linked to one and only one creation.\n'
                 'The used content is already linked to another creation.'),
         ]
-
-
-class CreationLicense(ModelSQL, ModelView):
-    'Creation - License'
-    __name__ = 'creation.license'
-    _history = True
-    creation = fields.Many2One('creation', 'Creation', required=True)
-    license = fields.Many2One('license', 'License', required=True)
 
 
 class Label(ModelSQL, ModelView):
@@ -955,6 +796,555 @@ class ContributionRole(ModelSQL):
     role = fields.Many2One('creation.role', 'Role', required=True, select=True)
 
 
+##############################################################################
+# Archive
+##############################################################################
+
+
+class ContainerLabel(ModelSQL, ModelView):
+    'Container Label'
+    __name__ = 'container.label'
+    _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Containers.')
+    containers = fields.One2Many(
+        'container', 'label', 'Container',
+        help='The Containers with this Label.')
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.container_label_sequence.id)
+        return super(ContainerLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, creations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(ContainerLabel, cls).copy(creations, default=default)
+
+
+class ArchiveLabel(ModelSQL, ModelView):
+    'Archive Label'
+    __name__ = 'archive.label'
+    _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Archives.')
+    archives = fields.One2Many(
+        'archive', 'label', 'Archives',
+        help="The Archives with this Label.")
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.archive_label_sequence.id)
+        return super(ArchiveLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, creations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(ArchiveLabel, cls).copy(creations, default=default)
+
+
+class Container(ModelSQL, ModelView):
+    'Container'
+    __name__ = 'container'
+    _history = True
+    label = fields.Many2One(
+        'container.label', 'Label', required=True,
+        help='The Label of the Container.')
+    storehouse = fields.Many2One(
+        'storehouse', 'Storehouse', required=True,
+        help='The Storehouse of the Container.')
+    storage = fields.Reference(
+        'Storage', [('harddisk', 'Harddisk')], required=True,
+        help='The physical realization of the Container.')
+    version = fields.Integer(
+        'Version', required=True,
+        help='The version of the Container Label.')
+    location = fields.Char(
+        'Location', help='The local position of the Container.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Container.')
+
+
+class Archive(ModelSQL, ModelView):
+    'Archive'
+    __name__ = 'archive'
+    _history = True
+    label = fields.Many2One(
+        'archive.label', 'Label', required=True,
+        help='The Label of the Archive.')
+    storage = fields.Reference(
+        'Storage', [('harddisk.filesystem', 'Filesystem')], required=True,
+        help='The physical realization of the Archive.')
+    contents = fields.One2Many(
+        'content', 'archive', 'Contents', help='The Contents of the Archive.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Archive.')
+
+
+class Storehouse(ModelSQL, ModelView):
+    'Storehouse'
+    __name__ = 'storehouse'
+    _history = True
+    code = fields.Char(
+        'Code', required=True,
+        help='The Code of the Storehouse.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user of the Storehouse.')
+    containers = fields.One2Many(
+        'container', 'storehouse', 'Containers',
+        help='The containers in the Storehouse.')
+
+
+class Harddisk(ModelSQL, ModelView):
+    'Harddisk'
+    __name__ = 'harddisk'
+    _history = True
+    container = fields.Function(
+        fields.Many2One('container', 'Container'), 'get_container')
+    raid_type = fields.Char(
+        'Raid Type', required=True,
+        help='The type of the Raid.')
+    raid_number = fields.Char(
+        'Raid Number', required=True,
+        help='The current number of the harddisk in the Raid.')
+    raid_total = fields.Char(
+        'Raid Total', required=True,
+        help='The total number of harddisks in the Raid.')
+    filesystems = fields.One2Many(
+        'harddisk.filesystem', 'harddisk', 'Filesystems',
+        help='The Filesystems on the Harddisk.')
+    uuid_host = fields.Char(
+        'Uuid Host', required=True, help='The uuid of the Host.')
+    uuid_harddisk = fields.Char(
+        'Uuid Harddisk', required=True, help='The uuid of the Harddisk.')
+    checksum_harddisk = fields.Many2One(
+        'checksum', 'Checksum Harddisk',
+        help='The Checksum of the Harddisk.')
+    tests = fields.One2Many(
+        'harddisk.test', 'harddisk', 'Integrity Tests',
+        help='The integrity tests of the Harddisk.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user of the Storehouse.')
+    online = fields.Boolean(
+        'Online', help='The online status of the harddisk.')
+    state = fields.Selection(
+        [
+            ('setup', 'Setup'),
+            ('in_use', 'In Use'),
+            ('out_of_order', 'Out of Order'),
+        ], 'State', required=True, sort=False,
+        help='The usage state of the Harddisk.')
+    # closed = fields.Function(container.closed)
+    # status = fields.Function(status of last harddisk test)
+    # sticker_text = fields.Function(text of sticker)
+    # sticker_pdf = fields.Function(pdf of sticker)
+
+    def get_container(self, name):
+        Container = Pool().get('container')
+        container = Container.search(
+            [('storage', '=', 'harddisk,%s' % self.id)], limit=1)
+        if not container:
+            return None
+        return container[0].id
+
+
+class Filesystem(ModelSQL, ModelView):
+    'Filesystem'
+    __name__ = 'harddisk.filesystem'
+    _history = True
+    archive = fields.Function(
+        fields.Many2One('archive', 'Archive'), 'get_archive')
+    harddisk = fields.Many2One(
+        'harddisk', 'Harddisk', required=True,
+        help='The Harddisk on which the filesystem resides.')
+    uuid_partition = fields.Char(
+        'Uuid Partition', required=True, help='The uuid of the Partition.')
+    uuid_raid = fields.Char(
+        'Uuid Raid', required=True, help='The uuid of the Raid.')
+    uuid_raid_sub = fields.Char(
+        'Uuid Raid Sub', required=True, help='The uuid of the Raid Sub.')
+    uuid_crypto = fields.Char(
+        'Uuid Crypto', required=True, help='The uuid of the Crypto.')
+    uuid_lvm = fields.Char(
+        'Uuid Lvm', required=True, help='The uuid of the Lvm.')
+    uuid_filesystem = fields.Char(
+        'Uuid Filesystem', required=True, help='The uuid of the Filesystem.')
+    checksum_partition = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Partition.')
+    checksum_raid = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Raid.')
+    checksum_raid_sub = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Raid Sub.')
+    checksum_crypto = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Crypto.')
+    checksum_lvm = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Lvm.')
+    checksum_filesystem = fields.Many2One(
+        'checksum', 'Checksum',
+        help='The Checksum of the Filesystem.')
+    partition_number = fields.Integer(
+        'Partition Number', required=True,
+        help='The number of the partition on the Harddisk.')
+    # closed = fields.Function(archive.closed)
+
+    def get_container(self, name):
+        Archive = Pool().get('archive')
+        archive = Archive.search(
+            [('storage', '=', 'archive,%s' % self.id)], limit=1)
+        if not archive:
+            return None
+        return archive[0].id
+
+
+class HarddiskTest(ModelSQL, ModelView):
+    'Harddisk Test'
+    __name__ = 'harddisk.test'
+    _history = True
+    harddisk = fields.Many2One(
+        'harddisk', 'Harddisk', required=True,
+        help='The harddisk which was tested.')
+    user = user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The admin user which executed the Test.')
+    timestamp = fields.DateTime(
+        'Timestamp', required=True,
+        help='The point in time of the Test.')
+    status = fields.Selection(
+        [
+            ('sane', 'Sane'),
+            ('error_harddisk', 'Harddisk Error'),
+            ('error_partition', 'Partition Error'),
+            ('error_raid', 'Raid Error'),
+            ('error_raid_sub', 'Raid Sub Error'),
+            ('error_crypto', 'Crypto Error'),
+            ('error_lvm', 'Lvm Error'),
+            ('error_filesystem', 'Filesystem Error'),
+        ], 'State', required=True, sort=False,
+        help='The usage state of the Harddisk.')
+
+
+# class Uuid(ModelSQL):
+#     'Uuid'
+#     __name__ = 'uuid'
+#     _history = True
+#     timestamp = fields.DateTime(
+#         'Timestamp', required=True, help='Point in time of Uuid generation.')
+#     algorithm = fields.Char(
+#         'Algorithm', required=True, help='The Uuid generation algorithm.')
+#     code = fields.Text(
+#         'Uuid', required=True, help='The Uuid String.')
+
+
+class Checksum(ModelSQL, ModelView):
+    'Checksum'
+    __name__ = 'checksum'
+    _history = True
+    origin = fields.Reference(
+        'Origin', [
+            ('content', 'Content'),
+            ('harddisk', 'Harddisk')
+        ],
+        help='The originating data of the checksum')
+    code = fields.Char(
+        'Checksum', help='The string of the Checksum.')
+    timestamp = fields.DateTime(
+        'Timestamp', help='The point in time of the Checksum.')
+    begin = fields.Integer(
+        'Begin', help='The position of the first byte of the Checksum.')
+    end = fields.Integer(
+        'End', help='The position of the last byte of the Checksum.')
+    algorithm = fields.Char(
+        'Algorithm', help='The algorithm for the Checksum.')
+
+
+class Content(ModelSQL, ModelView):
+    'Content'
+    __name__ = 'content'
+    _history = True
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the Content.')
+    name = fields.Char(
+        'File Name', required=True, help='The name of the file.')
+    extension = fields.Function(
+        fields.Char('Extension'), 'on_change_with_extension')
+    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
+    path = fields.Char('Path')
+    preview_path = fields.Char('Preview Path')
+    mime_type = fields.Char('Mime Type', help='The media or content type.')
+    mediation = fields.Boolean('Mediation')
+    duplicate_of = fields.Many2One(
+        'content', 'Duplicate of',
+        domain=[('duplicate_of', '=', None)],
+        states={
+            'invisible': And(
+                Eval('rejection_reason') != 'checksum_collision',
+                Eval('rejection_reason') != 'fingerprint_collision'
+            )
+        }, depends=['rejection_reason'],
+        help='The original duplicated Content.')
+    duplicates = fields.One2Many(
+        'content', 'duplicate_of', 'Duplicates',
+        domain=[
+            (
+                'rejection_reason', 'in',
+                ['checksum_collision', 'fingerprint_collision']
+            ),
+        ], depends=['rejection_reason'],
+        help='The original duplicated Content.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The user which provided the content.')
+    fingerprintlogs = fields.One2Many(
+        'content.fingerprintlog', 'content', 'Fingerprintlogs')
+    checksums = fields.One2Many(
+        'checksum', 'origin', 'Checksums',
+        help='The checksums of the content.')
+    archive = fields.Many2One(
+        'archive', 'Archive', help='The Archive of the Content.')
+    category = fields.Selection(
+        [
+            ('audio', 'Audio')
+        ], 'Category', required=True, help='The category of content.')
+    creation = fields.One2One(
+        'creation-content', 'content', 'creation', 'Creation',
+        help='The creation of the content.')
+    processing_state = fields.Selection(
+        [
+            ('uploaded', 'Upload finished'),
+            ('previewed', 'Preview created'),
+            ('checksummed', 'Checksum created'),
+            ('fingerprinted', 'Fingerprint created'),
+            ('dropped', 'Dropped'),
+            ('archived', 'Archived'),
+            ('deleted', 'Deleted'),
+            ('rejected', 'Rejected'),
+            ('unknown', 'Unknown'),
+        ], 'State', required=True, help='The processing state of the content.')
+    processing_hostname = fields.Char(
+        'Processer', states={
+            'invisible': Or(
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived',
+                Eval('processing_state') == 'unknown'
+            )
+        }, depends=['processing_state'],
+        help='The hostname of the processing machine.')
+    rejection_reason = fields.Selection(
+        [
+            (None, ''),
+            ('checksum_collision', 'Duplicate Checksum'),
+            ('fingerprint_collision', 'Duplicate Fingerprint'),
+            ('format_error', 'Format Error'),
+            ('no_fingerprint', 'No Fingerprint'),
+            ('lossy_compression', 'Lossy Compression'),
+        ], 'Reason', states={
+            'invisible': Eval('processing_state') != 'rejected'
+        }, depends=['processing_state'], help='The reason of the rejection.')
+    length = fields.Float(
+        'Length', digits=(16, 6),
+        help='The length or duration of the audio content in seconds [s].',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    channels = fields.Integer(
+        'Channels', help='The number of sound channels.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    sample_rate = fields.Integer(
+        'Sample Rate', help='Sample rate in Hertz [Hz][1/s].',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+    sample_width = fields.Integer(
+        'Sample Width', help='Sample width in Bits.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+
+    @classmethod
+    def __setup__(cls):
+        super(Content, cls).__setup__()
+        cls._order.insert(1, ('name', 'ASC'))
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the content must be unique.'),
+        ]
+
+    @staticmethod
+    def default_category():
+        return 'audio'
+
+    @fields.depends('name')
+    def on_change_with_extension(self, name=None):
+        return os.path.splitext(self.name)[1].lstrip('.')
+
+    def get_currency_digits(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency.digits
+        return 2
+
+    def get_rec_name(self, name):
+        result = '%s: %s %s %s %sHz %sBit' % (
+            self.name,
+            hurry.filesize.size(self.size, system=hurry.filesize.si)
+            if self.size else '0M',
+            (
+                "{:.0f}:{:02.0f}".format(*divmod(self.length, 60))
+                if self.length else '00:00'
+            ),
+            (
+                'none' if self.channels in (None, 0) else
+                'mono' if self.channels == 1 else
+                'stereo' if self.channels == 2 else
+                'multi'
+            ),
+            self.sample_rate if self.sample_rate else '0',
+            self.sample_width if self.sample_width else '0',
+        )
+        return result
+
+
+##############################################################################
+# Events
+##############################################################################
+
+
+class Client(ModelSQL, ModelView):
+    'Client'
+    __name__ = 'client'
+    _history = True
+    _rec_name = 'uuid'
+    web_user = fields.Many2One('web.user', 'Web User', required=True)
+    uuid = fields.Char(
+        'UUID', required=True, help='The universally unique identifier '
+        'of the client used by a web user')
+    player_name = fields.Char(
+        'Player Name', required=True,
+        help='Name of the media player used by the client')
+    player_version = fields.Char(
+        'Player Version',
+        help='Version of the client media player used by the client')
+    plugin_name = fields.Char(
+        'Plugin Name', help='Name of the plugin used by the media player')
+    plugin_version = fields.Char(
+        'Plugin Version', help='The version of the plugin used '
+        'by the media player')
+    plugin_vendor = fields.Char(
+        'Plugin Vendor', help='Vendor of the plugin used by the media player')
+    active = fields.Boolean('Active')
+
+    @staticmethod
+    def default_active():
+        return True
+
+    @classmethod
+    def __setup__(cls):
+        super(Client, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the client must be unique.'),
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
+
+
+class Identifier(ModelSQL, ModelView):
+    'Identifier'
+    __name__ = 'creation.identification.identifier'
+    _history = True
+    _rec_name = 'identifier'
+    identification = fields.Many2One(
+        'creation.identification', 'Identification',
+        help='The identification of a creation for this identifier')
+    identifier = fields.Text('Identifier')
+
+
+class Identification(ModelSQL, ModelView):
+    'Identification'
+    __name__ = 'creation.identification'
+    _history = True
+    identifiers = fields.One2Many(
+        'creation.identification.identifier', 'identification', 'Identifiers',
+        help='The identifiers of the creation')
+    creation = fields.Many2One(
+        'creation', 'Creation', help='The creation identified by '
+        'the identifiers')
+    id3 = fields.Text('ID3', help='ID3 tag')
+
+    def get_rec_name(self, name):
+        return (self.creation.title if self.creation else 'unknown')
+
+
+class Fingerprintlog(ModelSQL, ModelView):
+    'Fingerprintlog'
+    __name__ = 'content.fingerprintlog'
+    _history = True
+    content = fields.Many2One(
+        'content', 'Content', required=True,
+        help='The fingerprinted content.')
+    user = fields.Many2One(
+        'res.user', 'User', required=True,
+        help='The user which fingerprinted the content.')
+    timestamp = fields.DateTime(
+        'Timestamp', required=True, select=True,
+        help='Point in time of fingerprinting')
+    fingerprinting_algorithm = fields.Char(
+        'Algorithm', required=True,
+        help='Fingerprinting mechanism of the content, e.g. echoprint')
+    fingerprinting_version = fields.Char(
+        'Version', required=True,
+        help='Fingerprinting algorithm version of the content')
+
+
+##############################################################################
+# Accounting
+##############################################################################
+
+
 class Distribution(ModelSQL, ModelView):
     'Distribution'
     __name__ = 'distribution'
@@ -1158,172 +1548,6 @@ class Utilisation(ModelSQL, ModelView):
             ('code',) + tuple(clause[1:]),
             ('timestamp',) + tuple(clause[1:]),
         ]
-
-
-class UtilisationIMP(ModelSQL, ModelView):
-    'Utilisation for IMP'
-    __name__ = 'creation.utilisation.imp'
-    _rec_name = 'create_date'
-
-    client = fields.Many2One('client', 'Client', help='The used client')
-    time_played = fields.DateTime(
-        'Time Played',
-        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-        'utilisation')
-    time_submitted = fields.DateTime(
-        'Time Submitted',
-        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-        'utilisation submission')
-    fingerprint = fields.Char(
-        'Fingerprint', help='Fingerprint hash of the utilisation')
-    fingerprinting_algorithm = fields.Char(
-        'Algorithm',
-        help='Fingerprinting mechanism of the utilisation, e.g. echoprint')
-    fingerprinting_version = fields.Char(
-        'Version', help='Fingerprinting algorithm version '
-        'of the utilisation')
-    title = fields.Char(
-        'Title', help='Title tag of the utilisation')
-    artist = fields.Char(
-        'Artist', help='Artist tag of the utilisation')
-    release = fields.Char(
-        'Release', help='Release or album tag of the utilisation')
-    track_number = fields.Char(
-        'Track Number', help='Track number tag of the utilisation')
-    duration = fields.Char(
-        'Duration', help='Duration tag of the utilisation')
-    state = fields.Selection(
-        [
-            ('unidentified', 'Unidentified'),
-            ('processing', 'Process Identification'),
-            ('identified', 'Identified'),
-        ], 'State', required=True, sort=False,
-        help='The state identification of the imp utilisation.\n\n'
-        '*Unidentified*: The imp utilisation is not yet identified.\n'
-        '*Process Identification*: A identification process is running.\n'
-        '*Done*: The identification is finished and a general utilisation is '
-        'created')
-    utilisation = fields.Function(
-        fields.Many2One('creation.utilisation', 'Utilisation'),
-        'get_utilisation')
-
-    @classmethod
-    def __setup__(cls):
-        super(UtilisationIMP, cls).__setup__()
-        cls._order.insert(0, ('time_submitted', 'DESC'))
-
-    @staticmethod
-    def default_time_submitted():
-        return datetime.datetime.now()
-
-    @staticmethod
-    def default_state():
-        return 'unidentified'
-
-    @staticmethod
-    def default_title():
-        return '<unknown title>'
-
-    @staticmethod
-    def default_artist():
-        return '<unknown artist>'
-
-    def get_utilisation(self, name):
-        Utilisation = Pool().get('creation.utilisation')
-
-        utilisations = Utilisation.search(
-            [('origin', '=', 'creation.utilisation.imp,%s' % self.id)],
-            limit=1)
-        if not utilisations:
-            return None
-        return utilisations[0].id
-
-
-class UtilisationIMPIdentifyStart(ModelView):
-    'Identify IMP Utilisations Start'
-    __name__ = 'creation.utilisation.imp.identify.start'
-
-    from_date = fields.Date(
-        'From Date',
-        help='The earliest date to identify IMP utilisations')
-    thru_date = fields.Date(
-        'Thru Date',
-        help='The latest date to identify IMP utilisations')
-
-    @staticmethod
-    def default_from_date():
-        Date = Pool().get('ir.date')
-        t = Date.today()
-        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
-
-    @staticmethod
-    def default_thru_date():
-        Date = Pool().get('ir.date')
-        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
-
-
-class UtilisationIMPIdentify(Wizard):
-    "Identify IMP Utilisations"
-    __name__ = 'creation.utilisation.imp.identify'
-
-    start = StateView(
-        'creation.utilisation.imp.identify.start',
-        'collecting_society.'
-        'utilisation_imp_identify_start_view_form', [
-            Button('Cancel', 'end', 'tryton-cancel'),
-            Button(
-                'Start Identification', 'identify', 'tryton-ok', default=True),
-        ])
-    identify = StateTransition()
-
-    def transition_identify(self):
-        pool = Pool()
-        Creation = pool.get('creation')
-        Artist = pool.get('artist')
-        Utilisation = pool.get('creation.utilisation')
-        UtilisationIMP = pool.get('creation.utilisation.imp')
-
-        imp_utilisations = UtilisationIMP.search([
-            (
-                'time_submitted', '>=', datetime.datetime.combine(
-                    self.start.from_date, datetime.time.min)
-            ), (
-                'time_submitted', '<=', datetime.datetime.combine(
-                    self.start.thru_date, datetime.time.max)
-            ), ('state', '=', 'unidentified')])
-
-        for imp_util in imp_utilisations:
-            UtilisationIMP.write([imp_util], {'state': 'processing'})
-            # identify
-            # XXX: Add the identification of the fingerprint here
-            creation_title = imp_util.title or 'Unknown Creation'
-            artist_name = imp_util.artist or 'Unknown Artist'
-            # find
-            creation = Creation.search([
-                ('title', '=', creation_title),
-                ('artist.name', '=', artist_name),
-            ])
-            # create if not exist
-            if not creation:
-                artist = Artist.search([('name', '=', artist_name)])
-                if not artist:
-                    artist = Artist.create([{'name': artist_name}])
-                artist = artist[0]
-                creation = Creation.create([{
-                    'title': creation_title,
-                    'artist': artist.id,
-                }])
-            creation = creation[0]
-            # create utilisation
-            Utilisation.create([{
-                'timestamp': imp_util.time_submitted,
-                'creation': creation.id,
-                'party': imp_util.client.web_user.party.id,
-                'origin': '%s,%i' % (
-                    UtilisationIMP.__name__, imp_util.id),
-            }])
-            UtilisationIMP.write([imp_util], {'state': 'identified'})
-        return 'end'
 
 
 class DistributeStart(ModelView):
@@ -1558,3 +1782,174 @@ class Distribute(Wizard):
 #                amount=amount / Decimal(len(creation.original_creations)),
 #                result=result)
         return result
+
+
+##############################################################################
+# Adore
+##############################################################################
+
+
+class UtilisationIMP(ModelSQL, ModelView):
+    'Utilisation for IMP'
+    __name__ = 'creation.utilisation.imp'
+    _rec_name = 'create_date'
+
+    client = fields.Many2One('client', 'Client', help='The used client')
+    time_played = fields.DateTime(
+        'Time Played',
+        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
+        'utilisation')
+    time_submitted = fields.DateTime(
+        'Time Submitted',
+        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
+        'utilisation submission')
+    fingerprint = fields.Char(
+        'Fingerprint', help='Fingerprint hash of the utilisation')
+    fingerprinting_algorithm = fields.Char(
+        'Algorithm',
+        help='Fingerprinting mechanism of the utilisation, e.g. echoprint')
+    fingerprinting_version = fields.Char(
+        'Version', help='Fingerprinting algorithm version '
+        'of the utilisation')
+    title = fields.Char(
+        'Title', help='Title tag of the utilisation')
+    artist = fields.Char(
+        'Artist', help='Artist tag of the utilisation')
+    release = fields.Char(
+        'Release', help='Release or album tag of the utilisation')
+    track_number = fields.Char(
+        'Track Number', help='Track number tag of the utilisation')
+    duration = fields.Char(
+        'Duration', help='Duration tag of the utilisation')
+    state = fields.Selection(
+        [
+            ('unidentified', 'Unidentified'),
+            ('processing', 'Process Identification'),
+            ('identified', 'Identified'),
+        ], 'State', required=True, sort=False,
+        help='The state identification of the imp utilisation.\n\n'
+        '*Unidentified*: The imp utilisation is not yet identified.\n'
+        '*Process Identification*: A identification process is running.\n'
+        '*Done*: The identification is finished and a general utilisation is '
+        'created')
+    utilisation = fields.Function(
+        fields.Many2One('creation.utilisation', 'Utilisation'),
+        'get_utilisation')
+
+    @classmethod
+    def __setup__(cls):
+        super(UtilisationIMP, cls).__setup__()
+        cls._order.insert(0, ('time_submitted', 'DESC'))
+
+    @staticmethod
+    def default_time_submitted():
+        return datetime.datetime.now()
+
+    @staticmethod
+    def default_state():
+        return 'unidentified'
+
+    @staticmethod
+    def default_title():
+        return '<unknown title>'
+
+    @staticmethod
+    def default_artist():
+        return '<unknown artist>'
+
+    def get_utilisation(self, name):
+        Utilisation = Pool().get('creation.utilisation')
+
+        utilisations = Utilisation.search(
+            [('origin', '=', 'creation.utilisation.imp,%s' % self.id)],
+            limit=1)
+        if not utilisations:
+            return None
+        return utilisations[0].id
+
+
+class UtilisationIMPIdentifyStart(ModelView):
+    'Identify IMP Utilisations Start'
+    __name__ = 'creation.utilisation.imp.identify.start'
+
+    from_date = fields.Date(
+        'From Date',
+        help='The earliest date to identify IMP utilisations')
+    thru_date = fields.Date(
+        'Thru Date',
+        help='The latest date to identify IMP utilisations')
+
+    @staticmethod
+    def default_from_date():
+        Date = Pool().get('ir.date')
+        t = Date.today()
+        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
+
+    @staticmethod
+    def default_thru_date():
+        Date = Pool().get('ir.date')
+        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
+
+
+class UtilisationIMPIdentify(Wizard):
+    "Identify IMP Utilisations"
+    __name__ = 'creation.utilisation.imp.identify'
+
+    start = StateView(
+        'creation.utilisation.imp.identify.start',
+        'collecting_society.'
+        'utilisation_imp_identify_start_view_form', [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button(
+                'Start Identification', 'identify', 'tryton-ok', default=True),
+        ])
+    identify = StateTransition()
+
+    def transition_identify(self):
+        pool = Pool()
+        Creation = pool.get('creation')
+        Artist = pool.get('artist')
+        Utilisation = pool.get('creation.utilisation')
+        UtilisationIMP = pool.get('creation.utilisation.imp')
+
+        imp_utilisations = UtilisationIMP.search([
+            (
+                'time_submitted', '>=', datetime.datetime.combine(
+                    self.start.from_date, datetime.time.min)
+            ), (
+                'time_submitted', '<=', datetime.datetime.combine(
+                    self.start.thru_date, datetime.time.max)
+            ), ('state', '=', 'unidentified')])
+
+        for imp_util in imp_utilisations:
+            UtilisationIMP.write([imp_util], {'state': 'processing'})
+            # identify
+            # XXX: Add the identification of the fingerprint here
+            creation_title = imp_util.title or 'Unknown Creation'
+            artist_name = imp_util.artist or 'Unknown Artist'
+            # find
+            creation = Creation.search([
+                ('title', '=', creation_title),
+                ('artist.name', '=', artist_name),
+            ])
+            # create if not exist
+            if not creation:
+                artist = Artist.search([('name', '=', artist_name)])
+                if not artist:
+                    artist = Artist.create([{'name': artist_name}])
+                artist = artist[0]
+                creation = Creation.create([{
+                    'title': creation_title,
+                    'artist': artist.id,
+                }])
+            creation = creation[0]
+            # create utilisation
+            Utilisation.create([{
+                'timestamp': imp_util.time_submitted,
+                'creation': creation.id,
+                'party': imp_util.client.web_user.party.id,
+                'origin': '%s,%i' % (
+                    UtilisationIMP.__name__, imp_util.id),
+            }])
+            UtilisationIMP.write([imp_util], {'state': 'identified'})
+        return 'end'

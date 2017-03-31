@@ -102,6 +102,37 @@
         <menuitem parent="menu_artist" action="act_artist_tree"
             id="menu_artist_tree" sequence="10"/>
 
+
+        <record model="ir.ui.view" id="content_form">
+            <field name="model">content</field>
+            <field name="type">form</field>
+            <field name="name">content_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_list">
+            <field name="model">content</field>
+            <field name="type">tree</field>
+            <field name="name">content_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content">
+            <field name="name">Content</field>
+            <field name="res_model">content</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_list"/>
+            <field name="act_window" ref="act_content"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_form"/>
+            <field name="act_window" ref="act_content"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_content"
+            sequence="30" id="menu_content"/>
+
+
         <record model="ir.ui.view" id="creation_form">
             <field name="model">creation</field>
             <field name="type">form</field>
@@ -131,64 +162,6 @@
         <menuitem parent="menu_collecting_society" action="act_creation"
             sequence="40" id="menu_creation"/>
 
-        <record model="ir.ui.view" id="content_form">
-            <field name="model">content</field>
-            <field name="type">form</field>
-            <field name="name">content_form</field>
-        </record>
-        <record model="ir.ui.view" id="content_list">
-            <field name="model">content</field>
-            <field name="type">tree</field>
-            <field name="name">content_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_content">
-            <field name="name">Content</field>
-            <field name="res_model">content</field>
-            <field name="domain">[]</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view" id="act_content_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="content_list"/>
-            <field name="act_window" ref="act_content"/>
-        </record>
-        <record model="ir.action.act_window.view" id="act_content_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="content_form"/>
-            <field name="act_window" ref="act_content"/>
-        </record>
-        <menuitem parent="menu_creation" action="act_content"
-            sequence="90" id="menu_creation_content"/>
-
-        <record model="ir.ui.view" id="content_fingerprintlog_form">
-            <field name="model">content.fingerprintlog</field>
-            <field name="type">form</field>
-            <field name="name">content_fingerprintlog_form</field>
-        </record>
-        <record model="ir.ui.view" id="content_fingerprintlog_list">
-            <field name="model">content.fingerprintlog</field>
-            <field name="type">tree</field>
-            <field name="name">content_fingerprintlog_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_content_fingerprintlog">
-            <field name="name">Fingerprintlog</field>
-            <field name="res_model">content.fingerprintlog</field>
-            <field name="domain">[]</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="content_fingerprintlog_list"/>
-            <field name="act_window" ref="act_content_fingerprintlog"/>
-        </record>
-        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="content_fingerprintlog_form"/>
-            <field name="act_window" ref="act_content_fingerprintlog"/>
-        </record>
-        <menuitem parent="menu_creation_content"
-            action="act_content_fingerprintlog" sequence="90"
-            id="menu_creation_content_fingerprintlog"/>
 
         <record model="ir.ui.view" id="release_form">
             <field name="model">release</field>
@@ -309,6 +282,269 @@
         </record>
         <menuitem parent="menu_collecting_society" action="act_genre"
             sequence="45" id="menu_genre"/>
+
+
+        <record model="ir.ui.view" id="content_storehouse_form">
+            <field name="model">storehouse</field>
+            <field name="type">form</field>
+            <field name="name">content_storehouse_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_storehouse_list">
+            <field name="model">storehouse</field>
+            <field name="type">tree</field>
+            <field name="name">content_storehouse_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_storehouse">
+            <field name="name">Storehouse</field>
+            <field name="res_model">storehouse</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_storehouse_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_storehouse_list"/>
+            <field name="act_window" ref="act_content_storehouse"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_storehouse_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_storehouse_form"/>
+            <field name="act_window" ref="act_content_storehouse"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_storehouse"
+            sequence="10" id="menu_content_storehouse"/>
+
+        <record model="ir.ui.view" id="content_container_form">
+            <field name="model">container</field>
+            <field name="type">form</field>
+            <field name="name">content_container_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_container_list">
+            <field name="model">container</field>
+            <field name="type">tree</field>
+            <field name="name">content_container_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_container">
+            <field name="name">Container</field>
+            <field name="res_model">container</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_container_list"/>
+            <field name="act_window" ref="act_content_container"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_container_form"/>
+            <field name="act_window" ref="act_content_container"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_container"
+            sequence="20" id="menu_content_container"/>
+
+        <record model="ir.ui.view" id="content_container_label_form">
+            <field name="model">container.label</field>
+            <field name="type">form</field>
+            <field name="name">content_container_label_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_container_label_list">
+            <field name="model">container.label</field>
+            <field name="type">tree</field>
+            <field name="name">content_container_label_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_container_label">
+            <field name="name">Label</field>
+            <field name="res_model">container.label</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_label_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_container_label_list"/>
+            <field name="act_window" ref="act_content_container_label"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_label_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_container_label_form"/>
+            <field name="act_window" ref="act_content_container_label"/>
+        </record>
+        <menuitem parent="menu_content_container" action="act_content_container_label"
+            sequence="10" id="menu_content_container_label"/>
+
+        <record model="ir.ui.view" id="content_container_harddisk_form">
+            <field name="model">harddisk</field>
+            <field name="type">form</field>
+            <field name="name">content_container_harddisk_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_container_harddisk_list">
+            <field name="model">harddisk</field>
+            <field name="type">tree</field>
+            <field name="name">content_container_harddisk_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_container_harddisk">
+            <field name="name">Harddisk</field>
+            <field name="res_model">harddisk</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_harddisk_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_container_harddisk_list"/>
+            <field name="act_window" ref="act_content_container_harddisk"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_container_harddisk_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_container_harddisk_form"/>
+            <field name="act_window" ref="act_content_container_harddisk"/>
+        </record>
+        <menuitem parent="menu_content_container" action="act_content_container_harddisk"
+            sequence="20" id="menu_content_container_harddisk"/>
+
+        <record model="ir.ui.view" id="content_archive_form">
+            <field name="model">archive</field>
+            <field name="type">form</field>
+            <field name="name">content_archive_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_archive_list">
+            <field name="model">archive</field>
+            <field name="type">tree</field>
+            <field name="name">content_archive_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_archive">
+            <field name="name">Archive</field>
+            <field name="res_model">archive</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_archive_list"/>
+            <field name="act_window" ref="act_content_archive"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_archive_form"/>
+            <field name="act_window" ref="act_content_archive"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_archive"
+            sequence="30" id="menu_content_archive"/>
+
+        <record model="ir.ui.view" id="content_archive_label_form">
+            <field name="model">archive.label</field>
+            <field name="type">form</field>
+            <field name="name">content_archive_label_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_archive_label_list">
+            <field name="model">archive.label</field>
+            <field name="type">tree</field>
+            <field name="name">content_archive_label_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_archive_label">
+            <field name="name">Label</field>
+            <field name="res_model">archive.label</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_label_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_archive_label_list"/>
+            <field name="act_window" ref="act_content_archive_label"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_label_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_archive_label_form"/>
+            <field name="act_window" ref="act_content_archive_label"/>
+        </record>
+        <menuitem parent="menu_content_archive" action="act_content_archive_label"
+            sequence="10" id="menu_content_archive_label"/>
+
+        <record model="ir.ui.view" id="content_archive_filesystem_form">
+            <field name="model">harddisk.filesystem</field>
+            <field name="type">form</field>
+            <field name="name">content_archive_filesystem_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_archive_filesystem_list">
+            <field name="model">harddisk.filesystem</field>
+            <field name="type">tree</field>
+            <field name="name">content_archive_filesystem_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_archive_filesystem">
+            <field name="name">Filesystem</field>
+            <field name="res_model">harddisk.filesystem</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_filesystem_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_archive_filesystem_list"/>
+            <field name="act_window" ref="act_content_archive_filesystem"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_archive_filesystem_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_archive_filesystem_form"/>
+            <field name="act_window" ref="act_content_archive_filesystem"/>
+        </record>
+        <menuitem parent="menu_content_archive" action="act_content_archive_filesystem"
+            sequence="20" id="menu_content_archive_filesystem"/>
+
+        <record model="ir.ui.view" id="content_fingerprintlog_form">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">form</field>
+            <field name="name">content_fingerprintlog_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_fingerprintlog_list">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">tree</field>
+            <field name="name">content_fingerprintlog_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_fingerprintlog">
+            <field name="name">Fingerprintlog</field>
+            <field name="res_model">content.fingerprintlog</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_fingerprintlog_list"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_fingerprintlog_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_fingerprintlog_form"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_fingerprintlog"
+            sequence="40" id="menu_content_fingerprintlog"/>
+
+        <record model="ir.ui.view" id="content_checksum_form">
+            <field name="model">checksum</field>
+            <field name="type">form</field>
+            <field name="name">content_checksum_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_checksum_list">
+            <field name="model">checksum</field>
+            <field name="type">tree</field>
+            <field name="name">content_checksum_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_checksum">
+            <field name="name">Checksum</field>
+            <field name="res_model">checksum</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_checksum_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_checksum_list"/>
+            <field name="act_window" ref="act_content_checksum"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_content_checksum_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_checksum_form"/>
+            <field name="act_window" ref="act_content_checksum"/>
+        </record>
+        <menuitem parent="menu_content" action="act_content_checksum"
+            sequence="50" id="menu_content_checksum"/>
+
 
 
         <record model="ir.ui.view" id="creation_original_derivative_form">
@@ -565,6 +801,35 @@
             <field name="name">Artist</field>
             <field name="code">artist</field>
         </record>
+        
+        <record model="ir.sequence.type" id="sequence_type_container_label">
+            <field name="name">Container Label</field>
+            <field name="code">container.label</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_container_label_group_admin">
+            <field name="sequence_type" ref="sequence_type_container_label"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_container_label">
+            <field name="name">Container Label</field>
+            <field name="code">container.label</field>
+        </record>
+        
+        <record model="ir.sequence.type" id="sequence_type_archive_label">
+            <field name="name">Archive Label</field>
+            <field name="code">archive.label</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_archive_label_group_admin">
+            <field name="sequence_type" ref="sequence_type_archive_label"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_archive_label">
+            <field name="name">Archive Label</field>
+            <field name="code">archive.label</field>
+        </record>
+
         <record model="ir.sequence.type" id="sequence_type_creation">
             <field name="name">Creation</field>
             <field name="code">creation</field>

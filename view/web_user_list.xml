@@ -10,5 +10,6 @@
         <field name="default_role"/>
         <field name="clients"/>
         <field name="show_creative_info"/>
+        <field name="abuse_rank"/>
     </xpath>
 </data>

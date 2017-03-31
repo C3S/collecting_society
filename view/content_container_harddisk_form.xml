@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Harddisk">
+    <label name="container"/>
+    <field name="container"/>
+    <label name="state"/>
+    <field name="state"/>
+    <label name="online"/>
+    <field name="online"/>
+    <newline/>
+    <label name="user"/>
+    <field name="user"/>
+    <newline/>
+    <label name="uuid_host"/>
+    <field name="uuid_host"/>
+    <newline/>
+    <label name="uuid_harddisk"/>
+    <field name="uuid_harddisk"/>
+    <label name="checksum_harddisk"/>
+    <field name="checksum_harddisk"/>
+    <newline/>
+    <label name="raid_type"/>
+    <field name="raid_type"/>
+    <label name="raid_number"/>
+    <field name="raid_number"/>
+    <label name="raid_total"/>
+    <field name="raid_total"/>
+    <newline/>
+    <notebook colspan="6">
+        <page string="Filesystems" id="filesystems">
+            <field name="filesystems" colspan="4"/>
+        </page>
+        <page string="Tests" id="checksums">
+            <field name="tests" colspan="4"/>
+        </page>
+    </notebook>
+</form>

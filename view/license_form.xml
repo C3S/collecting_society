@@ -6,4 +6,6 @@
     <field name="name" xexpand="1"/>
     <label name="code"/>
     <field name="code"/>
+    <label name="freedom_rank"/>
+    <field name="freedom_rank"/>
 </form>

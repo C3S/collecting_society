@@ -1,8 +1,10 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="License">
-    <field name="freedom_rank"/>
-    <field name="code"/>
-    <field name="name"/>
+<tree string="Containers">
+    <field name="label"/>
+    <field name="storage"/>
+    <field name="version"/>
+    <field name="storehouse"/>
+    <field name="closed"/>
 </tree>

@@ -18,6 +18,8 @@
             <label name="show_creative_info"/>
             <field name="show_creative_info" xexpand="0" width="25"/>
             <!-- Add here some checkboxes ! -->
+            <label name="abuse_rank"/>
+            <field name="abuse_rank"/>
         </group>
         <newline/>
         <group colspan="4" col="20" id="avatar-clients">

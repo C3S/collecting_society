@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Harddisks">
+    <field name="uuid_host"/>
+    <field name="uuid_harddisk"/>
+    <field name="raid_type"/>
+    <field name="raid_number"/>
+    <field name="raid_total"/>
+</tree>

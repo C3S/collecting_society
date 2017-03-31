@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Content Checksum">
+    <label name="origin"/>
+    <field name="origin"/>
+    <newline/>
+    <label name="timestamp"/>
+    <field name="timestamp"/>
+    <label name="algorithm"/>
+    <field name="algorithm"/>
+    <newline/>
+    <label name="begin"/>
+    <field name="begin"/>
+    <label name="end"/>
+    <field name="end"/>
+    <newline/>
+    <label name="code"/>
+    <field name="code"/>
+</form>
