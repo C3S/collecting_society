@@ -890,8 +890,8 @@ class Container(ModelSQL, ModelView):
         'storehouse', 'Storehouse', required=True,
         help='The Storehouse of the Container.')
     storage = fields.Reference(
-        'Storage', [('harddisk', 'Harddisk')], required=True,
-        help='The physical realization of the Container.')
+        'Storage', [('harddisk', 'Harddisk')],
+        required=True, help='The physical realization of the Container.')
     version = fields.Integer(
         'Version', required=True,
         help='The version of the Container Label.')
@@ -909,8 +909,8 @@ class Archive(ModelSQL, ModelView):
         'archive.label', 'Label', required=True,
         help='The Label of the Archive.')
     storage = fields.Reference(
-        'Storage', [('harddisk.filesystem', 'Filesystem')], required=True,
-        help='The physical realization of the Archive.')
+        'Storage', [('harddisk.filesystem', 'Filesystem')],
+        required=True, help='The physical realization of the Archive.')
     contents = fields.One2Many(
         'content', 'archive', 'Contents', help='The Contents of the Archive.')
     closed = fields.Boolean(
@@ -1138,7 +1138,8 @@ class Content(ModelSQL, ModelView):
         'res.user', 'User', required=True,
         help='The user which provided the content.')
     fingerprintlogs = fields.One2Many(
-        'content.fingerprintlog', 'content', 'Fingerprintlogs')
+        'content.fingerprintlog', 'content', 'Fingerprintlogs',
+        help='The fingerprinting log for the content.')
     checksums = fields.One2Many(
         'checksum', 'origin', 'Checksums',
         help='The checksums of the content.')
