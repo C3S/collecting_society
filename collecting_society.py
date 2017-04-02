@@ -610,7 +610,7 @@ class Release(ModelSQL, ModelView):
     __name__ = 'release'
     _history = True
     _rec_name = 'title'
-
+    active = fields.Boolean('Active')
     title = fields.Char('Title')
     creations = fields.One2Many(
         'creation.release', 'release', 'Creations',
