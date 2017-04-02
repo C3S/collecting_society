@@ -41,6 +41,9 @@
         <field name="online_cancellation_date"/>
         <label name="warning"/>
         <field name="warning"/>
+
+        <label name="party"/>
+        <field name="party"/>
     <field name="creations" colspan="6"/>
     <field name="genres" colspan="6"/>
 </form>

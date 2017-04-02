@@ -612,6 +612,9 @@ class Release(ModelSQL, ModelView):
     _rec_name = 'title'
     active = fields.Boolean('Active')
     title = fields.Char('Title')
+    party = fields.Many2One(
+        'party.party', 'Party', states=STATES, depends=DEPENDS,
+        help='The legal person or organization inserting the release')
     creations = fields.One2Many(
         'creation.release', 'release', 'Creations',
         help='The creations included in the release')
@@ -651,6 +654,10 @@ class Release(ModelSQL, ModelView):
         help='The International Standard Recording Code of the release')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')  # many2one, -1
+
+    @staticmethod
+    def default_active():
+        return True
 
 
 class CreationRelease(ModelSQL, ModelView):
