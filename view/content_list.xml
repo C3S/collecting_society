@@ -4,24 +4,10 @@
 <tree string="Content">
     <field name="uuid"/>
     <field name="name"/>
-    <field name="creation"/>
-    <field name="size">
-        <suffix string="Byte" name="size"/>
-    </field>
     <field name="user"/>
-    <field name="processing_state"/>
-    <field name="mime_type"/>
-    <field name="length">
-        <suffix string="s" name="length"/>
-    </field>
-    <field name="channels"/>
-    <field name="sample_rate">
-        <suffix string="Hz" name="sample_rate"/>
-    </field>
-    <field name="sample_width">
-        <suffix string="Bit" name="sample_width"/>
-    </field>
-    <field name="fingerprintlogs"/>
+    <field name="creation"/>
     <field name="archive"/>
+    <field name="processing_state"/>
     <field name="mediation"/>
+    <field name="active" tree_invisible="1"/>
 </tree>

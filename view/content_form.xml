@@ -2,6 +2,9 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Content" col="6">
+    <label name="active"/>
+    <field name="active"/>
+    <newline/>
     <label name="creation"/>
     <field name="creation"/>
     <label name="processing_state"/>

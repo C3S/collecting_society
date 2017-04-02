@@ -1104,6 +1104,7 @@ class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
     _history = True
+    active = fields.Boolean('Active')
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
     name = fields.Char(
@@ -1165,7 +1166,7 @@ class Content(ModelSQL, ModelView):
             ('unknown', 'Unknown'),
         ], 'State', required=True, help='The processing state of the content.')
     processing_hostname = fields.Char(
-        'Processer', states={
+        'Processor', states={
             'invisible': Or(
                 Eval('processing_state') == 'deleted',
                 Eval('processing_state') == 'archived',
@@ -1214,6 +1215,10 @@ class Content(ModelSQL, ModelView):
     @staticmethod
     def default_category():
         return 'audio'
+
+    @staticmethod
+    def default_active():
+        return True
 
     @fields.depends('name')
     def on_change_with_extension(self, name=None):
