@@ -62,6 +62,12 @@
             <field name="duplicates" colspan="4"/>
         </page>
         <page string="Simliarities" id="duplicates">
+            <label name="pre_ingest_excerpt_score"/>
+            <field name="pre_ingest_excerpt_score"/>
+            <newline/>
+            <label name="post_ingest_excerpt_score"/>
+            <field name="post_ingest_excerpt_score"/>
+            <newline/>
             <label name="uniqueness"/>
             <field name="uniqueness"/>
             <newline/>

@@ -1212,9 +1212,17 @@ class Content(ModelSQL, ModelView):
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
     # temporary data for analysis
-    uniqueness = fields.Float(
-        'Uniqueness', digits=(3, 3),
-        help='Ratio of fingerprint match score after and before ingestion')
+    pre_ingest_excerpt_score = fields.Integer(
+        'Pre Ingest Excerpt Score',
+        help='Fingerprint match score before ingestion')
+    post_ingest_excerpt_score = fields.Integer(
+        'Post Ingest Excerpt Score',
+        help='Fingerprint match score after ingestion')
+    uniqueness = fields.Function(
+        fields.Float(
+            'Uniqueness',
+            help='Ratio of fingerprint match score after/before ingestion'),
+        'get_uniqueness')
     most_similiar_content = fields.Many2One(
         'content', 'Most Similiar Content', states=STATES, depends=DEPENDS,
         help='The most similiar content in our database.')
@@ -1243,6 +1251,18 @@ class Content(ModelSQL, ModelView):
     @fields.depends('name')
     def on_change_with_extension(self, name=None):
         return os.path.splitext(self.name)[1].lstrip('.')
+
+    def get_uniqueness(self, name=None):
+        minval = 0.0
+        maxval = 100.0
+        if not self.post_ingest_excerpt_score:
+            return minval
+        if not self.pre_ingest_excerpt_score:
+            return maxval
+        score = self.post_ingest_excerpt_score / float(
+            self.pre_ingest_excerpt_score
+        )
+        return score if score <= maxval else maxval
 
     def get_currency_digits(self, name):
         Company = Pool().get('company.company')
