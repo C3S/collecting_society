@@ -1072,18 +1072,6 @@ class HarddiskTest(ModelSQL, ModelView):
         help='The usage state of the Harddisk.')
 
 
-# class Uuid(ModelSQL):
-#     'Uuid'
-#     __name__ = 'uuid'
-#     _history = True
-#     timestamp = fields.DateTime(
-#         'Timestamp', required=True, help='Point in time of Uuid generation.')
-#     algorithm = fields.Char(
-#         'Algorithm', required=True, help='The Uuid generation algorithm.')
-#     code = fields.Text(
-#         'Uuid', required=True, help='The Uuid String.')
-
-
 class Checksum(ModelSQL, ModelView):
     'Checksum'
     __name__ = 'checksum'
