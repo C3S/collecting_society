@@ -1211,6 +1211,17 @@ class Content(ModelSQL, ModelView):
         'Sample Width', help='Sample width in Bits.',
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
+    # metadata for gui
+    metadata_artist = fields.Char(
+        'Metadata Artist', help='Artist in uploaded metadata.')
+    metadata_title = fields.Char(
+        'Metadata Title', help='Title in uploaded metadata.')
+    metadata_release = fields.Char(
+        'Metadata Release', help='Release in uploaded metadata.')
+    metadata_release_date = fields.Char(
+        'Metadata Release Date', help='Release date in uploaded metadata.')
+    metadata_track_number = fields.Char(
+        'Metadata Track Number', help='Track number in uploaded metadata.')
     # temporary data for analysis
     pre_ingest_excerpt_score = fields.Integer(
         'Pre Ingest Excerpt Score',

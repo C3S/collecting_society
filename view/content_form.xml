@@ -58,6 +58,22 @@
     <field name="archive"/>
 
     <notebook colspan="6">
+        <page string="Metadata" id="metadata">
+            <label name="metadata_artist"/>
+            <field name="metadata_artist"/>
+            <newline/>
+            <label name="metadata_title"/>
+            <field name="metadata_title"/>
+            <newline/>
+            <label name="metadata_release"/>
+            <field name="metadata_release"/>
+            <newline/>
+            <label name="metadata_release_date"/>
+            <field name="metadata_release_date"/>
+            <newline/>
+            <label name="metadata_track_number"/>
+            <field name="metadata_track_number"/>
+        </page>
         <page string="Duplicates" id="duplicates">
             <field name="duplicates" colspan="4"/>
         </page>
