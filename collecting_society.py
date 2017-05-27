@@ -1192,6 +1192,9 @@ class Content(ModelSQL, ModelView):
         ], 'Reason', states={
             'invisible': Eval('processing_state') != 'rejected'
         }, depends=['processing_state'], help='The reason of the rejection.')
+    rejection_reason_details = fields.Text(
+        'Details', help='ID3 tag',
+        states={'invisible': Eval('processing_state') != 'rejected'})
     length = fields.Float(
         'Length', digits=(16, 6),
         help='The length or duration of the audio content in seconds [s].',

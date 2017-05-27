@@ -12,6 +12,9 @@
     <label name="rejection_reason"/>
     <field name="rejection_reason"/>
     <newline/>
+    <label name="rejection_reason_details" colspan="3"/>
+    <field name="rejection_reason_details" colspan="3"/>
+    <newline/>
     <label name="mediation"/>
     <field name="mediation"/>
     <label name="processing_hostname"/>
