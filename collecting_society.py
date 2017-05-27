@@ -479,7 +479,6 @@ class Creation(ModelSQL, ModelView):
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the creation.')
-
     state = fields.Selection(
         [
             ('on_approval', 'On Approval'),
@@ -1212,6 +1211,17 @@ class Content(ModelSQL, ModelView):
         'Sample Width', help='Sample width in Bits.',
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
+    # temporary data for analysis
+    uniqueness = fields.Float(
+        'Uniqueness', digits=(3, 3),
+        help='Ratio of fingerprint match score after and before ingestion')
+    most_similiar_content = fields.Many2One(
+        'content', 'Most Similiar Content', states=STATES, depends=DEPENDS,
+        help='The most similiar content in our database.')
+    most_similiar_artist = fields.Char(
+        'Most Similiar Artist', help='The most similiar artist in echoprint.')
+    most_similiar_track = fields.Char(
+        'Most Similiar Track', help='The most similiar track in echoprint.')
 
     @classmethod
     def __setup__(cls):

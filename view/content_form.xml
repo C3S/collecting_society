@@ -61,6 +61,19 @@
         <page string="Duplicates" id="duplicates">
             <field name="duplicates" colspan="4"/>
         </page>
+        <page string="Simliarities" id="duplicates">
+            <label name="uniqueness"/>
+            <field name="uniqueness"/>
+            <newline/>
+            <label name="most_similiar_content"/>
+            <field name="most_similiar_content"/>
+            <newline/>
+            <label name="most_similiar_artist"/>
+            <field name="most_similiar_artist"/>
+            <newline/>
+            <label name="most_similiar_track"/>
+            <field name="most_similiar_track"/>
+        </page>
         <page string="Checksums" id="checksums">
             <field name="checksums" colspan="4"/>
         </page>
