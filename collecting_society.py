@@ -890,16 +890,16 @@ class Container(ModelSQL, ModelView):
     __name__ = 'container'
     _history = True
     label = fields.Many2One(
-        'container.label', 'Label', required=True,
+        'container.label', 'Label', states={'required': True},
         help='The Label of the Container.')
     storehouse = fields.Many2One(
-        'storehouse', 'Storehouse', required=True,
+        'storehouse', 'Storehouse',
         help='The Storehouse of the Container.')
     storage = fields.Reference(
-        'Storage', [('harddisk', 'Harddisk')],
-        required=True, help='The physical realization of the Container.')
+        'Storage', [('harddisk', 'Harddisk')], states={'required': True},
+        help='The physical realization of the Container.')
     version = fields.Integer(
-        'Version', required=True,
+        'Version', states={'required': True},
         help='The version of the Container Label.')
     location = fields.Char(
         'Location', help='The local position of the Container.')
@@ -912,7 +912,7 @@ class Archive(ModelSQL, ModelView):
     __name__ = 'archive'
     _history = True
     label = fields.Many2One(
-        'archive.label', 'Label', required=True,
+        'archive.label', 'Label', states={'required': True},
         help='The Label of the Archive.')
     storage = fields.Reference(
         'Storage', [('harddisk.filesystem', 'Filesystem')],
@@ -931,7 +931,7 @@ class Storehouse(ModelSQL, ModelView):
         'Code', required=True,
         help='The Code of the Storehouse.')
     user = fields.Many2One(
-        'res.user', 'User', required=True,
+        'res.user', 'User', states={'required': True},
         help='The admin user of the Storehouse.')
     containers = fields.One2Many(
         'container', 'storehouse', 'Containers',
@@ -945,21 +945,23 @@ class Harddisk(ModelSQL, ModelView):
     container = fields.Function(
         fields.Many2One('container', 'Container'), 'get_container')
     raid_type = fields.Char(
-        'Raid Type', required=True,
+        'Raid Type', states={'required': True},
         help='The type of the Raid.')
     raid_number = fields.Char(
-        'Raid Number', required=True,
+        'Raid Number', states={'required': True},
         help='The current number of the harddisk in the Raid.')
     raid_total = fields.Char(
-        'Raid Total', required=True,
+        'Raid Total', states={'required': True},
         help='The total number of harddisks in the Raid.')
     filesystems = fields.One2Many(
         'harddisk.filesystem', 'harddisk', 'Filesystems',
         help='The Filesystems on the Harddisk.')
     uuid_host = fields.Char(
-        'Uuid Host', required=True, help='The uuid of the Host.')
+        'Uuid Host', states={'required': True}, 
+        help='The uuid of the Host.')
     uuid_harddisk = fields.Char(
-        'Uuid Harddisk', required=True, help='The uuid of the Harddisk.')
+        'Uuid Harddisk', states={'required': True},
+        help='The uuid of the Harddisk.')
     checksum_harddisk = fields.Many2One(
         'checksum', 'Checksum Harddisk',
         help='The Checksum of the Harddisk.')
@@ -967,8 +969,8 @@ class Harddisk(ModelSQL, ModelView):
         'harddisk.test', 'harddisk', 'Integrity Tests',
         help='The integrity tests of the Harddisk.')
     user = fields.Many2One(
-        'res.user', 'User', required=True,
-        help='The admin user of the Storehouse.')
+        'res.user', 'User', states={'required': True},
+        help='The admin user, who created the harddisk.')
     online = fields.Boolean(
         'Online', help='The online status of the harddisk.')
     state = fields.Selection(
@@ -1001,18 +1003,27 @@ class Filesystem(ModelSQL, ModelView):
     harddisk = fields.Many2One(
         'harddisk', 'Harddisk', required=True,
         help='The Harddisk on which the filesystem resides.')
+    partition_number = fields.Integer(
+        'Partition Number', required=True,
+        help='The number of the partition on the Harddisk.')
     uuid_partition = fields.Char(
-        'Uuid Partition', required=True, help='The uuid of the Partition.')
+        'Uuid Partition', states={'required': True},
+        help='The uuid of the Partition.')
     uuid_raid = fields.Char(
-        'Uuid Raid', required=True, help='The uuid of the Raid.')
+        'Uuid Raid', states={'required': True},
+        help='The uuid of the Raid.')
     uuid_raid_sub = fields.Char(
-        'Uuid Raid Sub', required=True, help='The uuid of the Raid Sub.')
+        'Uuid Raid Sub', states={'required': True},
+        help='The uuid of the Raid Sub.')
     uuid_crypto = fields.Char(
-        'Uuid Crypto', required=True, help='The uuid of the Crypto.')
+        'Uuid Crypto', states={'required': True},
+        help='The uuid of the Crypto.')
     uuid_lvm = fields.Char(
-        'Uuid Lvm', required=True, help='The uuid of the Lvm.')
+        'Uuid Lvm', states={'required': True},
+        help='The uuid of the Lvm.')
     uuid_filesystem = fields.Char(
-        'Uuid Filesystem', required=True, help='The uuid of the Filesystem.')
+        'Uuid Filesystem', states={'required': True},
+        help='The uuid of the Filesystem.')
     checksum_partition = fields.Many2One(
         'checksum', 'Checksum',
         help='The Checksum of the Partition.')
@@ -1031,9 +1042,6 @@ class Filesystem(ModelSQL, ModelView):
     checksum_filesystem = fields.Many2One(
         'checksum', 'Checksum',
         help='The Checksum of the Filesystem.')
-    partition_number = fields.Integer(
-        'Partition Number', required=True,
-        help='The number of the partition on the Harddisk.')
     # closed = fields.Function(archive.closed)
 
     def get_container(self, name):
@@ -1053,7 +1061,7 @@ class HarddiskTest(ModelSQL, ModelView):
         'harddisk', 'Harddisk', required=True,
         help='The harddisk which was tested.')
     user = user = fields.Many2One(
-        'res.user', 'User', required=True,
+        'res.user', 'User', states={'required': True},
         help='The admin user which executed the Test.')
     timestamp = fields.DateTime(
         'Timestamp', required=True,
@@ -1085,9 +1093,11 @@ class Checksum(ModelSQL, ModelView):
     code = fields.Char(
         'Checksum', required=True, help='The string of the Checksum.')
     timestamp = fields.DateTime(
-        'Timestamp', required=True, help='The point in time of the Checksum.')
+        'Timestamp', states={'required': True},
+        help='The point in time of the Checksum.')
     algorithm = fields.Char(
-        'Algorithm', required=True, help='The algorithm for the Checksum.')
+        'Algorithm', states={'required': True},
+        help='The algorithm for the Checksum.')
     begin = fields.Integer(
         'Begin', help='The position of the first byte of the Checksum.')
     end = fields.Integer(
@@ -1130,8 +1140,8 @@ class Content(ModelSQL, ModelView):
         ], depends=['rejection_reason'],
         help='The original duplicated Content.')
     user = fields.Many2One(
-        'res.user', 'User', required=True,
-        help='The user which provided the content.')
+        'res.user', 'User', states={'required': True},
+        help='The user, who provided the content.')
     fingerprintlogs = fields.One2Many(
         'content.fingerprintlog', 'content', 'Fingerprintlogs',
         help='The fingerprinting log for the content.')
@@ -1372,16 +1382,16 @@ class Fingerprintlog(ModelSQL, ModelView):
         'content', 'Content', required=True,
         help='The fingerprinted content.')
     user = fields.Many2One(
-        'res.user', 'User', required=True,
+        'res.user', 'User', states={'required': True},
         help='The user which fingerprinted the content.')
     timestamp = fields.DateTime(
-        'Timestamp', required=True, select=True,
+        'Timestamp', states={'required': True}, select=True,
         help='Point in time of fingerprinting')
     fingerprinting_algorithm = fields.Char(
-        'Algorithm', required=True,
+        'Algorithm', states={'required': True},
         help='Fingerprinting mechanism of the content, e.g. echoprint')
     fingerprinting_version = fields.Char(
-        'Version', required=True,
+        'Version', states={'required': True},
         help='Fingerprinting algorithm version of the content')
 
 
