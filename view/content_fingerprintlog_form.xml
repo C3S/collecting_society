@@ -9,6 +9,7 @@
     <newline/>
     <label name="timestamp"/>
     <field name="timestamp"/>
+    <newline/>
     <label name="fingerprinting_algorithm"/>
     <field name="fingerprinting_algorithm"/>
     <label name="fingerprinting_version"/>

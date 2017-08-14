@@ -21,13 +21,13 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
         fields.Many2One('ir.sequence', 'Contribution Sequence', domain=[
             ('code', '=', 'contribution'),
         ]))
-    container_label_sequence = fields.Property(
-        fields.Many2One('ir.sequence', 'Container Label Sequence', domain=[
-            ('code', '=', 'container.label'),
+    harddisk_label_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Harddisk Label Sequence', domain=[
+            ('code', '=', 'harddisk.label'),
         ]))
-    archive_label_sequence = fields.Property(
-        fields.Many2One('ir.sequence', 'Archive Label Sequence', domain=[
-            ('code', '=', 'archive.label'),
+    filesystem_label_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Filesystem Label Sequence', domain=[
+            ('code', '=', 'harddisk.filesystem.label'),
         ]))
     creation_sequence = fields.Property(
         fields.Many2One('ir.sequence', 'Creation Sequence', domain=[

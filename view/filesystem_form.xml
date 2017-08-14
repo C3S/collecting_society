@@ -2,8 +2,11 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Filesystem">
-    <label name="archive"/>
-    <field name="archive"/>
+    <label name="label"/>
+    <field name="label"/>
+    <label name="closed"/>
+    <field name="closed"/>
+    <newline/>
     <label name="harddisk"/>
     <field name="harddisk"/>
     <label name="partition_number"/>

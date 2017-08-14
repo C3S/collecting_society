@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Containers">
+<tree string="Harddisks">
     <field name="label"/>
-    <field name="storage"/>
     <field name="version"/>
     <field name="storehouse"/>
+    <field name="uuid_host"/>
+    <field name="uuid_harddisk"/>
     <field name="closed"/>
 </tree>

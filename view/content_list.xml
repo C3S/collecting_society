@@ -6,7 +6,7 @@
     <field name="name"/>
     <field name="user"/>
     <field name="creation"/>
-    <field name="archive"/>
+    <field name="filesystem_label"/>
     <field name="processing_state"/>
     <field name="mediation"/>
     <field name="active" tree_invisible="1"/>

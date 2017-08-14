@@ -36,15 +36,12 @@ def register():
         CreationContribution,
         CreationRole,
 
-        # Archive
+        # Archiving
         Checksum,
-        # 'Uuid',
         Storehouse,
-        ContainerLabel,
-        ArchiveLabel,
-        Container,
-        Archive,
+        HarddiskLabel,
         Harddisk,
+        FilesystemLabel,
         Filesystem,
         HarddiskTest,
         Content,

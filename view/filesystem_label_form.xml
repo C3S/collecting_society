@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Filesystem Label">
+    <label name="code"/>
+    <field name="code"/>
+    <notebook colspan="6">
+        <page string="Filesystems" id="filesystems">
+            <field name="filesystems" />
+        </page>
+        <page string="Contents" id="contents">
+            <field name="contents" />
+        </page>
+    </notebook>
+</form>

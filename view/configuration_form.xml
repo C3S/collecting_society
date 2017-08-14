@@ -6,10 +6,10 @@
     <field name="artist_sequence"/>
     <label name="contribution_sequence"/>
     <field name="contribution_sequence"/>
-    <label name="container_label_sequence"/>
-    <field name="container_label_sequence"/>
-    <label name="archive_label_sequence"/>
-    <field name="archive_label_sequence"/>
+    <label name="harddisk_label_sequence"/>
+    <field name="harddisk_label_sequence"/>
+    <label name="filesystem_label_sequence"/>
+    <field name="filesystem_label_sequence"/>
     <label name="creation_sequence"/>
     <field name="creation_sequence"/>
     <label name="utilisation_sequence"/>

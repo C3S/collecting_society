@@ -31,21 +31,21 @@
             <field name="value" eval="'ir.sequence,' + str(
                 ref('sequence_artist'))"/>
         </record>
-        <record model="ir.property" id="property_container_label_sequence">
+        <record model="ir.property" id="property_harddisk_label_sequence">
             <field name="field"
                 search="[
                     ('model.model', '=', 'collecting_society.configuration'),
-                    ('name', '=', 'container_label_sequence')]"/>
+                    ('name', '=', 'harddisk_label_sequence')]"/>
             <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_container_label'))"/>
+                ref('sequence_harddisk_label'))"/>
         </record>
-        <record model="ir.property" id="property_archive_label_sequence">
+        <record model="ir.property" id="property_filesystem_label_sequence">
             <field name="field"
                 search="[
                     ('model.model', '=', 'collecting_society.configuration'),
-                    ('name', '=', 'archive_label_sequence')]"/>
+                    ('name', '=', 'filesystem_label_sequence')]"/>
             <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_archive_label'))"/>
+                ref('sequence_filesystem_label'))"/>
         </record>
         <record model="ir.property" id="property_creation_sequence">
             <field name="field"

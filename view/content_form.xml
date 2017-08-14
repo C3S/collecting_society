@@ -4,61 +4,41 @@
 <form string="Content" col="6">
     <label name="active"/>
     <field name="active"/>
-    <newline/>
-    <label name="creation"/>
-    <field name="creation"/>
-    <label name="processing_state"/>
-    <field name="processing_state"/>
-    <label name="rejection_reason"/>
-    <field name="rejection_reason"/>
-    <newline/>
-    <label name="rejection_reason_details" colspan="3"/>
-    <field name="rejection_reason_details" colspan="3"/>
-    <newline/>
     <label name="mediation"/>
     <field name="mediation"/>
-    <label name="processing_hostname"/>
-    <field name="processing_hostname"/>
-    <label name="duplicate_of"/>
-    <field name="duplicate_of"/>
     <newline/>
-    <label name="name"/>
-    <field name="name"/>
-    <label name="extension"/>
-    <field name="extension"/>
-    <label name="size"/>
-    <field name="size"/>
-    <newline/>
-    <label name="category"/>
-    <field name="category"/>
-    <label name="mime_type"/>
-    <field name="mime_type"/>
-    <label name="length"/>
-    <field name="length"/>
-    <newline/>
-    <label name="archive"/>
-    <field name="archive"/>
-    <newline/>
-    <label name="channels"/>
-    <field name="channels"/>
-    <label name="sample_rate"/>
-    <field name="sample_rate"/>
-    <label name="sample_width"/>
-    <field name="sample_width"/>
-    <label name="user"/>
-    <field name="user"/>
-    <label name="path"/>
-    <field name="path" widget="url"/>
-    <label name="preview_path"/>
-    <field name="preview_path" widget="url"/>
-
     <label name="uuid"/>
     <field name="uuid"/>
-    <label name="archive"/>
-    <field name="archive"/>
-
+    <label name="category"/>
+    <field name="category"/>
+    <label name="user"/>
+    <field name="user"/>
     <notebook colspan="6">
+        <page string="File" id="file">
+            <label name="name"/>
+            <field name="name"/>
+            <label name="extension"/>
+            <field name="extension"/>
+            <newline/>
+            <label name="size"/>
+            <field name="size"/>
+            <label name="mime_type"/>
+            <field name="mime_type"/>
+            <newline/>
+            <label name="length"/>
+            <field name="length"/>
+            <label name="sample_rate"/>
+            <field name="sample_rate"/>
+            <newline/>
+            <label name="channels"/>
+            <field name="channels"/>
+            <label name="sample_width"/>
+            <field name="sample_width"/>
+        </page>
         <page string="Metadata" id="metadata">
+            <label name="creation"/>
+            <field name="creation"/>
+            <newline/>
             <label name="metadata_artist"/>
             <field name="metadata_artist"/>
             <newline/>
@@ -74,8 +54,29 @@
             <label name="metadata_track_number"/>
             <field name="metadata_track_number"/>
         </page>
-        <page string="Duplicates" id="duplicates">
-            <field name="duplicates" colspan="4"/>
+        <page string="Processing" id="processing">
+            <label name="processing_state"/>
+            <field name="processing_state"/>
+            <label name="filesystem_label"/>
+            <field name="filesystem_label"/>
+            <newline/>
+            <label name="processing_hostname"/>
+            <field name="processing_hostname"/>
+            <label name="storage_hostname"/>
+            <field name="storage_hostname"/>
+            <newline/>
+            <label name="path"/>
+            <field name="path"/>
+            <label name="preview_path"/>
+            <field name="preview_path"/>
+            <newline/>
+            <label name="rejection_reason"/>
+            <field name="rejection_reason"/>
+            <label name="duplicate_of"/>
+            <field name="duplicate_of"/>
+            <newline/>
+            <label name="rejection_reason_details"/>
+            <field name="rejection_reason_details" colspan="3"/>
         </page>
         <page string="Simliarities" id="duplicates">
             <label name="pre_ingest_excerpt_score"/>
@@ -97,10 +98,13 @@
             <field name="most_similiar_track"/>
         </page>
         <page string="Checksums" id="checksums">
-            <field name="checksums" colspan="4"/>
+            <field name="checksums" />
+        </page>
+        <page string="Duplicates" id="duplicates">
+            <field name="duplicates" />
         </page>
         <page string="Fingerprintlogs" id="fingerprintlogs">
-            <field name="fingerprintlogs" colspan="4"/>
+            <field name="fingerprintlogs" />
         </page>
     </notebook>
 </form>

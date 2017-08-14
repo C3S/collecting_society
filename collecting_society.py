@@ -37,17 +37,14 @@ __all__ = [
     'CreationRole',
     'ContributionRole',
 
-    # Archive
-    'ContainerLabel',
-    'ArchiveLabel',
-    'Container',
-    'Archive',
+    # Archiving
+    'Checksum',
     'Storehouse',
+    'HarddiskLabel',
     'Harddisk',
+    'FilesystemLabel',
     'Filesystem',
     'HarddiskTest',
-    # 'Uuid',
-    'Checksum',
     'Content',
 
     # Accounting,
@@ -807,146 +804,111 @@ class ContributionRole(ModelSQL):
 ##############################################################################
 
 
-class ContainerLabel(ModelSQL, ModelView):
-    'Container Label'
-    __name__ = 'container.label'
+class Checksum(ModelSQL, ModelView):
+    'Checksum'
+    __name__ = 'checksum'
+    _rec_name = 'code'
     _history = True
+    origin = fields.Reference(
+        'Origin', [
+            ('content', 'Content'),
+            ('harddisk', 'Harddisk'),
+            ('harddisk.filesystem', 'Filesystem')
+        ],
+        help='The originating data of the checksum')
     code = fields.Char(
-        'Code', required=True, select=True, states={
-            'readonly': True,
-        }, help='The Label code for the Containers.')
-    containers = fields.One2Many(
-        'container', 'label', 'Container',
-        help='The Containers with this Label.')
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = Sequence.get_id(
-                    config.container_label_sequence.id)
-        return super(ContainerLabel, cls).create(vlist)
-
-    @classmethod
-    def copy(cls, creations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(ContainerLabel, cls).copy(creations, default=default)
-
-
-class ArchiveLabel(ModelSQL, ModelView):
-    'Archive Label'
-    __name__ = 'archive.label'
-    _history = True
-    code = fields.Char(
-        'Code', required=True, select=True, states={
-            'readonly': True,
-        }, help='The Label code for the Archives.')
-    archives = fields.One2Many(
-        'archive', 'label', 'Archives',
-        help="The Archives with this Label.")
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = Sequence.get_id(
-                    config.archive_label_sequence.id)
-        return super(ArchiveLabel, cls).create(vlist)
-
-    @classmethod
-    def copy(cls, creations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(ArchiveLabel, cls).copy(creations, default=default)
-
-
-class Container(ModelSQL, ModelView):
-    'Container'
-    __name__ = 'container'
-    _history = True
-    label = fields.Many2One(
-        'container.label', 'Label', states={'required': True},
-        help='The Label of the Container.')
-    storehouse = fields.Many2One(
-        'storehouse', 'Storehouse',
-        help='The Storehouse of the Container.')
-    storage = fields.Reference(
-        'Storage', [('harddisk', 'Harddisk')], states={'required': True},
-        help='The physical realization of the Container.')
-    version = fields.Integer(
-        'Version', states={'required': True},
-        help='The version of the Container Label.')
-    location = fields.Char(
-        'Location', help='The local position of the Container.')
-    closed = fields.Boolean(
-        'Closed', help='The finalization state of the Container.')
-
-
-class Archive(ModelSQL, ModelView):
-    'Archive'
-    __name__ = 'archive'
-    _history = True
-    label = fields.Many2One(
-        'archive.label', 'Label', states={'required': True},
-        help='The Label of the Archive.')
-    storage = fields.Reference(
-        'Storage', [('harddisk.filesystem', 'Filesystem')],
-        required=True, help='The physical realization of the Archive.')
-    contents = fields.One2Many(
-        'content', 'archive', 'Contents', help='The Contents of the Archive.')
-    closed = fields.Boolean(
-        'Closed', help='The finalization state of the Archive.')
+        'Checksum', required=True, help='The string of the Checksum.')
+    timestamp = fields.DateTime(
+        'Timestamp', states={'required': True},
+        help='The point in time of the Checksum.')
+    algorithm = fields.Char(
+        'Algorithm', states={'required': True},
+        help='The algorithm for the Checksum.')
+    begin = fields.Integer(
+        'Begin', help='The position of the first byte of the Checksum.')
+    end = fields.Integer(
+        'End', help='The position of the last byte of the Checksum.')
 
 
 class Storehouse(ModelSQL, ModelView):
     'Storehouse'
     __name__ = 'storehouse'
+    _rec_name = 'code'
     _history = True
     code = fields.Char(
         'Code', required=True,
         help='The Code of the Storehouse.')
+    details = fields.Text(
+        'Details', help='Details of the Storehouse.')
     user = fields.Many2One(
         'res.user', 'User', states={'required': True},
         help='The admin user of the Storehouse.')
-    containers = fields.One2Many(
-        'container', 'storehouse', 'Containers',
-        help='The containers in the Storehouse.')
+    harddisks = fields.One2Many(
+        'harddisk', 'storehouse', 'Harddisks',
+        help='The harddisks in the Storehouse.')
+
+
+class HarddiskLabel(ModelSQL, ModelView):
+    'Harddisk Label'
+    __name__ = 'harddisk.label'
+    _rec_name = 'code'
+    _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Harddisk.')
+    harddisks = fields.One2Many(
+        'harddisk', 'label', 'Harddisks',
+        help='The harddisks in the Storehouse.')
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.harddisk_label_sequence.id)
+        return super(HarddiskLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, harddisk_labels, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(HarddiskLabel, cls).copy(
+            harddisk_labels, default=default)
 
 
 class Harddisk(ModelSQL, ModelView):
     'Harddisk'
     __name__ = 'harddisk'
+    _rec_name = 'uuid_harddisk'
     _history = True
-    container = fields.Function(
-        fields.Many2One('container', 'Container'), 'get_container')
+    label = fields.Many2One(
+        'harddisk.label', 'Label', states={'required': True},
+        help='The Label of the Harddisk.')
+    version = fields.Integer(
+        'Version', states={'required': True},
+        help='The version of a Harddisk Label in the Storehouse.')
+    storehouse = fields.Many2One(
+        'storehouse', 'Storehouse', states={'required': True},
+        help='The Storehouse of the Harddisk.')
+    location = fields.Char(
+        'Location', help='The local position of the Harddisk.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Harddisk.')
     raid_type = fields.Char(
-        'Raid Type', states={'required': True},
-        help='The type of the Raid.')
+        'Raid Type', states={'required': True}, help='The type of the Raid.')
     raid_number = fields.Char(
         'Raid Number', states={'required': True},
         help='The current number of the harddisk in the Raid.')
@@ -957,14 +919,14 @@ class Harddisk(ModelSQL, ModelView):
         'harddisk.filesystem', 'harddisk', 'Filesystems',
         help='The Filesystems on the Harddisk.')
     uuid_host = fields.Char(
-        'Uuid Host', states={'required': True}, 
-        help='The uuid of the Host.')
+        'Uuid Host', states={'required': True}, help='The uuid of the Host.')
     uuid_harddisk = fields.Char(
         'Uuid Harddisk', states={'required': True},
         help='The uuid of the Harddisk.')
     checksum_harddisk = fields.Many2One(
-        'checksum', 'Checksum Harddisk',
-        help='The Checksum of the Harddisk.')
+        'checksum', 'Checksum Harddisk', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Harddisk.')
     tests = fields.One2Many(
         'harddisk.test', 'harddisk', 'Integrity Tests',
         help='The integrity tests of the Harddisk.')
@@ -980,77 +942,9 @@ class Harddisk(ModelSQL, ModelView):
             ('out_of_order', 'Out of Order'),
         ], 'State', required=True, sort=False,
         help='The usage state of the Harddisk.')
-    # closed = fields.Function(container.closed)
     # status = fields.Function(status of last harddisk test)
-    # sticker_text = fields.Function(text of sticker)
-    # sticker_pdf = fields.Function(pdf of sticker)
-
-    def get_container(self, name):
-        Container = Pool().get('container')
-        container = Container.search(
-            [('storage', '=', 'harddisk,%s' % self.id)], limit=1)
-        if not container:
-            return None
-        return container[0].id
-
-
-class Filesystem(ModelSQL, ModelView):
-    'Filesystem'
-    __name__ = 'harddisk.filesystem'
-    _history = True
-    archive = fields.Function(
-        fields.Many2One('archive', 'Archive'), 'get_archive')
-    harddisk = fields.Many2One(
-        'harddisk', 'Harddisk', required=True,
-        help='The Harddisk on which the filesystem resides.')
-    partition_number = fields.Integer(
-        'Partition Number', required=True,
-        help='The number of the partition on the Harddisk.')
-    uuid_partition = fields.Char(
-        'Uuid Partition', states={'required': True},
-        help='The uuid of the Partition.')
-    uuid_raid = fields.Char(
-        'Uuid Raid', states={'required': True},
-        help='The uuid of the Raid.')
-    uuid_raid_sub = fields.Char(
-        'Uuid Raid Sub', states={'required': True},
-        help='The uuid of the Raid Sub.')
-    uuid_crypto = fields.Char(
-        'Uuid Crypto', states={'required': True},
-        help='The uuid of the Crypto.')
-    uuid_lvm = fields.Char(
-        'Uuid Lvm', states={'required': True},
-        help='The uuid of the Lvm.')
-    uuid_filesystem = fields.Char(
-        'Uuid Filesystem', states={'required': True},
-        help='The uuid of the Filesystem.')
-    checksum_partition = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Partition.')
-    checksum_raid = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Raid.')
-    checksum_raid_sub = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Raid Sub.')
-    checksum_crypto = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Crypto.')
-    checksum_lvm = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Lvm.')
-    checksum_filesystem = fields.Many2One(
-        'checksum', 'Checksum',
-        help='The Checksum of the Filesystem.')
-    # closed = fields.Function(archive.closed)
-
-    def get_container(self, name):
-        Archive = Pool().get('archive')
-        archive = Archive.search(
-            [('storage', '=', 'archive,%s' % self.id)], limit=1)
-        if not archive:
-            return None
-        return archive[0].id
+    # sticker_text = fields.Function(text of sticker with label, etc)
+    # sticker_pdf = fields.Function(pdf of sticker with label, etc)
 
 
 class HarddiskTest(ModelSQL, ModelView):
@@ -1079,119 +973,136 @@ class HarddiskTest(ModelSQL, ModelView):
         ], 'State', required=True, sort=False,
         help='The usage state of the Harddisk.')
 
+    def get_rec_name(self, name):
+        return self.harddisk.uuid_harddisk + "@" + str(self.timestamp)
 
-class Checksum(ModelSQL, ModelView):
-    'Checksum'
-    __name__ = 'checksum'
+
+class FilesystemLabel(ModelSQL, ModelView):
+    'Filesystem Label'
+    __name__ = 'harddisk.filesystem.label'
+    _rec_name = 'code'
     _history = True
-    origin = fields.Reference(
-        'Origin', [
-            ('content', 'Content'),
-            ('harddisk', 'Harddisk')
-        ],
-        help='The originating data of the checksum')
     code = fields.Char(
-        'Checksum', required=True, help='The string of the Checksum.')
-    timestamp = fields.DateTime(
-        'Timestamp', states={'required': True},
-        help='The point in time of the Checksum.')
-    algorithm = fields.Char(
-        'Algorithm', states={'required': True},
-        help='The algorithm for the Checksum.')
-    begin = fields.Integer(
-        'Begin', help='The position of the first byte of the Checksum.')
-    end = fields.Integer(
-        'End', help='The position of the last byte of the Checksum.')
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The Label code for the Filesystem.')
+    filesystems = fields.One2Many(
+        'harddisk.filesystem', 'label', 'Filesystems',
+        help='The Filesystems of the Filesystem Label.')
+    contents = fields.One2Many(
+        'content', 'filesystem_label', 'Contents',
+        help='The Contents of the Filesystem Label.')
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.filesystem_label_sequence.id)
+        return super(FilesystemLabel, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, filesystem_labels, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(FilesystemLabel, cls).copy(
+            filesystem_labels, default=default)
+
+
+class Filesystem(ModelSQL, ModelView):
+    'Filesystem'
+    __name__ = 'harddisk.filesystem'
+    _rec_name = 'uuid_filesystem'
+    _history = True
+    label = fields.Many2One(
+        'harddisk.filesystem.label', 'Label', states={'required': True},
+        help='The Label of the Filesystem.')
+    harddisk = fields.Many2One(
+        'harddisk', 'Harddisk', states={'required': True},
+        help='The Harddisk on which the filesystem resides.')
+    closed = fields.Boolean(
+        'Closed', help='The finalization state of the Filesystem.')
+    partition_number = fields.Integer(
+        'Partition Number', states={'required': True},
+        help='The number of the partition on the Harddisk.')
+    uuid_partition = fields.Char(
+        'Uuid Partition', states={'required': True},
+        help='The uuid of the Partition.')
+    uuid_raid = fields.Char(
+        'Uuid Raid', states={'required': True},
+        help='The uuid of the Raid.')
+    uuid_raid_sub = fields.Char(
+        'Uuid Raid Sub', states={'required': True},
+        help='The uuid of the Raid Sub.')
+    uuid_crypto = fields.Char(
+        'Uuid Crypto', states={'required': True},
+        help='The uuid of the Crypto.')
+    uuid_lvm = fields.Char(
+        'Uuid Lvm', states={'required': True},
+        help='The uuid of the Lvm.')
+    uuid_filesystem = fields.Char(
+        'Uuid Filesystem', states={'required': True},
+        help='The uuid of the Filesystem.')
+    checksum_partition = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Partition.')
+    checksum_raid = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Raid.')
+    checksum_raid_sub = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Raid Sub.')
+    checksum_crypto = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Crypto.')
+    checksum_lvm = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Lvm.')
+    checksum_filesystem = fields.Many2One(
+        'checksum', 'Checksum', states={
+            'required': Bool(Eval('closed')),
+        }, help='The Checksum of the Filesystem.')
 
 
 class Content(ModelSQL, ModelView):
     'Content'
     __name__ = 'content'
+    _rec_name = 'uuid'
     _history = True
     active = fields.Boolean('Active')
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
-    name = fields.Char(
-        'File Name', required=True, help='The name of the file.')
-    extension = fields.Function(
-        fields.Char('Extension'), 'on_change_with_extension')
-    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
-    path = fields.Char('Path')
-    preview_path = fields.Char('Preview Path')
-    mime_type = fields.Char('Mime Type', help='The media or content type.')
-    mediation = fields.Boolean('Mediation')
-    duplicate_of = fields.Many2One(
-        'content', 'Duplicate of',
-        domain=[('duplicate_of', '=', None)],
-        states={
-            'invisible': And(
-                Eval('rejection_reason') != 'checksum_collision',
-                Eval('rejection_reason') != 'fingerprint_collision'
-            )
-        }, depends=['rejection_reason'],
-        help='The original duplicated Content.')
-    duplicates = fields.One2Many(
-        'content', 'duplicate_of', 'Duplicates',
-        domain=[
-            (
-                'rejection_reason', 'in',
-                ['checksum_collision', 'fingerprint_collision']
-            ),
-        ], depends=['rejection_reason'],
-        help='The original duplicated Content.')
     user = fields.Many2One(
         'res.user', 'User', states={'required': True},
         help='The user, who provided the content.')
-    fingerprintlogs = fields.One2Many(
-        'content.fingerprintlog', 'content', 'Fingerprintlogs',
-        help='The fingerprinting log for the content.')
-    checksums = fields.One2Many(
-        'checksum', 'origin', 'Checksums',
-        help='The checksums of the content.')
-    archive = fields.Many2One(
-        'archive', 'Archive', help='The Archive of the Content.')
     category = fields.Selection(
         [
             ('audio', 'Audio')
         ], 'Category', required=True, help='The category of content.')
-    creation = fields.One2One(
-        'creation-content', 'content', 'creation', 'Creation',
-        help='The creation of the content.')
-    processing_state = fields.Selection(
-        [
-            ('uploaded', 'Upload finished'),
-            ('previewed', 'Preview created'),
-            ('checksummed', 'Checksum created'),
-            ('fingerprinted', 'Fingerprint created'),
-            ('dropped', 'Dropped'),
-            ('archived', 'Archived'),
-            ('deleted', 'Deleted'),
-            ('rejected', 'Rejected'),
-            ('unknown', 'Unknown'),
-        ], 'State', required=True, help='The processing state of the content.')
-    processing_hostname = fields.Char(
-        'Processor', states={
-            'invisible': Or(
-                Eval('processing_state') == 'deleted',
-                Eval('processing_state') == 'archived',
-                Eval('processing_state') == 'unknown'
-            )
-        }, depends=['processing_state'],
-        help='The hostname of the processing machine.')
-    rejection_reason = fields.Selection(
-        [
-            (None, ''),
-            ('checksum_collision', 'Duplicate Checksum'),
-            ('fingerprint_collision', 'Duplicate Fingerprint'),
-            ('format_error', 'Format Error'),
-            ('no_fingerprint', 'No Fingerprint'),
-            ('lossy_compression', 'Lossy Compression'),
-        ], 'Reason', states={
-            'invisible': Eval('processing_state') != 'rejected'
-        }, depends=['processing_state'], help='The reason of the rejection.')
-    rejection_reason_details = fields.Text(
-        'Details', help='ID3 tag',
-        states={'invisible': Eval('processing_state') != 'rejected'})
+    # low level metadata
+    name = fields.Char(
+        'File Name', help='The name of the file.')
+    extension = fields.Function(
+        fields.Char('Extension'), 'on_change_with_extension')
+    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
+    mime_type = fields.Char('Mime Type', help='The media or content type.')
     length = fields.Float(
         'Length', digits=(16, 6),
         help='The length or duration of the audio content in seconds [s].',
@@ -1209,7 +1120,34 @@ class Content(ModelSQL, ModelView):
         'Sample Width', help='Sample width in Bits.',
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
-    # metadata for gui
+    # references
+    creation = fields.One2One(
+        'creation-content', 'content', 'creation', 'Creation',
+        help='The creation of the content.')
+    duplicate_of = fields.Many2One(
+        'content', 'Duplicate of',
+        domain=[('duplicate_of', '=', None)],
+        states={
+            'invisible': And(
+                Eval('rejection_reason') != 'checksum_collision',
+                Eval('rejection_reason') != 'fingerprint_collision'
+            ),
+            'required': Or(
+                Eval('rejection_reason') == 'checksum_collision',
+                Eval('rejection_reason') == 'fingerprint_collision',
+            )
+        }, depends=['processing_state', 'rejection_reason'],
+        help='The original duplicated Content.')
+    duplicates = fields.One2Many(
+        'content', 'duplicate_of', 'Duplicates',
+        domain=[
+            (
+                'rejection_reason', 'in',
+                ['checksum_collision', 'fingerprint_collision']
+            ),
+        ], depends=['rejection_reason'],
+        help='The original duplicated Content.')
+    # high level metadata
     metadata_artist = fields.Char(
         'Metadata Artist', help='Artist in uploaded metadata.')
     metadata_title = fields.Char(
@@ -1220,6 +1158,13 @@ class Content(ModelSQL, ModelView):
         'Metadata Release Date', help='Release date in uploaded metadata.')
     metadata_track_number = fields.Char(
         'Metadata Track Number', help='Track number in uploaded metadata.')
+    # derived data
+    checksums = fields.One2Many(
+        'checksum', 'origin', 'Checksums',
+        help='The checksums of the content.')
+    fingerprintlogs = fields.One2Many(
+        'content.fingerprintlog', 'content', 'Fingerprintlogs',
+        help='The fingerprinting log for the content.')
     # temporary data for analysis
     pre_ingest_excerpt_score = fields.Integer(
         'Pre Ingest Excerpt Score',
@@ -1239,6 +1184,64 @@ class Content(ModelSQL, ModelView):
         'Most Similiar Artist', help='The most similiar artist in echoprint.')
     most_similiar_track = fields.Char(
         'Most Similiar Track', help='The most similiar track in echoprint.')
+    # processing
+    path = fields.Char('Path', states={
+            'invisible': Eval('processing_state') == 'deleted'
+        }, depends=['processing_state'])
+    preview_path = fields.Char('Preview Path', states={
+            'invisible': Eval('processing_state') == 'deleted'
+        }, depends=['processing_state'])
+    filesystem_label = fields.Many2One(
+        'harddisk.filesystem.label', 'Filesystem Label', states={
+            'invisible': Eval('processing_state') != 'archived'
+        }, depends=['processing_state'],
+        help='The Filesystem Label of the Content.')
+    processing_state = fields.Selection(
+        [
+            ('uploaded', 'Upload finished'),
+            ('previewed', 'Preview created'),
+            ('checksummed', 'Checksum created'),
+            ('fingerprinted', 'Fingerprint created'),
+            ('dropped', 'Dropped'),
+            ('archived', 'Archived'),
+            ('deleted', 'Deleted'),
+            ('rejected', 'Rejected'),
+            ('unknown', 'Unknown'),
+        ], 'State', required=True,
+        help='The processing state of the content.')
+    processing_hostname = fields.Char(
+        'Processor', states={
+            'invisible': Or(
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived'
+            )
+        }, depends=['processing_state'],
+        help='The hostname of the processing machine.')
+    storage_hostname = fields.Char(
+        'Storage', states={
+            'invisible': Or(
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived'
+            )
+        }, depends=['processing_state'],
+        help='The hostname of the storage machine.')
+    rejection_reason = fields.Selection(
+        [
+            (None, ''),
+            ('checksum_collision', 'Duplicate Checksum'),
+            ('fingerprint_collision', 'Duplicate Fingerprint'),
+            ('format_error', 'Format Error'),
+            ('no_fingerprint', 'No Fingerprint'),
+            ('lossy_compression', 'Lossy Compression'),
+        ], 'Reason', states={
+            'invisible': Eval('processing_state') != 'rejected',
+            'required': Eval('processing_state') == 'rejected'
+        }, depends=['processing_state'],
+        help='The reason of the rejection.')
+    rejection_reason_details = fields.Text(
+        'Details', help='ID3 tag',
+        states={'invisible': Eval('processing_state') != 'rejected'})
+    mediation = fields.Boolean('Mediation')
 
     @classmethod
     def __setup__(cls):
