@@ -42,6 +42,7 @@ class Party:
                 'required': Bool(Eval('context', {}).get('company')),
                 'invisible': ~Eval('context', {}).get('company'),
             }))
+    repertoire_terms_accepted = fields.Boolean('Terms of Service Acceptance')
 
     def get_currency_digits(self, name):
         Company = Pool().get('company.company')
