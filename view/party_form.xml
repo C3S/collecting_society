@@ -22,7 +22,13 @@
             <label name="pocket_budget"/>
             <field name="pocket_budget"/>
         </page>
-        <page string="Terms of Services" id="terms">
+        <page string="Registration Information" id="reginfo">
+            <label name="firstname"/>
+            <field name="firstname"/>
+            <label name="lastname"/>
+            <field name="lastname"/>
+            <label name="birthdate"/>
+            <field name="birthdate"/>
             <label name="repertoire_terms_accepted"/>
             <field name="repertoire_terms_accepted"/>
         </page>
