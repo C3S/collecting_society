@@ -17,6 +17,10 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
         fields.Many2One('ir.sequence', 'Artist Sequence', domain=[
             ('code', '=', 'artist'),
         ]))
+    release_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Release Sequence', domain=[
+            ('code', '=', 'release'),
+        ]))
     contribution_sequence = fields.Property(
         fields.Many2One('ir.sequence', 'Contribution Sequence', domain=[
             ('code', '=', 'contribution'),

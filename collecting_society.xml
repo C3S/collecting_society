@@ -506,6 +506,24 @@
         <record model="ir.sequence" id="sequence_artist">
             <field name="name">Artist</field>
             <field name="code">artist</field>
+            <field name="prefix">A</field>
+            <field name="padding">10</field>
+        </record>
+
+        <record model="ir.sequence.type" id="sequence_type_release">
+            <field name="name">Release</field>
+            <field name="code">release</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_release_group_admin">
+            <field name="sequence_type" ref="sequence_type_release"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_release">
+            <field name="name">Release</field>
+            <field name="code">release</field>
+            <field name="prefix">R</field>
+            <field name="padding">10</field>
         </record>
         
         <record model="ir.sequence.type" id="sequence_type_harddisk_label">
@@ -548,6 +566,8 @@
         <record model="ir.sequence" id="sequence_creation">
             <field name="name">Creation</field>
             <field name="code">creation</field>
+            <field name="prefix">C</field>
+            <field name="padding">10</field>
         </record>
         <record model="ir.sequence.type" id="sequence_type_contribution">
             <field name="name">Contribution</field>
