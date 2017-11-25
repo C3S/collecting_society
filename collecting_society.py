@@ -1261,7 +1261,8 @@ class Content(ModelSQL, ModelView):
 
     @fields.depends('name')
     def on_change_with_extension(self, name=None):
-        return os.path.splitext(self.name)[1].lstrip('.')
+        if self.name:
+            return os.path.splitext(self.name)[1].lstrip('.')
 
     def get_uniqueness(self, name=None):
         minval = 0.0
