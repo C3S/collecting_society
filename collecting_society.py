@@ -520,8 +520,8 @@ class Creation(ModelSQL, ModelView):
         for creationlicense in self.licenses:
             license = creationlicense.license
             if not default or license.freedom_rank > default.freedom_rank:
-                default = license
-        return default.id
+                default = license.id
+        return default
 
     def search_default_license(self, name):
         return self.get_default_license(name)
