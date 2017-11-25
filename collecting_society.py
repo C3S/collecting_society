@@ -76,6 +76,13 @@ STATES = {
 DEPENDS = ['active']
 SEPARATOR = u' /25B6 '
 
+##############################################################################
+# Mixins
+##############################################################################
+
+
+class State_for_user(object):
+    active = fields.Boolean('Active')
 
 ##############################################################################
 # Creative
@@ -211,7 +218,6 @@ class Artist(ModelSQL, ModelView):
             digits=(16, Eval('currency_digits', 2)),
             depends=['currency_digits']),
         'get_hat_balance', searcher='search_hat_balance')
-    active = fields.Boolean('Active')
 
     @classmethod
     def __setup__(cls):
@@ -394,7 +400,7 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class License(ModelSQL, ModelView):
+class License(ModelSQL, ModelView, State_for_user):
     'License'
     __name__ = 'license'
     _history = True
@@ -433,7 +439,7 @@ class License(ModelSQL, ModelView):
         ]
 
 
-class Creation(ModelSQL, ModelView):
+class Creation(ModelSQL, ModelView, State_for_user):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -485,7 +491,6 @@ class Creation(ModelSQL, ModelView):
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
-    active = fields.Boolean('Active')
 
     @classmethod
     def __setup__(cls):
@@ -601,12 +606,11 @@ class Label(ModelSQL, ModelView):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView):
+class Release(ModelSQL, ModelView, State_for_user):
     'Release'
     __name__ = 'release'
     _history = True
     _rec_name = 'title'
-    active = fields.Boolean('Active')
     title = fields.Char('Title')
     party = fields.Many2One(
         'party.party', 'Party', states=STATES, depends=DEPENDS,
@@ -1081,12 +1085,11 @@ class Filesystem(ModelSQL, ModelView):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView):
+class Content(ModelSQL, ModelView, State_for_user):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
-    active = fields.Boolean('Active')
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
     user = fields.Many2One(
@@ -1309,7 +1312,7 @@ class Content(ModelSQL, ModelView):
 ##############################################################################
 
 
-class Client(ModelSQL, ModelView):
+class Client(ModelSQL, ModelView, State_for_user):
     'Client'
     __name__ = 'client'
     _history = True
@@ -1331,7 +1334,6 @@ class Client(ModelSQL, ModelView):
         'by the media player')
     plugin_vendor = fields.Char(
         'Plugin Vendor', help='Vendor of the plugin used by the media player')
-    active = fields.Boolean('Active')
 
     @staticmethod
     def default_active():
