@@ -472,7 +472,6 @@ class Creation(ModelSQL, ModelView):
     releases = fields.One2Many(
         'creation.release', 'creation', 'Releases',
         help='The releases of this creation.')
-    time = fields.Char('Time', help='The playing time of the creation.')
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the creation.')
