@@ -81,7 +81,7 @@ SEPARATOR = u' /25B6 '
 ##############################################################################
 
 
-class State_for_user(object):
+class CurrentState(object):
     active = fields.Boolean('Active')
 
 ##############################################################################
@@ -89,7 +89,7 @@ class State_for_user(object):
 ##############################################################################
 
 
-class Artist(ModelSQL, ModelView):
+class Artist(ModelSQL, ModelView, CurrentState):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -400,7 +400,7 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class License(ModelSQL, ModelView, State_for_user):
+class License(ModelSQL, ModelView):
     'License'
     __name__ = 'license'
     _history = True
@@ -439,7 +439,7 @@ class License(ModelSQL, ModelView, State_for_user):
         ]
 
 
-class Creation(ModelSQL, ModelView, State_for_user):
+class Creation(ModelSQL, ModelView, CurrentState):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -478,6 +478,7 @@ class Creation(ModelSQL, ModelView, State_for_user):
     releases = fields.One2Many(
         'creation.release', 'creation', 'Releases',
         help='The releases of this creation.')
+    time = fields.Char('Time', help='The playing time of the creation.')
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the creation.')
@@ -525,8 +526,8 @@ class Creation(ModelSQL, ModelView, State_for_user):
         for creationlicense in self.licenses:
             license = creationlicense.license
             if not default or license.freedom_rank > default.freedom_rank:
-                default = license.id
-        return default
+                default = license
+        return default.id
 
     def search_default_license(self, name):
         return self.get_default_license(name)
@@ -605,7 +606,7 @@ class Label(ModelSQL, ModelView):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView, State_for_user):
+class Release(ModelSQL, ModelView, CurrentState):
     'Release'
     __name__ = 'release'
     _history = True
@@ -1084,7 +1085,7 @@ class Filesystem(ModelSQL, ModelView):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, State_for_user):
+class Content(ModelSQL, ModelView, CurrentState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
@@ -1311,7 +1312,7 @@ class Content(ModelSQL, ModelView, State_for_user):
 ##############################################################################
 
 
-class Client(ModelSQL, ModelView, State_for_user):
+class Client(ModelSQL, ModelView, CurrentState):
     'Client'
     __name__ = 'client'
     _history = True
