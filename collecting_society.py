@@ -478,7 +478,6 @@ class Creation(ModelSQL, ModelView, CurrentState):
     releases = fields.One2Many(
         'creation.release', 'creation', 'Releases',
         help='The releases of this creation.')
-    time = fields.Char('Time', help='The playing time of the creation.')
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the creation.')
@@ -526,8 +525,8 @@ class Creation(ModelSQL, ModelView, CurrentState):
         for creationlicense in self.licenses:
             license = creationlicense.license
             if not default or license.freedom_rank > default.freedom_rank:
-                default = license
-        return default.id
+                default = license.id
+        return default
 
     def search_default_license(self, name):
         return self.get_default_license(name)
