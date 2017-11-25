@@ -4,6 +4,8 @@
 <form string="Collecting Society Configuration">
     <label name="artist_sequence"/>
     <field name="artist_sequence"/>
+    <label name="release_sequence"/>
+    <field name="release_sequence"/>
     <label name="contribution_sequence"/>
     <field name="contribution_sequence"/>
     <label name="harddisk_label_sequence"/>

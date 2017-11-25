@@ -31,6 +31,14 @@
             <field name="value" eval="'ir.sequence,' + str(
                 ref('sequence_artist'))"/>
         </record>
+        <record model="ir.property" id="property_release_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'release_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_release'))"/>
+        </record>
         <record model="ir.property" id="property_harddisk_label_sequence">
             <field name="field"
                 search="[
