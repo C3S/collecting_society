@@ -191,38 +191,6 @@
         <menuitem parent="menu_collecting_society" action="act_label"
             sequence="45" id="menu_label"/>
 
-        <record model="ir.ui.view" id="creation_release_form">
-            <field name="model">creation.release</field>
-            <field name="type">form</field>
-            <field name="name">creation_release_form</field>
-        </record>
-        <record model="ir.ui.view" id="creation_release_list">
-            <field name="model">creation.release</field>
-            <field name="type">tree</field>
-            <field name="name">creation_release_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_creation_release">
-            <field name="name">Creation Release</field>
-            <field name="res_model">creation.release</field>
-            <field name="domain">[]</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_release_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_release_list"/>
-            <field name="act_window" ref="act_creation_release"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_release_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_release_form"/>
-            <field name="act_window" ref="act_creation_release"/>
-        </record>
-        <menuitem parent="menu_collecting_society"
-                action="act_creation_release"
-            sequence="45" id="menu_creation_release"/>
-
         <record model="ir.ui.view" id="genre_form">
             <field name="model">genre</field>
             <field name="type">form</field>

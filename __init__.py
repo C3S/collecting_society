@@ -50,7 +50,7 @@ def register():
         CreationContent,
         Label,
         Release,
-        CreationRelease,
+        ReleaseCreation,
         Genre,
         ReleaseGenre,
         ContributionRole,

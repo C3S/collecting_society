@@ -31,7 +31,7 @@ __all__ = [
     'CreationContent',
     'Label',
     'Release',
-    'CreationRelease',
+    'ReleaseCreation',
     'Genre',
     'ReleaseGenre',
     'CreationRole',
@@ -475,9 +475,9 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Creation'
     __name__ = 'creation'
     _history = True
-    title = fields.Char(
-        'Title', required=True, select=True, states=STATES, depends=DEPENDS,
-        help='The title or name of the creation')
+    default_title = fields.Function(
+        fields.Char('Default Title'), 'get_default_title',
+        searcher='search_default_title')
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
@@ -508,7 +508,7 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         'Originating Relations', states=STATES, depends=DEPENDS,
         help='All creations originating the actual creation')
     releases = fields.One2Many(
-        'creation.release', 'creation', 'Releases',
+        'release-creation', 'creation', 'Releases',
         help='The releases of this creation.')
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
@@ -530,7 +530,6 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
             ('code_uniq', 'UNIQUE(code)',
              'The code of the creation must be unique.')
         ]
-        cls._order.insert(1, ('title', 'ASC'))
 
     @staticmethod
     def order_code(tables):
@@ -545,16 +544,42 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         result = '[%s] %s' % (
             self.artist.name if self.artist and self.artist.name
             else '<unknown artist>',
-            self.title if self.title else '<unknown title>')
+            self.default_title if self.default_title else '<unknown title>')
         return result
+
+    def get_default_title(self, name):
+        default_title = None
+        earliest_date = None
+        for releasecreation in self.releases:
+            release = releasecreation.release
+            online_date = release.online_release_date
+            physical_date = release.release_date
+            if not default_title:
+                default_title = releasecreation.title
+                if not online_date or physical_date < online_date:
+                    earliest_date = physical_date
+                else:
+                    earliest_date = online_date
+            if physical_date < earliest_date:
+                default_title = releasecreation.title
+                earliest_date = physical_date
+            if online_date < earliest_date:
+                default_title = releasecreation.title
+                earliest_date = online_date
+        return default_title
 
     def get_default_license(self, name):
         default = None
         for creationlicense in self.licenses:
             license = creationlicense.license
             if not default or license.freedom_rank > default.freedom_rank:
-                default = license.id
-        return default
+                default = license
+        if hasattr(default, 'id'):
+            return default.id
+        return None
+
+    def search_default_title(self, name):
+        return self.get_default_title(name)
 
     def search_default_license(self, name):
         return self.get_default_license(name)
@@ -584,7 +609,7 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         return [
             'OR',
             ('code',) + tuple(clause[1:]),
-            ('title',) + tuple(clause[1:]),
+            ('default_title',) + tuple(clause[1:]),
         ]
 
 
@@ -643,7 +668,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         'party.party', 'Party', states=STATES, depends=DEPENDS,
         help='The legal person or organization inserting the release')
     creations = fields.One2Many(
-        'creation.release', 'release', 'Creations',
+        'release-creation', 'release', 'Creations',
         help='The creations included in the release')
     neighbouring_rights_society = fields.Many2One(
         'party.party', 'Neighbouring Rights Society',
@@ -689,15 +714,19 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         'Warning', help='A warning note for this release.')  # many2one, -1
 
 
-class CreationRelease(ModelSQL, ModelView):
-    'Creation Release'
-    __name__ = 'creation.release'
+class ReleaseCreation(ModelSQL, ModelView):
+    'Release Creation'
+    __name__ = 'release-creation'
     _history = True
 
-    creation = fields.Many2One(
-        'creation', 'Creation', required=True)
     release = fields.Many2One(
         'release', 'Release', required=True)
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True)
+
+    title = fields.Char(
+        'Title', select=True, states={'required': True},
+        help='The title or name of the creation on the release')
     medium_number = fields.Integer(
         'Medium Number', help=u'The number of the medium on CD, LP, ...')
     track_number = fields.Integer(
