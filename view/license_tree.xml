@@ -5,4 +5,7 @@
     <field name="freedom_rank"/>
     <field name="code"/>
     <field name="name"/>
+    <field name="version"/>
+    <field name="country"/>
+    <field name="link"/>
 </tree>

@@ -8,4 +8,10 @@
     <field name="code"/>
     <label name="freedom_rank"/>
     <field name="freedom_rank"/>
+    <label name="version"/>
+    <field name="version"/>
+    <label name="country"/>
+    <field name="country"/>
+    <label name="link"/>
+    <field name="link"/>
 </form>

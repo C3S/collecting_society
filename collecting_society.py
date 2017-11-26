@@ -401,6 +401,9 @@ class License(ModelSQL, ModelView):
     name = fields.Char('Name', required=True, select=True)
     code = fields.Char('Code', required=True, select=True)
     freedom_rank = fields.Integer('Freedom Rank')
+    version = fields.Char('Version', required=True, select=False)
+    country = fields.Char('Country', required=True, select=False)
+    link = fields.Char('Link', required=True, select=False)
 
     @classmethod
     def __setup__(cls):
