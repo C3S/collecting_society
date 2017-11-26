@@ -587,7 +587,6 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
             ('title',) + tuple(clause[1:]),
         ]
 
-
 class CreationLicense(ModelSQL, ModelView):
     'Creation - License'
     __name__ = 'creation.license'
@@ -639,6 +638,10 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     _history = True
     _rec_name = 'title'
     title = fields.Char('Title')
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The identification code for the release')
     party = fields.Many2One(
         'party.party', 'Party', states=STATES, depends=DEPENDS,
         help='The legal person or organization inserting the release')
@@ -687,6 +690,52 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         help='The International Standard Recording Code of the release')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')  # many2one, -1
+
+    @classmethod
+    def __setup__(cls):
+        super(Release, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the release must be unique.')
+        ]
+        cls._order.insert(1, ('title', 'ASC'))
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @staticmethod
+    def default_state():
+        return 'on_approval'
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(config.release_sequence.id)
+        return super(Release, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, releases, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(Release, cls).copy(releases, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('title',) + tuple(clause[1:]),
+        ]
 
 
 class CreationRelease(ModelSQL, ModelView):
