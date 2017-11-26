@@ -83,6 +83,9 @@ SEPARATOR = u' /25B6 '
 
 class CurrentState(object):
     active = fields.Boolean('Active')
+    @staticmethod
+    def default_active():
+        return True
 
 ##############################################################################
 # Creative
@@ -256,10 +259,6 @@ class Artist(ModelSQL, ModelView, CurrentState):
         return [CharLength(table.code), table.code]
 
     @staticmethod
-    def default_active():
-        return True
-
-    @staticmethod
     def default_payee_validation_state():
         return 'accepted'
 
@@ -400,7 +399,7 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class License(ModelSQL, ModelView):
+class License(ModelSQL, ModelView, CurrentState):
     'License'
     __name__ = 'license'
     _history = True
@@ -509,10 +508,6 @@ class Creation(ModelSQL, ModelView, CurrentState):
     def default_state():
         return 'on_approval'
 
-    @staticmethod
-    def default_active():
-        return True
-
     def get_rec_name(self, name):
         result = '[%s] %s' % (
             self.artist.name if self.artist and self.artist.name
@@ -592,7 +587,7 @@ class CreationContent(ModelSQL, ModelView):
         ]
 
 
-class Label(ModelSQL, ModelView):
+class Label(ModelSQL, ModelView, CurrentState):
     'Label'
     __name__ = 'label'
     _history = True
@@ -653,10 +648,6 @@ class Release(ModelSQL, ModelView, CurrentState):
         help='The International Standard Recording Code of the release')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')  # many2one, -1
-
-    @staticmethod
-    def default_active():
-        return True
 
 
 class CreationRelease(ModelSQL, ModelView):
@@ -833,7 +824,7 @@ class Checksum(ModelSQL, ModelView):
         'End', help='The position of the last byte of the Checksum.')
 
 
-class Storehouse(ModelSQL, ModelView):
+class Storehouse(ModelSQL, ModelView, CurrentState):
     'Storehouse'
     __name__ = 'storehouse'
     _rec_name = 'code'
@@ -851,7 +842,7 @@ class Storehouse(ModelSQL, ModelView):
         help='The harddisks in the Storehouse.')
 
 
-class HarddiskLabel(ModelSQL, ModelView):
+class HarddiskLabel(ModelSQL, ModelView, CurrentState):
     'Harddisk Label'
     __name__ = 'harddisk.label'
     _rec_name = 'code'
@@ -892,7 +883,7 @@ class HarddiskLabel(ModelSQL, ModelView):
             harddisk_labels, default=default)
 
 
-class Harddisk(ModelSQL, ModelView):
+class Harddisk(ModelSQL, ModelView, CurrentState):
     'Harddisk'
     __name__ = 'harddisk'
     _rec_name = 'uuid_harddisk'
@@ -980,7 +971,7 @@ class HarddiskTest(ModelSQL, ModelView):
         return self.harddisk.uuid_harddisk + "@" + str(self.timestamp)
 
 
-class FilesystemLabel(ModelSQL, ModelView):
+class FilesystemLabel(ModelSQL, ModelView, CurrentState):
     'Filesystem Label'
     __name__ = 'harddisk.filesystem.label'
     _rec_name = 'code'
@@ -1024,7 +1015,7 @@ class FilesystemLabel(ModelSQL, ModelView):
             filesystem_labels, default=default)
 
 
-class Filesystem(ModelSQL, ModelView):
+class Filesystem(ModelSQL, ModelView, CurrentState):
     'Filesystem'
     __name__ = 'harddisk.filesystem'
     _rec_name = 'uuid_filesystem'
@@ -1258,10 +1249,6 @@ class Content(ModelSQL, ModelView, CurrentState):
     def default_category():
         return 'audio'
 
-    @staticmethod
-    def default_active():
-        return True
-
     @fields.depends('name')
     def on_change_with_extension(self, name=None):
         if self.name:
@@ -1334,10 +1321,6 @@ class Client(ModelSQL, ModelView, CurrentState):
         'by the media player')
     plugin_vendor = fields.Char(
         'Plugin Vendor', help='Vendor of the plugin used by the media player')
-
-    @staticmethod
-    def default_active():
-        return True
 
     @classmethod
     def __setup__(cls):
