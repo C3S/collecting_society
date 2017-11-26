@@ -665,6 +665,12 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         'Copyright Date', help='Date of the copyright.')
     copyright_owner = fields.Many2One(
         'party.party', 'Copyright Owner', help='Copyright owning party.')
+    picture_data = fields.Binary(
+        'Picture Data', states=STATES, depends=DEPENDS,
+        help='Picture data of a photograph or logo')
+    picture_data_mime_type = fields.Char(
+        'Picture Data Mime Type', states=STATES, depends=DEPENDS,
+        help='The mime type of picture data.')
     production_date = fields.Date(
         'Production Date', help='Date of production.')  # -1
     producer = fields.Many2One('party.party', 'Producer')  # -1

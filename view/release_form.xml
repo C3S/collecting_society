@@ -53,5 +53,20 @@
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
     <field name="creations" colspan="6"/>
-    <field name="genres" colspan="6"/>
+    <notebook colspan="6">
+        <page string="General" id="general" col="6">
+            <group id="image" colspan="1" col="1" xexpand="0">
+                <separator string="Picture" id="picture" xexpand="0"/>
+                <field name="picture_data" widget="image"
+                    height="200" width="200" readonly="1"
+                    img_width="200" img_height="200"
+                    yexpand="0" xexpand="0"/>
+                <field name="picture_data" xexpand="0"/>
+            </group>
+            <field name="genres" colspan="4"/>
+        </page>
+        <page string="Creations" id="creations" col="6">
+            <field name="creations" colspan="6"/>
+        </page>
+    </notebook>
 </form>
