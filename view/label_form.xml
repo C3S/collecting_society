@@ -8,4 +8,6 @@
     <field name="party"/>
     <label name="gvl_code"/>
     <field name="gvl_code"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
 </form>

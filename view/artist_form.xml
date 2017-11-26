@@ -15,6 +15,12 @@
     </group>
     <label name="party"/>
     <field name="party"/>
+    <label name="claim_state"/>
+    <field name="claim_state"/>
+    <label name="entity_origin"/>
+    <field name="entity_origin"/>
+    <label name="entity_creator"/>
+    <field name="entity_creator"/>
     <notebook colspan="6">
         <page string="General" id="general" col="6">
             <group id="misc" colspan="6" col="10">

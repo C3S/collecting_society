@@ -14,4 +14,6 @@
     <field name="country"/>
     <label name="link"/>
     <field name="link"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
 </form>

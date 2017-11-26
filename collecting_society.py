@@ -76,13 +76,53 @@ STATES = {
 DEPENDS = ['active']
 SEPARATOR = u' /25B6 '
 
+##############################################################################
+# Mixins
+##############################################################################
+
+
+class CurrentState(object):
+    active = fields.Boolean('Active')
+    @staticmethod
+    def default_active():
+        return True
+
+
+class ClaimState(object):
+    claim_state = fields.Selection(
+        [
+            ('unclaimed', 'Unclaimed'),
+            ('claimed', 'Claimed'),
+            ('revised', 'Revised'),
+        ], 'Claim State', required=True, sort=False,
+        help='The state in a claim process.\n\n'
+        '*Unclaimed*: The object is not yet claimed or a claim was cancelled.\n'
+        '*Claimed*: Someone has claimed this object but it was not revised, yet.\n'
+        '*Revised*: The object was revised by the original web user')
+    @staticmethod
+    def default_claim_state():
+        return "unclaimed"
+
+
+class EntityOrigin(object):
+    entity_origin = fields.Selection(
+        [
+            ('direct', 'Direct'),
+            ('indirect', 'Indirect'),
+        ], 'Entity State', required=True, sort=False,
+        help='Defines, if an object was created as foreign object (indirect) or not.')
+    entity_creator = fields.Many2One('web.user', 'Entity Creator', required=True)
+    @staticmethod
+    def default_entity_origin():
+        return "direct"
+
 
 ##############################################################################
 # Creative
 ##############################################################################
 
 
-class Artist(ModelSQL, ModelView):
+class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -211,7 +251,6 @@ class Artist(ModelSQL, ModelView):
             digits=(16, Eval('currency_digits', 2)),
             depends=['currency_digits']),
         'get_hat_balance', searcher='search_hat_balance')
-    active = fields.Boolean('Active')
 
     @classmethod
     def __setup__(cls):
@@ -248,10 +287,6 @@ class Artist(ModelSQL, ModelView):
     def order_code(tables):
         table, _ = tables[None]
         return [CharLength(table.code), table.code]
-
-    @staticmethod
-    def default_active():
-        return True
 
     @staticmethod
     def default_payee_validation_state():
@@ -394,7 +429,7 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class License(ModelSQL, ModelView):
+class License(ModelSQL, ModelView, CurrentState):
     'License'
     __name__ = 'license'
     _history = True
@@ -436,7 +471,7 @@ class License(ModelSQL, ModelView):
         ]
 
 
-class Creation(ModelSQL, ModelView):
+class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -487,7 +522,6 @@ class Creation(ModelSQL, ModelView):
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
-    active = fields.Boolean('Active')
 
     @classmethod
     def __setup__(cls):
@@ -506,10 +540,6 @@ class Creation(ModelSQL, ModelView):
     @staticmethod
     def default_state():
         return 'on_approval'
-
-    @staticmethod
-    def default_active():
-        return True
 
     def get_rec_name(self, name):
         result = '[%s] %s' % (
@@ -590,7 +620,7 @@ class CreationContent(ModelSQL, ModelView):
         ]
 
 
-class Label(ModelSQL, ModelView):
+class Label(ModelSQL, ModelView, CurrentState):
     'Label'
     __name__ = 'label'
     _history = True
@@ -603,12 +633,11 @@ class Label(ModelSQL, ModelView):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView):
+class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Release'
     __name__ = 'release'
     _history = True
     _rec_name = 'title'
-    active = fields.Boolean('Active')
     title = fields.Char('Title')
     party = fields.Many2One(
         'party.party', 'Party', states=STATES, depends=DEPENDS,
@@ -639,6 +668,12 @@ class Release(ModelSQL, ModelView):
         'Copyright Date', help='Date of the copyright.')
     copyright_owner = fields.Many2One(
         'party.party', 'Copyright Owner', help='Copyright owning party.')
+    picture_data = fields.Binary(
+        'Picture Data', states=STATES, depends=DEPENDS,
+        help='Picture data of a photograph or logo')
+    picture_data_mime_type = fields.Char(
+        'Picture Data Mime Type', states=STATES, depends=DEPENDS,
+        help='The mime type of picture data.')
     production_date = fields.Date(
         'Production Date', help='Date of production.')  # -1
     producer = fields.Many2One('party.party', 'Producer')  # -1
@@ -652,10 +687,6 @@ class Release(ModelSQL, ModelView):
         help='The International Standard Recording Code of the release')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')  # many2one, -1
-
-    @staticmethod
-    def default_active():
-        return True
 
 
 class CreationRelease(ModelSQL, ModelView):
@@ -832,7 +863,7 @@ class Checksum(ModelSQL, ModelView):
         'End', help='The position of the last byte of the Checksum.')
 
 
-class Storehouse(ModelSQL, ModelView):
+class Storehouse(ModelSQL, ModelView, CurrentState):
     'Storehouse'
     __name__ = 'storehouse'
     _rec_name = 'code'
@@ -850,7 +881,7 @@ class Storehouse(ModelSQL, ModelView):
         help='The harddisks in the Storehouse.')
 
 
-class HarddiskLabel(ModelSQL, ModelView):
+class HarddiskLabel(ModelSQL, ModelView, CurrentState):
     'Harddisk Label'
     __name__ = 'harddisk.label'
     _rec_name = 'code'
@@ -891,7 +922,7 @@ class HarddiskLabel(ModelSQL, ModelView):
             harddisk_labels, default=default)
 
 
-class Harddisk(ModelSQL, ModelView):
+class Harddisk(ModelSQL, ModelView, CurrentState):
     'Harddisk'
     __name__ = 'harddisk'
     _rec_name = 'uuid_harddisk'
@@ -979,7 +1010,7 @@ class HarddiskTest(ModelSQL, ModelView):
         return self.harddisk.uuid_harddisk + "@" + str(self.timestamp)
 
 
-class FilesystemLabel(ModelSQL, ModelView):
+class FilesystemLabel(ModelSQL, ModelView, CurrentState):
     'Filesystem Label'
     __name__ = 'harddisk.filesystem.label'
     _rec_name = 'code'
@@ -1023,7 +1054,7 @@ class FilesystemLabel(ModelSQL, ModelView):
             filesystem_labels, default=default)
 
 
-class Filesystem(ModelSQL, ModelView):
+class Filesystem(ModelSQL, ModelView, CurrentState):
     'Filesystem'
     __name__ = 'harddisk.filesystem'
     _rec_name = 'uuid_filesystem'
@@ -1083,12 +1114,11 @@ class Filesystem(ModelSQL, ModelView):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView):
+class Content(ModelSQL, ModelView, CurrentState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
-    active = fields.Boolean('Active')
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
     user = fields.Many2One(
@@ -1258,13 +1288,10 @@ class Content(ModelSQL, ModelView):
     def default_category():
         return 'audio'
 
-    @staticmethod
-    def default_active():
-        return True
-
     @fields.depends('name')
     def on_change_with_extension(self, name=None):
-        return os.path.splitext(self.name)[1].lstrip('.')
+        if self.name:
+            return os.path.splitext(self.name)[1].lstrip('.')
 
     def get_uniqueness(self, name=None):
         minval = 0.0
@@ -1311,7 +1338,7 @@ class Content(ModelSQL, ModelView):
 ##############################################################################
 
 
-class Client(ModelSQL, ModelView):
+class Client(ModelSQL, ModelView, CurrentState):
     'Client'
     __name__ = 'client'
     _history = True
@@ -1333,11 +1360,6 @@ class Client(ModelSQL, ModelView):
         'by the media player')
     plugin_vendor = fields.Char(
         'Plugin Vendor', help='Vendor of the plugin used by the media player')
-    active = fields.Boolean('Active')
-
-    @staticmethod
-    def default_active():
-        return True
 
     @classmethod
     def __setup__(cls):
