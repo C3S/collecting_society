@@ -44,6 +44,12 @@
 
         <label name="party"/>
         <field name="party"/>
+        <label name="claim_state"/>
+        <field name="claim_state"/>
+        <label name="entity_origin"/>
+        <field name="entity_origin"/>
+        <label name="entity_creator"/>
+        <field name="entity_creator"/>
     <field name="creations" colspan="6"/>
     <field name="genres" colspan="6"/>
 </form>

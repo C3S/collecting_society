@@ -87,12 +87,42 @@ class CurrentState(object):
     def default_active():
         return True
 
+
+class ClaimState(object):
+    claim_state = fields.Selection(
+        [
+            ('unclaimed', 'Unclaimed'),
+            ('claimed', 'Claimed'),
+            ('revised', 'Revised'),
+        ], 'Claim State', required=True, sort=False,
+        help='The state in a claim process.\n\n'
+        '*Unclaimed*: The object is not yet claimed or a claim was cancelled.\n'
+        '*Claimed*: Someone has claimed this object but it was not revised, yet.\n'
+        '*Revised*: The object was revised by the original web user')
+    @staticmethod
+    def default_claim_state():
+        return "unclaimed"
+
+
+class EntityOrigin(object):
+    entity_origin = fields.Selection(
+        [
+            ('direct', 'Direct'),
+            ('indirect', 'Indirect'),
+        ], 'Entity State', required=True, sort=False,
+        help='Defines, if an object was created as foreign object (indirect) or not.')
+    entity_creator = fields.Many2One('web.user', 'Entity Creator', required=True)
+    @staticmethod
+    def default_entity_origin():
+        return "direct"
+
+
 ##############################################################################
 # Creative
 ##############################################################################
 
 
-class Artist(ModelSQL, ModelView, CurrentState):
+class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -438,7 +468,7 @@ class License(ModelSQL, ModelView, CurrentState):
         ]
 
 
-class Creation(ModelSQL, ModelView, CurrentState):
+class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -600,7 +630,7 @@ class Label(ModelSQL, ModelView, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView, CurrentState):
+class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     'Release'
     __name__ = 'release'
     _history = True
