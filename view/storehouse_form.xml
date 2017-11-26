@@ -6,6 +6,8 @@
     <field name="code"/>
     <label name="user"/>
     <field name="user"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
     <newline/>
     <notebook colspan="6">
         <page string="Harddisks" id="harddisks">

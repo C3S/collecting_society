@@ -4,6 +4,8 @@
 <form string="Filesystem Label">
     <label name="code"/>
     <field name="code"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
     <notebook colspan="6">
         <page string="Filesystems" id="filesystems">
             <field name="filesystems" />

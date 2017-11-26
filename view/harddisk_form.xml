@@ -6,6 +6,8 @@
     <field name="label"/>
     <label name="closed"/>
     <field name="closed"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
     <newline/>
     <label name="version"/>
     <field name="version"/>

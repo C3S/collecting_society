@@ -8,4 +8,6 @@
     <field name="code"/>
     <label name="freedom_rank"/>
     <field name="freedom_rank"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
 </form>
