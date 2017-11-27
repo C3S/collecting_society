@@ -4,6 +4,8 @@
 <form string="Release" col="6">
         <label name="title"/>
         <field name="title"/>
+        <label name="code"/>
+        <field name="code"/>
         <label name="label"/>
         <field name="label"/>
         <label name="number_mediums"/>
