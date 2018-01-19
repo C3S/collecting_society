@@ -4,7 +4,6 @@
 <tree string="Release">
     <field name="code"/>
     <field name="title"/>
-    <field name="party"/>
     <field name="release_date"/>
     <field name="online_release_date" tree_invisible="1"/>
     <field name="distribution_territory" tree_invisible="1"/>

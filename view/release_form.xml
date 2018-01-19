@@ -2,59 +2,21 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Release" col="6">
-        <label name="title"/>
-        <field name="title"/>
-        <label name="code"/>
-        <field name="code"/>
-        <label name="label"/>
-        <field name="label"/>
-        <label name="number_mediums"/>
-        <field name="number_mediums"/>
-
-        <label name="label_order_number"/>
-        <field name="label_order_number"/>
-        <label name="isrc_code"/>
-        <field name="isrc_code"/>
-        <label name="ean_upc_code"/>
-        <field name="ean_upc_code"/>
-
-        <label name="neighbouring_rights_society"/>
-        <field name="neighbouring_rights_society"/>
-        <label name="copyright_owner"/>
-        <field name="copyright_owner"/>
-        <label name="copyright_date"/>
-        <field name="copyright_date"/>
-
-        <label name="producer"/>
-        <field name="producer"/>
-        <label name="production_date"/>
-        <field name="production_date"/>
-        <label name="distribution_territory"/>
-        <field name="distribution_territory"/>
-
-        <label name="release_date"/>
-        <field name="release_date"/>
-        <label name="release_cancellation_date"/>
-        <field name="release_cancellation_date"/>
-        <newline/>
-        <label name="online_release_date"/>
-        <field name="online_release_date"/>
-        <label name="online_cancellation_date"/>
-        <field name="online_cancellation_date"/>
-        <label name="warning"/>
-        <field name="warning"/>
-
-        <label name="party"/>
-        <field name="party"/>
-        <label name="claim_state"/>
-        <field name="claim_state"/>
-        <label name="entity_origin"/>
-        <field name="entity_origin"/>
-        <label name="entity_creator"/>
-        <field name="entity_creator"/>
+    <label name="title"/>
+    <field name="title"/>
+    <label name="code"/>
+    <field name="code"/>
+    <group col="20" colspan="2" id="checkboxes">
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
-    <field name="creations" colspan="6"/>
+    </group>
+    <newline/>
+    <label name="isrc_code"/>
+    <field name="isrc_code"/>
+    <label name="label_order_number"/>
+    <field name="label_order_number"/>
+    <label name="ean_upc_code"/>
+    <field name="ean_upc_code"/>
     <notebook colspan="6">
         <page string="General" id="general" col="6">
             <group id="image" colspan="1" col="1" xexpand="0">
@@ -65,10 +27,53 @@
                     yexpand="0" xexpand="0"/>
                 <field name="picture_data" xexpand="0"/>
             </group>
-            <field name="genres" colspan="4"/>
+            <group id="dates" colspan="2" col="2" xexpand="0">
+                <label name="release_date"/>
+                <field name="release_date"/>
+                <label name="release_cancellation_date"/>
+                <field name="release_cancellation_date"/>
+                <label name="online_release_date"/>
+                <field name="online_release_date"/>
+                <label name="online_cancellation_date"/>
+                <field name="online_cancellation_date"/>
+                <label name="copyright_date"/>
+                <field name="copyright_date"/>
+                <label name="production_date"/>
+                <field name="production_date"/>
+            </group>
+            <group id="medium" colspan="2" col="2" xexpand="0">
+                <label name="number_mediums"/>
+                <field name="number_mediums"/>
+            </group>
+            <newline/>
+            <label name="copyright_owner"/>
+            <field name="copyright_owner"/>
+            <label name="neighbouring_rights_society"/>
+            <field name="neighbouring_rights_society"/>
+            <newline/>
+            <label name="label"/>
+            <field name="label"/>
+            <label name="producer"/>
+            <field name="producer"/>
+            <newline/>
+            <label name="distribution_territory"/>
+            <field name="distribution_territory"/>
+            <label name="warning"/>
+            <field name="warning"/>
+            <newline/>
+            <field name="genres" colspan="6" />
         </page>
         <page string="Creations" id="creations" col="6">
-            <field name="creations" colspan="6"/>
+            <field name="creations" />
+        </page>
+        <page string="Access" id="access" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator"/>
+            <newline/>
+            <label name="claim_state"/>
+            <field name="claim_state"/>
         </page>
     </notebook>
 </form>

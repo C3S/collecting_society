@@ -25,7 +25,6 @@ __all__ = [
     'ArtistPayeeAcceptance',
     'License',
     'Creation',
-    'CreationLicense',
     'CreationOriginalDerivative',
     'CreationContribution',
     'CreationContent',
@@ -490,9 +489,9 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         depends=DEPENDS, help='All individual contributions to the creation '
         'like composition and lyric creators, band members and singer/solo '
         'artists and their role.')
-    licenses = fields.One2Many(
-        'creation.license', 'creation', 'Licenses', states=STATES,
-        depends=DEPENDS)
+    licenses = fields.Function(
+        fields.One2Many('release-creation', 'license', 'Licenses'),
+        'get_licenses')
     default_license = fields.Function(
         fields.Many2One('license', 'Default License'),
         'get_default_license', searcher='search_default_license')
@@ -544,17 +543,17 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         result = '[%s] %s' % (
             self.artist.name if self.artist and self.artist.name
             else '<unknown artist>',
-            self.default_title if self.default_title else '<unknown title>')
+            self.default_title)
         return result
 
     def get_default_title(self, name):
-        default_title = None
+        default_title = "<unknown title>"
         earliest_date = None
         for releasecreation in self.releases:
             release = releasecreation.release
             online_date = release.online_release_date
             physical_date = release.release_date
-            if not default_title:
+            if not earliest_date:
                 default_title = releasecreation.title
                 if not online_date or physical_date < online_date:
                     earliest_date = physical_date
@@ -567,6 +566,13 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
                 default_title = releasecreation.title
                 earliest_date = online_date
         return default_title
+
+    def get_licenses(self, name):
+        licenses = []
+        for releasecreation in self.releases:
+            if releasecreation.license:
+                licenses.extend(releasecreation.license)
+        return licenses
 
     def get_default_license(self, name):
         default = None
@@ -611,13 +617,6 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
             ('code',) + tuple(clause[1:]),
             ('default_title',) + tuple(clause[1:]),
         ]
-
-class CreationLicense(ModelSQL, ModelView):
-    'Creation - License'
-    __name__ = 'creation.license'
-    _history = True
-    creation = fields.Many2One('creation', 'Creation', required=True)
-    license = fields.Many2One('license', 'License', required=True)
 
 
 class CreationContent(ModelSQL, ModelView):
@@ -667,9 +666,6 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
         'Code', required=True, select=True, states={
             'readonly': True,
         }, help='The identification code for the release')
-    party = fields.Many2One(
-        'party.party', 'Party', states=STATES, depends=DEPENDS,
-        help='The legal person or organization inserting the release')
     creations = fields.One2Many(
         'release-creation', 'release', 'Creations',
         help='The creations included in the release')
@@ -780,6 +776,8 @@ class ReleaseCreation(ModelSQL, ModelView):
         'Medium Number', help=u'The number of the medium on CD, LP, ...')
     track_number = fields.Integer(
         'Track Number', help='Track number on the medium')
+    license = fields.Many2One(
+        'license', 'License', help='License for the creation on the release')
 
 
 class Genre(ModelSQL, ModelView):
@@ -852,29 +850,30 @@ class CreationContribution(ModelSQL, ModelView):
         help='The roles the artist takes in this creation')
     roles_list = fields.Function(
         fields.Char('Roles List'), 'on_change_with_roles_list')
-    composition_copyright_date = fields.Date(
-        'Composition Copyright Date')
-    composition_copyright_owner = fields.Many2One(
-        'party.party', 'Composition Copyright Owner')
-    composition_license = fields.Many2One(
-        'creation.license', 'License')
-    composition_publishing_date = fields.Date(
-        'Composition Publishing Date')
-    composition_publisher = fields.Many2One(
-        'party.party', 'Composition Publisher',
-        help='Composition Publishing Entity')
-    lyrics_copyright_date = fields.Date(
-        'Lyrics Copyright Date')
-    lyrics_copyright_artist = fields.Many2One(
-        'artist', 'Lyrics Copyright Artist')
-    lyrics_license = fields.Many2One(
-        'creation.license', 'License')
-    lyrics_publishing_date = fields.Date(
-        'Lyrics Publishing Date')
-    lyrics_publisher = fields.Many2One(
-        'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
-    collecting_society = fields.Many2One(
-        'party.party', 'Collecting Society')
+    # TODO: still needed? reason?
+    # composition_copyright_date = fields.Date(
+    #     'Composition Copyright Date')
+    # composition_copyright_owner = fields.Many2One(
+    #     'party.party', 'Composition Copyright Owner')
+    # composition_license = fields.Many2One(
+    #     'license', 'License')
+    # composition_publishing_date = fields.Date(
+    #     'Composition Publishing Date')
+    # composition_publisher = fields.Many2One(
+    #     'party.party', 'Composition Publisher',
+    #     help='Composition Publishing Entity')
+    # lyrics_copyright_date = fields.Date(
+    #     'Lyrics Copyright Date')
+    # lyrics_copyright_artist = fields.Many2One(
+    #     'artist', 'Lyrics Copyright Artist')
+    # lyrics_license = fields.Many2One(
+    #     'license', 'License')
+    # lyrics_publishing_date = fields.Date(
+    #     'Lyrics Publishing Date')
+    # lyrics_publisher = fields.Many2One(
+    #     'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
+    # collecting_society = fields.Many2One(
+    #     'party.party', 'Collecting Society')
 
     @fields.depends('roles')
     def on_change_with_roles_list(self, name=None):
@@ -885,7 +884,7 @@ class CreationContribution(ModelSQL, ModelView):
 
     def get_rec_name(self, name):
         result = '[%s] %s' % (
-            self.type, self.creation.title)
+            self.type, self.creation.default_title)
         return result
 
 

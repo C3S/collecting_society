@@ -30,7 +30,6 @@ def register():
         License,
 
         Creation,
-        CreationLicense,
 
         CreationOriginalDerivative,
         CreationContribution,
