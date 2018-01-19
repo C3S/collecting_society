@@ -11,7 +11,6 @@
         <field name="group" xexpand="0" width="25"/>
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
-        <!-- Add here some checkboxes ! -->
     </group>
     <label name="party"/>
     <field name="party"/>

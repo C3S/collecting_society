@@ -30,7 +30,6 @@ def register():
         License,
 
         Creation,
-        CreationLicense,
 
         CreationOriginalDerivative,
         CreationContribution,
@@ -50,7 +49,7 @@ def register():
         CreationContent,
         Label,
         Release,
-        CreationRelease,
+        ReleaseCreation,
         Genre,
         ReleaseGenre,
         ContributionRole,

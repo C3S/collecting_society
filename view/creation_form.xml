@@ -2,8 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Creation" col="6">
-    <label name="title"/>
-    <field name="title" xexpand="1"/>
+    <label name="default_title"/>
+    <field name="default_title" xexpand="1"/>
     <label name="code"/>
     <field name="code"/>
     <group col="20" colspan="2" id="checkboxes">
