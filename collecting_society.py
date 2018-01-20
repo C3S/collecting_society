@@ -124,7 +124,7 @@ class EntityOrigin(object):
 
 
 class UserCommittedState(object):
-    user_committed_state = fields.Bool('Item committed by user')
+    user_committed_state = fields.Boolean('Item committed by user')
 
     @staticmethod
     def default_user_commited_state():
