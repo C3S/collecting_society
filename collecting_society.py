@@ -521,6 +521,15 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
+    utilisation_sector_live = fields.Boolean('Live performance') 
+    utilisation_sector_reproduction = fields.Boolean('recording, storage and reproduction via storage media')
+    utilisation_sector_playing = fields.Boolean('public playing')
+    utilisation_sector_otherart = fields.Boolean('use in other art forms', help='e.g., audiovisual production')
+    utilisation_sector_radio = fields.Boolean('radio broadcasting')
+    utilisation_sector_tv = fields.Boolean('TV broadcasting')
+    utilisation_sector_movie = fields.Boolean('movie screening')
+    utilisation_sector_online = fields.Boolean('online use')   
+    utilisation_sector_advertising = fields.Boolean('use in advertising')
 
     @classmethod
     def __setup__(cls):
