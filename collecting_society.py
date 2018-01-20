@@ -1351,6 +1351,7 @@ class Content(ModelSQL, ModelView, CurrentState):
             ('format_error', 'Format Error'),
             ('no_fingerprint', 'No Fingerprint'),
             ('lossy_compression', 'Lossy Compression'),
+            ('missing_database_record', 'Missing Database Record'),
         ], 'Reason', states={
             'invisible': Eval('processing_state') != 'rejected',
             'required': Eval('processing_state') == 'rejected'
