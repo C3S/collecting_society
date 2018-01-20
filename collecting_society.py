@@ -82,6 +82,7 @@ SEPARATOR = u' /25B6 '
 
 class CurrentState(object):
     active = fields.Boolean('Active')
+
     @staticmethod
     def default_active():
         return True
@@ -95,9 +96,12 @@ class ClaimState(object):
             ('revised', 'Revised'),
         ], 'Claim State', required=True, sort=False,
         help='The state in a claim process.\n\n'
-        '*Unclaimed*: The object is not yet claimed or a claim was cancelled.\n'
-        '*Claimed*: Someone has claimed this object but it was not revised, yet.\n'
+        '*Unclaimed*: The object is not yet claimed or a claim was'
+        ' cancelled.\n'
+        '*Claimed*: Someone has claimed this object but it was not revised,'
+        ' yet.\n'
         '*Revised*: The object was revised by the original web user')
+
     @staticmethod
     def default_claim_state():
         return "unclaimed"
@@ -109,11 +113,22 @@ class EntityOrigin(object):
             ('direct', 'Direct'),
             ('indirect', 'Indirect'),
         ], 'Entity State', required=True, sort=False,
-        help='Defines, if an object was created as foreign object (indirect) or not.')
-    entity_creator = fields.Many2One('web.user', 'Entity Creator', required=True)
+        help='Defines, if an object was created as foreign object (indirect)'
+             ' or not.')
+    entity_creator = fields.Many2One('web.user', 'Entity Creator',
+                                     required=True)
+
     @staticmethod
     def default_entity_origin():
         return "direct"
+
+
+class UserCommittedState(object):
+    user_committed_state = fields.Bool('Item committed by user')
+
+    @staticmethod
+    def default_user_commited_state():
+        return False
 
 
 ##############################################################################
@@ -121,7 +136,8 @@ class EntityOrigin(object):
 ##############################################################################
 
 
-class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
+class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
+             UserCommittedState):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -470,7 +486,8 @@ class License(ModelSQL, ModelView, CurrentState):
         ]
 
 
-class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
+class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
+               UserCommittedState):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -521,14 +538,16 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
-    utilisation_sector_live = fields.Boolean('Live performance') 
-    utilisation_sector_reproduction = fields.Boolean('recording, storage and reproduction via storage media')
+    utilisation_sector_live = fields.Boolean('Live performance')
+    utilisation_sector_reproduction = fields.Boolean(
+        'recording, storage and reproduction via storage media')
     utilisation_sector_playing = fields.Boolean('public playing')
-    utilisation_sector_otherart = fields.Boolean('use in other art forms', help='e.g., audiovisual production')
+    utilisation_sector_otherart = fields.Boolean(
+        'use in other art forms', help='e.g., audiovisual production')
     utilisation_sector_radio = fields.Boolean('radio broadcasting')
     utilisation_sector_tv = fields.Boolean('TV broadcasting')
     utilisation_sector_movie = fields.Boolean('movie screening')
-    utilisation_sector_online = fields.Boolean('online use')   
+    utilisation_sector_online = fields.Boolean('online use')
     utilisation_sector_advertising = fields.Boolean('use in advertising')
 
     @classmethod
@@ -665,7 +684,8 @@ class Label(ModelSQL, ModelView, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin):
+class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
+              UserCommittedState):
     'Release'
     __name__ = 'release'
     _history = True
