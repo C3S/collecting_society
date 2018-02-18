@@ -94,7 +94,7 @@ class ClaimState(object):
             ('unclaimed', 'Unclaimed'),
             ('claimed', 'Claimed'),
             ('revised', 'Revised'),
-        ], 'Claim State', required=True, sort=False,
+        ], 'Claim State', states={'required': True}, sort=False,
         help='The state in a claim process.\n\n'
         '*Unclaimed*: The object is not yet claimed or a claim was'
         ' cancelled.\n'
@@ -112,11 +112,12 @@ class EntityOrigin(object):
         [
             ('direct', 'Direct'),
             ('indirect', 'Indirect'),
-        ], 'Entity State', required=True, sort=False,
+        ], 'Entity State', states={'required': True}, sort=False,
         help='Defines, if an object was created as foreign object (indirect)'
              ' or not.')
-    entity_creator = fields.Many2One('web.user', 'Entity Creator',
-                                     required=True)
+    entity_creator = fields.Many2One(
+        'party.party', 'Entity Creator',
+        states={'required': True})
 
     @staticmethod
     def default_entity_origin():
@@ -1220,16 +1221,14 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, CurrentState):
+class Content(ModelSQL, ModelView, CurrentState, EntityOrigin,
+              UserCommittedState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
-    user = fields.Many2One(
-        'res.user', 'User', states={'required': True},
-        help='The user, who provided the content.')
     category = fields.Selection(
         [
             ('audio', 'Audio')
