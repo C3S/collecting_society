@@ -1221,16 +1221,14 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, CurrentState):
+class Content(ModelSQL, ModelView, CurrentState, EntityOrigin,
+              UserCommittedState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
-    user = fields.Many2One(
-        'res.user', 'User', states={'required': True},
-        help='The user, who provided the content.')
     category = fields.Selection(
         [
             ('audio', 'Audio')
