@@ -4,7 +4,7 @@
 <tree string="Content">
     <field name="uuid"/>
     <field name="name"/>
-    <field name="user"/>
+    <field name="entity_creator"/>
     <field name="creation"/>
     <field name="filesystem_label"/>
     <field name="processing_state"/>
