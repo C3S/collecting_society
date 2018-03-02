@@ -11,8 +11,8 @@
     <field name="uuid"/>
     <label name="category"/>
     <field name="category"/>
-    <label name="user"/>
-    <field name="user"/>
+    <label name="entity_creator"/>
+    <field name="entity_creator"/>
     <notebook colspan="6">
         <page string="File" id="file">
             <label name="name"/>

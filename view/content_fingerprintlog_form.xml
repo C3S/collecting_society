@@ -4,8 +4,8 @@
 <form string="Fingerprintlog">
     <label name="content"/>
     <field name="content"/>
-    <label name="user"/>
-    <field name="user"/>
+    <label name="entity_creator"/>
+    <field name="entity_creator"/>
     <newline/>
     <label name="timestamp"/>
     <field name="timestamp"/>
