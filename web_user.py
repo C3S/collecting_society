@@ -84,6 +84,9 @@ class WebUser:
     opt_out_timestamp = fields.DateTime('Date of Opt-out')
     abuse_rank = fields.Integer(
         'Abuse Rank', help='Times of potential abuse.')
+    new_email = fields.Char(
+        'New Email', help='On profile change, the new email '
+        'stays here till the user clicks the activation link')
 
     @classmethod
     def __setup__(cls):
