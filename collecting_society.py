@@ -417,6 +417,14 @@ class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         return super(Artist, cls).copy(artists, default=default)
 
     @classmethod
+    def delete(cls, records):
+        for record in records:
+            if record.group or record.solo_artists:
+                record.solo_artists = []
+                record.save()
+        return super(Artist, cls).delete(records)
+
+    @classmethod
     def search_rec_name(cls, name, clause):
         return [
             'OR',
