@@ -716,8 +716,8 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     ean_upc_code = fields.Integer('EAN/UPC Code', help='The EAN/UPC Code')
     number_mediums = fields.Integer(
         'Number of Mediums', help='The number of mediums.')
-    label_order_number = fields.Char(
-        'Label Order Number', help='The label order number.')
+    label_catalog_number = fields.Char(
+        'Label Catalog Number', help='The labels catalog number of the release.')
     release_date = fields.Date('Release Date', help='Date of (first) release.')
     release_cancellation_date = fields.Date(
         'Release Cancellation Date', help='Date of release cancellation')  # -1
