@@ -10,7 +10,7 @@
     <field name="release_cancellation_date" tree_invisible="1"/>
     <field name="online_cancellation_date" tree_invisible="1"/>
     <field name="label"/>
-    <field name="label_order_number" tree_invisible="1"/>
+    <field name="label_catalog_number" tree_invisible="1"/>
     <field name="isrc_code"/>
     <field name="producer"/>
     <field name="production_date"/>
