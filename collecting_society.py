@@ -713,7 +713,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     )  # -1
     label = fields.Many2One(
         'label', 'Label', help='The lable of the release.')
-    ean_upc_code = fields.Integer('EAN/UPC Code', help='The EAN/UPC Code')
+    ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
     number_mediums = fields.Integer(
         'Number of Mediums', help='The number of mediums.')
     label_catalog_number = fields.Char(
