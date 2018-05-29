@@ -707,12 +707,25 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     creations = fields.One2Many(
         'release-creation', 'release', 'Creations',
         help='The creations included in the release')
-    neighbouring_rights_society = fields.Many2One(
-        'party.party', 'Neighbouring Rights Society',
+    neighbouring_rights_society = fields.Char(
+        'Neighbouring Rights Society',
         help='Representing collecting society/PRO for neighbouring rights.'
-    )  # -1
+    )
+    # was once: neighbouring_rights_society = fields.Many2One(
+    #    'party.party', 'Neighbouring Rights Society',
+    #    help='Representing collecting society/PRO for neighbouring rights.'
+    #)  # -1 <- what does '-1' mean?
+    # TODO: clarify the role of a neighbouring rights society
+    #       for now, just a string field is provided 
     label = fields.Many2One(
         'label', 'Label', help='The lable of the release.')
+    label_as_string = fields.Function(
+        fields.Char(
+            'Label',
+            help='Label as pretty print string'
+        ),
+        'get_label_as_string'
+    )
     ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
     number_mediums = fields.Integer(
         'Number of Mediums', help='The number of mediums.')
@@ -728,8 +741,15 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         help='Date of online release cancellation.')  # -1
     copyright_date = fields.Date(
         'Copyright Date', help='Date of the copyright.')
-    copyright_owner = fields.Many2One(
-        'party.party', 'Copyright Owner', help='Copyright owning party.')
+    copyright_owner = fields.Function(
+        fields.Char(
+            'Copyright Owner',
+            help='Copyright owner or owners, derived from the associated creations'
+        ),
+        'get_copyright_owner'
+    )
+    # once was: copyright_owner = fields.Many2One(
+    #    'party.party', 'Copyright Owner', help='Copyright owning party')
     picture_data = fields.Binary(
         'Picture Data', states=STATES, depends=DEPENDS,
         help='Picture data of a photograph or logo')
@@ -738,10 +758,17 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         help='The mime type of picture data.')
     production_date = fields.Date(
         'Production Date', help='Date of production.')  # -1
-    producer = fields.Many2One('party.party', 'Producer')  # -1
+    producer = fields.Char('Producer')  # -1
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the release.')
+    genres_as_string = fields.Function(
+        fields.Char(
+            'Genres',
+            help='Genres as string, nicely separated by commas'
+        ),
+        'get_genres_as_string'
+    )
     distribution_territory = fields.Char(
         'Distribution Territory')  # many2one, -1
     isrc_code = fields.Char(
@@ -795,6 +822,25 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
             ('code',) + tuple(clause[1:]),
             ('title',) + tuple(clause[1:]),
         ]
+
+    # perhaps better use tal:
+    # https://github.com/C3S/collecting_society.portal.repertoire/blob/develop/collecting_society_portal_repertoire/templates/creation/show.pt#L51
+    def get_copyright_owners(self, name=None):        
+        return "TODO: Here comes a list of copyright owners as derived from the associated creations"
+
+    def get_genres_as_string(self, name=None):
+        genre_string = ""
+        for genre in self.genres:
+            if genre_string != "":
+                genre_string = genre_string + ", "
+            genre_string = genre_string + genre.name
+        return genre_string
+
+    def get_label_as_string(self, name=None):
+        label_string = ""
+        if self.label is not None:
+            label_string = self.label.name
+        return label_string
 
 
 class ReleaseCreation(ModelSQL, ModelView):

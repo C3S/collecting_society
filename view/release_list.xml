@@ -14,7 +14,7 @@
     <field name="isrc_code"/>
     <field name="producer"/>
     <field name="production_date"/>
-    <field name="copyright_owner"/>
+    <!-- <field name="copyright_owner"/> -->
     <field name="copyright_date"/>
     <field name="neighbouring_rights_society" tree_invisible="1"/>
     <field name="ean_upc_code"/>

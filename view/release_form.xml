@@ -46,8 +46,8 @@
                 <field name="number_mediums"/>
             </group>
             <newline/>
-            <label name="copyright_owner"/>
-            <field name="copyright_owner"/>
+<!--             <label name="copyright_owner"/>
+            <field name="copyright_owner"/>   -->
             <label name="neighbouring_rights_society"/>
             <field name="neighbouring_rights_society"/>
             <newline/>
