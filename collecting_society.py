@@ -718,7 +718,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     # TODO: clarify the role of a neighbouring rights society
     #       for now, just a string field is provided 
     label = fields.Many2One(
-        'label', 'Label', help='The lable of the release.')
+        'label', 'Label', help='The label of the release.')
     label_as_string = fields.Function(
         fields.Char(
             'Label',
@@ -814,6 +814,17 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         default = default.copy()
         default['code'] = None
         return super(Release, cls).copy(releases, default=default)
+
+    @classmethod
+    def delete(cls, records):
+        for record in records:
+            if record.genres:
+                record.genres = []
+                record.save()
+            if record.creations:
+                record.creations = []
+                record.save()
+        return super(Release, cls).delete(records)
 
     @classmethod
     def search_rec_name(cls, name, clause):
