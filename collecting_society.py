@@ -712,11 +712,11 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         help='Representing collecting society/PRO for neighbouring rights.'
     )
     # was once: neighbouring_rights_society = fields.Many2One(
-    #    'party.party', 'Neighbouring Rights Society',
-    #    help='Representing collecting society/PRO for neighbouring rights.'
-    #)  # -1 <- what does '-1' mean?
+    #     'party.party', 'Neighbouring Rights Society',
+    #      help='Representing collecting society/PRO for neighbouring rights.'
+    # )  # -1 <- what does '-1' mean?
     # TODO: clarify the role of a neighbouring rights society
-    #       for now, just a string field is provided 
+    #       for now, just a string field is provided
     label = fields.Many2One(
         'label', 'Label', help='The label of the release.')
     label_as_string = fields.Function(
@@ -730,7 +730,8 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     number_mediums = fields.Integer(
         'Number of Mediums', help='The number of mediums.')
     label_catalog_number = fields.Char(
-        'Label Catalog Number', help='The labels catalog number of the release.')
+        'Label Catalog Number',
+        help='The labels catalog number of the release.')
     release_date = fields.Date('Release Date', help='Date of (first) release.')
     release_cancellation_date = fields.Date(
         'Release Cancellation Date', help='Date of release cancellation')  # -1
@@ -744,7 +745,8 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     copyright_owner = fields.Function(
         fields.Char(
             'Copyright Owner',
-            help='Copyright owner or owners, derived from the associated creations'
+            help=('Copyright owner or owners, '
+                  'derived from the associated creations')
         ),
         'get_copyright_owner'
     )
@@ -835,9 +837,12 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         ]
 
     # perhaps better use tal:
-    # https://github.com/C3S/collecting_society.portal.repertoire/blob/develop/collecting_society_portal_repertoire/templates/creation/show.pt#L51
-    def get_copyright_owners(self, name=None):        
-        return "TODO: Here comes a list of copyright owners as derived from the associated creations"
+    # https://github.com/C3S/collecting_society.portal.repertoire
+    #       /blob/develop/collecting_society_portal_repertoire/templates/
+    #       /creation/show.pt#L51
+    def get_copyright_owners(self, name=None):
+        return ("TODO: Here comes a list of copyright owners as derived from "
+                "the associated creations")
 
     def get_genres_as_string(self, name=None):
         genre_string = ""

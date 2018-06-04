@@ -188,7 +188,7 @@ class WebUser:
                     where=account.active
                     & (account.kind == name[:-8])
                     & clause
-                    & (line.reconciliation == None)
+                    & (line.reconciliation is None)
                     & (account.company == company_id)
                     & line_query,
                     group_by=field)
@@ -240,11 +240,11 @@ class WebUser:
         Operator = fields.SQL_OPERATORS[clause[1]]
         if name == 'hat_balance':
             field = line.artist
-            where_clause = (line.artist != None)
+            where_clause = (line.artist is not None)
             sign = -1
         if name == 'pocket_balance':
             field = line.party
-            where_clause = (line.party != None)
+            where_clause = (line.party is not None)
             sign = 1
         query = line.join(
             account, condition=account.id == line.account).select(
@@ -252,7 +252,7 @@ class WebUser:
                 where=account.active
                 & (account.kind == 'hat')
                 & where_clause
-                & (line.reconciliation == None)
+                & (line.reconciliation is not None)
                 & (account.company == company_id)
                 & line_query,
                 group_by=field,
