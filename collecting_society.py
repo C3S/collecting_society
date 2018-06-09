@@ -718,7 +718,13 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     # TODO: clarify the role of a neighbouring rights society
     #       for now, just a string field is provided
     label = fields.Many2One(
-        'label', 'Label', help='The label of the release.')
+        'label', 'Label', help='The label of the release. LC00000 is reserved'
+        'for non-GVL labels and self-releases.')
+    label_name = fields.Char(
+        'Label Name',
+        help='Free text of label name (in case that the label is not a GVL '
+        'member). Should be blank for self-releases.'
+    )
     label_as_string = fields.Function(
         fields.Char(
             'Label',
