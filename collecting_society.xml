@@ -638,7 +638,7 @@
             action="act_creation_identification" sequence="100"
             id="menu_creation_identification"/>
 
-        <record model="ir.ui.view" id="utilisation_imp_form">
+        <!-- <record model="ir.ui.view" id="utilisation_imp_form">
             <field name="model">creation.utilisation.imp</field>
             <field name="type">form</field>
             <field name="name">utilisation_imp_form</field>
@@ -690,7 +690,7 @@
             <field name="model">creation.utilisation.imp.identify.start</field>
             <field name="type">form</field>
             <field name="name">utilisation_imp_identify_start_form</field>
-        </record>
+        </record> -->
 
         <record model="ir.action.wizard" id="act_distribution_distribute">
             <field

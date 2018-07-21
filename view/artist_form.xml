@@ -40,11 +40,11 @@
             <field name="group_artists" colspan="6"/>
         </page>
         <page string="Accounting" id="accounting" col="6">
-            <label name="hat_account"/>
+            <!--<label name="hat_account"/>
             <field name="hat_account"/>
             <label name="hat_balance"/>
             <field name="hat_balance"/>
-            <newline/>
+            <newline/>-->
             <label name="payee"/>
             <field name="payee"/>
             <label name="valid_payee"/>

@@ -58,8 +58,8 @@ def register():
         Distribution,
         Allocation,
         Utilisation,
-        UtilisationIMP,
-        UtilisationIMPIdentifyStart,
+        # UtilisationIMP,
+        # UtilisationIMPIdentifyStart,
         DistributeStart,
         Configuration,
         Oauth2Client,
@@ -73,6 +73,6 @@ def register():
         Address,
         module='collecting_society', type_='model')
     Pool.register(
-        UtilisationIMPIdentify,
+        # UtilisationIMPIdentify,
         Distribute,
         module='collecting_society', type_='wizard')

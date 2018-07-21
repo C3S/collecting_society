@@ -60,9 +60,9 @@ __all__ = [
     'Fingerprintlog',
 
     # Adore
-    'UtilisationIMP',
-    'UtilisationIMPIdentifyStart',
-    'UtilisationIMPIdentify',
+    # 'UtilisationIMP',
+    # 'UtilisationIMPIdentifyStart',
+    # 'UtilisationIMPIdentify',
 
     # Tryton
     'STATES',
@@ -250,23 +250,23 @@ class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    hat_account = fields.Property(
-        fields.Many2One(
-            'account.account', 'Hat Account', domain=[
-                ('kind', '=', 'hat'),
-                ('company', '=', Eval('context', {}).get('company', -1)),
-            ], states={
-                'required': Bool(Eval('context', {}).get('company')),
-                'invisible': ~Eval('context', {}).get('company'),
-            }))
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
-    hat_balance = fields.Function(
-        fields.Numeric(
-            'Hat Account Balance',
-            digits=(16, Eval('currency_digits', 2)),
-            depends=['currency_digits']),
-        'get_hat_balance', searcher='search_hat_balance')
+    # currency_digits = fields.Function(
+    #     fields.Integer('Currency Digits'), 'get_currency_digits')
+    # hat_account = fields.Property(
+    #     fields.Many2One(
+    #         'account.account', 'Hat Account', domain=[
+    #             ('kind', '=', 'hat'),
+    #             ('company', '=', Eval('context', {}).get('company', -1)),
+    #         ], states={
+    #             'required': Bool(Eval('context', {}).get('company')),
+    #             'invisible': ~Eval('context', {}).get('company'),
+    #         }))
+    # hat_balance = fields.Function(
+    #     fields.Numeric(
+    #         'Hat Account Balance',
+    #         digits=(16, Eval('currency_digits', 2)),
+    #         depends=['currency_digits']),
+    #     'get_hat_balance', searcher='search_hat_balance')
 
     @classmethod
     def __setup__(cls):
@@ -375,26 +375,26 @@ class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
                 'valid_payee': False}
         return changes
 
-    @classmethod
-    def get_hat_balance(cls, artists, names):
-        WebUser = Pool().get('web.user')
+    # @classmethod
+    # def get_hat_balance(cls, artists, names):
+    #     WebUser = Pool().get('web.user')
 
-        result = WebUser.get_balance(items=artists, names=names)
-        return result
+    #     result = WebUser.get_balance(items=artists, names=names)
+    #     return result
 
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
+    # def get_currency_digits(self, name):
+    #     Company = Pool().get('company.company')
+    #     if Transaction().context.get('company'):
+    #         company = Company(Transaction().context['company'])
+    #         return company.currency.digits
+    #     return 2
 
-    @classmethod
-    def search_hat_balance(cls, name, clause):
-        WebUser = Pool().get('web.user')
+    # @classmethod
+    # def search_hat_balance(cls, name, clause):
+    #     WebUser = Pool().get('web.user')
 
-        result = WebUser.search_balance(name, clause)
-        return result
+    #     result = WebUser.search_balance(name, clause)
+    #     return result
 
     @classmethod
     def create(cls, vlist):
@@ -1760,7 +1760,9 @@ class Utilisation(ModelSQL, ModelView):
         '*Distributed*: The distribution is finished and an allocation is '
         'created')
     origin = fields.Reference(
-        'Origin', [('creation.utilisation.imp', 'IMP')],
+        'Origin', [
+            # ('creation.utilisation.imp', 'IMP')
+        ],
         help='The originating data of the use')
 
     @classmethod
@@ -2053,167 +2055,167 @@ class Distribute(Wizard):
 ##############################################################################
 
 
-class UtilisationIMP(ModelSQL, ModelView):
-    'Utilisation for IMP'
-    __name__ = 'creation.utilisation.imp'
-    _rec_name = 'create_date'
+# class UtilisationIMP(ModelSQL, ModelView):
+#     'Utilisation for IMP'
+#     __name__ = 'creation.utilisation.imp'
+#     _rec_name = 'create_date'
 
-    client = fields.Many2One('client', 'Client', help='The used client')
-    time_played = fields.DateTime(
-        'Time Played',
-        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-        'utilisation')
-    time_submitted = fields.DateTime(
-        'Time Submitted',
-        help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-        'utilisation submission')
-    fingerprint = fields.Char(
-        'Fingerprint', help='Fingerprint hash of the utilisation')
-    fingerprinting_algorithm = fields.Char(
-        'Algorithm',
-        help='Fingerprinting mechanism of the utilisation, e.g. echoprint')
-    fingerprinting_version = fields.Char(
-        'Version', help='Fingerprinting algorithm version '
-        'of the utilisation')
-    title = fields.Char(
-        'Title', help='Title tag of the utilisation')
-    artist = fields.Char(
-        'Artist', help='Artist tag of the utilisation')
-    release = fields.Char(
-        'Release', help='Release or album tag of the utilisation')
-    track_number = fields.Char(
-        'Track Number', help='Track number tag of the utilisation')
-    duration = fields.Char(
-        'Duration', help='Duration tag of the utilisation')
-    state = fields.Selection(
-        [
-            ('unidentified', 'Unidentified'),
-            ('processing', 'Process Identification'),
-            ('identified', 'Identified'),
-        ], 'State', required=True, sort=False,
-        help='The state identification of the imp utilisation.\n\n'
-        '*Unidentified*: The imp utilisation is not yet identified.\n'
-        '*Process Identification*: A identification process is running.\n'
-        '*Done*: The identification is finished and a general utilisation is '
-        'created')
-    utilisation = fields.Function(
-        fields.Many2One('creation.utilisation', 'Utilisation'),
-        'get_utilisation')
+#     client = fields.Many2One('client', 'Client', help='The used client')
+#     time_played = fields.DateTime(
+#         'Time Played',
+#         help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
+#         'utilisation')
+#     time_submitted = fields.DateTime(
+#         'Time Submitted',
+#         help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
+#         'utilisation submission')
+#     fingerprint = fields.Char(
+#         'Fingerprint', help='Fingerprint hash of the utilisation')
+#     fingerprinting_algorithm = fields.Char(
+#         'Algorithm',
+#         help='Fingerprinting mechanism of the utilisation, e.g. echoprint')
+#     fingerprinting_version = fields.Char(
+#         'Version', help='Fingerprinting algorithm version '
+#         'of the utilisation')
+#     title = fields.Char(
+#         'Title', help='Title tag of the utilisation')
+#     artist = fields.Char(
+#         'Artist', help='Artist tag of the utilisation')
+#     release = fields.Char(
+#         'Release', help='Release or album tag of the utilisation')
+#     track_number = fields.Char(
+#         'Track Number', help='Track number tag of the utilisation')
+#     duration = fields.Char(
+#         'Duration', help='Duration tag of the utilisation')
+#     state = fields.Selection(
+#         [
+#             ('unidentified', 'Unidentified'),
+#             ('processing', 'Process Identification'),
+#             ('identified', 'Identified'),
+#         ], 'State', required=True, sort=False,
+#         help='The state identification of the imp utilisation.\n\n'
+#         '*Unidentified*: The imp utilisation is not yet identified.\n'
+#         '*Process Identification*: A identification process is running.\n'
+#         '*Done*: The identification is finished and a general utilisation is '
+#         'created')
+#     utilisation = fields.Function(
+#         fields.Many2One('creation.utilisation', 'Utilisation'),
+#         'get_utilisation')
 
-    @classmethod
-    def __setup__(cls):
-        super(UtilisationIMP, cls).__setup__()
-        cls._order.insert(0, ('time_submitted', 'DESC'))
+#     @classmethod
+#     def __setup__(cls):
+#         super(UtilisationIMP, cls).__setup__()
+#         cls._order.insert(0, ('time_submitted', 'DESC'))
 
-    @staticmethod
-    def default_time_submitted():
-        return datetime.datetime.now()
+#     @staticmethod
+#     def default_time_submitted():
+#         return datetime.datetime.now()
 
-    @staticmethod
-    def default_state():
-        return 'unidentified'
+#     @staticmethod
+#     def default_state():
+#         return 'unidentified'
 
-    @staticmethod
-    def default_title():
-        return '<unknown title>'
+#     @staticmethod
+#     def default_title():
+#         return '<unknown title>'
 
-    @staticmethod
-    def default_artist():
-        return '<unknown artist>'
+#     @staticmethod
+#     def default_artist():
+#         return '<unknown artist>'
 
-    def get_utilisation(self, name):
-        Utilisation = Pool().get('creation.utilisation')
+#     def get_utilisation(self, name):
+#         Utilisation = Pool().get('creation.utilisation')
 
-        utilisations = Utilisation.search(
-            [('origin', '=', 'creation.utilisation.imp,%s' % self.id)],
-            limit=1)
-        if not utilisations:
-            return None
-        return utilisations[0].id
-
-
-class UtilisationIMPIdentifyStart(ModelView):
-    'Identify IMP Utilisations Start'
-    __name__ = 'creation.utilisation.imp.identify.start'
-
-    from_date = fields.Date(
-        'From Date',
-        help='The earliest date to identify IMP utilisations')
-    thru_date = fields.Date(
-        'Thru Date',
-        help='The latest date to identify IMP utilisations')
-
-    @staticmethod
-    def default_from_date():
-        Date = Pool().get('ir.date')
-        t = Date.today()
-        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
-
-    @staticmethod
-    def default_thru_date():
-        Date = Pool().get('ir.date')
-        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
+#         utilisations = Utilisation.search(
+#             [('origin', '=', 'creation.utilisation.imp,%s' % self.id)],
+#             limit=1)
+#         if not utilisations:
+#             return None
+#         return utilisations[0].id
 
 
-class UtilisationIMPIdentify(Wizard):
-    "Identify IMP Utilisations"
-    __name__ = 'creation.utilisation.imp.identify'
+# class UtilisationIMPIdentifyStart(ModelView):
+#     'Identify IMP Utilisations Start'
+#     __name__ = 'creation.utilisation.imp.identify.start'
 
-    start = StateView(
-        'creation.utilisation.imp.identify.start',
-        'collecting_society.'
-        'utilisation_imp_identify_start_view_form', [
-            Button('Cancel', 'end', 'tryton-cancel'),
-            Button(
-                'Start Identification', 'identify', 'tryton-ok', default=True),
-        ])
-    identify = StateTransition()
+#     from_date = fields.Date(
+#         'From Date',
+#         help='The earliest date to identify IMP utilisations')
+#     thru_date = fields.Date(
+#         'Thru Date',
+#         help='The latest date to identify IMP utilisations')
 
-    def transition_identify(self):
-        pool = Pool()
-        Creation = pool.get('creation')
-        Artist = pool.get('artist')
-        Utilisation = pool.get('creation.utilisation')
-        UtilisationIMP = pool.get('creation.utilisation.imp')
+#     @staticmethod
+#     def default_from_date():
+#         Date = Pool().get('ir.date')
+#         t = Date.today()
+#         return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
 
-        imp_utilisations = UtilisationIMP.search([
-            (
-                'time_submitted', '>=', datetime.datetime.combine(
-                    self.start.from_date, datetime.time.min)
-            ), (
-                'time_submitted', '<=', datetime.datetime.combine(
-                    self.start.thru_date, datetime.time.max)
-            ), ('state', '=', 'unidentified')])
+#     @staticmethod
+#     def default_thru_date():
+#         Date = Pool().get('ir.date')
+#         return Date.today() - relativedelta(months=1) + relativedelta(day=31)
 
-        for imp_util in imp_utilisations:
-            UtilisationIMP.write([imp_util], {'state': 'processing'})
-            # identify
-            # XXX: Add the identification of the fingerprint here
-            creation_title = imp_util.title or 'Unknown Creation'
-            artist_name = imp_util.artist or 'Unknown Artist'
-            # find
-            creation = Creation.search([
-                ('title', '=', creation_title),
-                ('artist.name', '=', artist_name),
-            ])
-            # create if not exist
-            if not creation:
-                artist = Artist.search([('name', '=', artist_name)])
-                if not artist:
-                    artist = Artist.create([{'name': artist_name}])
-                artist = artist[0]
-                creation = Creation.create([{
-                    'title': creation_title,
-                    'artist': artist.id,
-                }])
-            creation = creation[0]
-            # create utilisation
-            Utilisation.create([{
-                'timestamp': imp_util.time_submitted,
-                'creation': creation.id,
-                'party': imp_util.client.web_user.party.id,
-                'origin': '%s,%i' % (
-                    UtilisationIMP.__name__, imp_util.id),
-            }])
-            UtilisationIMP.write([imp_util], {'state': 'identified'})
-        return 'end'
+
+# class UtilisationIMPIdentify(Wizard):
+#     "Identify IMP Utilisations"
+#     __name__ = 'creation.utilisation.imp.identify'
+
+#     start = StateView(
+#         'creation.utilisation.imp.identify.start',
+#         'collecting_society.'
+#         'utilisation_imp_identify_start_view_form', [
+#             Button('Cancel', 'end', 'tryton-cancel'),
+#             Button(
+#                 'Start Identification', 'identify', 'tryton-ok', default=True),
+#         ])
+#     identify = StateTransition()
+
+#     def transition_identify(self):
+#         pool = Pool()
+#         Creation = pool.get('creation')
+#         Artist = pool.get('artist')
+#         Utilisation = pool.get('creation.utilisation')
+#         UtilisationIMP = pool.get('creation.utilisation.imp')
+
+#         imp_utilisations = UtilisationIMP.search([
+#             (
+#                 'time_submitted', '>=', datetime.datetime.combine(
+#                     self.start.from_date, datetime.time.min)
+#             ), (
+#                 'time_submitted', '<=', datetime.datetime.combine(
+#                     self.start.thru_date, datetime.time.max)
+#             ), ('state', '=', 'unidentified')])
+
+#         for imp_util in imp_utilisations:
+#             UtilisationIMP.write([imp_util], {'state': 'processing'})
+#             # identify
+#             # XXX: Add the identification of the fingerprint here
+#             creation_title = imp_util.title or 'Unknown Creation'
+#             artist_name = imp_util.artist or 'Unknown Artist'
+#             # find
+#             creation = Creation.search([
+#                 ('title', '=', creation_title),
+#                 ('artist.name', '=', artist_name),
+#             ])
+#             # create if not exist
+#             if not creation:
+#                 artist = Artist.search([('name', '=', artist_name)])
+#                 if not artist:
+#                     artist = Artist.create([{'name': artist_name}])
+#                 artist = artist[0]
+#                 creation = Creation.create([{
+#                     'title': creation_title,
+#                     'artist': artist.id,
+#                 }])
+#             creation = creation[0]
+#             # create utilisation
+#             Utilisation.create([{
+#                 'timestamp': imp_util.time_submitted,
+#                 'creation': creation.id,
+#                 'party': imp_util.client.web_user.party.id,
+#                 'origin': '%s,%i' % (
+#                     UtilisationIMP.__name__, imp_util.id),
+#             }])
+#             UtilisationIMP.write([imp_util], {'state': 'identified'})
+#         return 'end'

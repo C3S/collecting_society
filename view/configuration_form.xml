@@ -18,8 +18,8 @@
     <field name="utilisation_sequence"/>
     <label name="distribution_sequence"/>
     <field name="distribution_sequence"/>
-    <label name="default_pocket_account"/>
+    <!--<label name="default_pocket_account"/>
     <field name="default_pocket_account"/>
     <label name="default_hat_account"/>
-    <field name="default_hat_account"/>
+    <field name="default_hat_account"/>-->
 </form>
