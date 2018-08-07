@@ -1785,11 +1785,11 @@ class Utilisation(ModelSQL, ModelView):
         '*Distribution in Process*: A distribution is in process.\n'
         '*Distributed*: The distribution is finished and an allocation is '
         'created')
-    origin = fields.Reference(
-        'Origin', [
-            # ('creation.utilisation.imp', 'IMP')
-        ],
-        help='The originating data of the use')
+    # origin = fields.Reference(
+    #     'Origin', [
+    #         ('creation.utilisation.imp', 'IMP')
+    #     ],
+    #     help='The originating data of the use')
 
     @classmethod
     def __setup__(cls):
