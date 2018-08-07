@@ -249,6 +249,34 @@
         <menuitem parent="menu_collecting_society" action="act_genre"
             sequence="45" id="menu_genre"/>
 
+        <record model="ir.ui.view" id="style_form">
+            <field name="model">style</field>
+            <field name="type">form</field>
+            <field name="name">style_form</field>
+        </record>
+        <record model="ir.ui.view" id="style_list">
+            <field name="model">style</field>
+            <field name="type">tree</field>
+            <field name="name">style_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_style">
+            <field name="name">Style</field>
+            <field name="res_model">style</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_style_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="style_list"/>
+            <field name="act_window" ref="act_style"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_style_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="style_form"/>
+            <field name="act_window" ref="act_style"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_style"
+            sequence="45" id="menu_style"/>
 
         <record model="ir.ui.view" id="creation_original_derivative_form">
             <field name="model">creation.original.derivative</field>

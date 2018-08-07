@@ -33,6 +33,8 @@ __all__ = [
     'ReleaseCreation',
     'Genre',
     'ReleaseGenre',
+    'Style',
+    'ReleaseStyle',
     'CreationRole',
     'ContributionRole',
 
@@ -777,6 +779,9 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         ),
         'get_genres_as_string'
     )
+    styles = fields.Many2Many(
+        'release.styles', 'release', 'style', 'Styles',
+        help='The styles of the release.')
     distribution_territory = fields.Char(
         'Distribution Territory')  # many2one, -1
     isrc_code = fields.Char(
@@ -905,6 +910,27 @@ class ReleaseGenre(ModelSQL):
         'release', 'Release', required=True, select=True)
     genre = fields.Many2One(
         'genre', 'Genre', required=True, select=True)
+
+
+class Style(ModelSQL, ModelView):
+    'Style'
+    __name__ = 'style'
+    _history = True
+
+    name = fields.Char('Name', help='The name of the style.')
+    description = fields.Text(
+        'Description', help='The description of the style.')
+
+
+class ReleaseStyle(ModelSQL):
+    'Release - Style'
+    __name__ = 'release.style'
+    _history = True
+
+    release = fields.Many2One(
+        'release', 'Release', required=True, select=True)
+    style = fields.Many2One(
+        'style', 'Style', required=True, select=True)
 
 
 class CreationOriginalDerivative(ModelSQL, ModelView):

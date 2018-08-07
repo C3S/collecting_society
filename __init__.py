@@ -52,6 +52,8 @@ def register():
         ReleaseCreation,
         Genre,
         ReleaseGenre,
+        Style,
+        ReleaseStyle,
         ContributionRole,
         Identification,
         Identifier,
