@@ -780,7 +780,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         'get_genres_as_string'
     )
     styles = fields.Many2Many(
-        'release.styles', 'release', 'style', 'Styles',
+        'release.style', 'release', 'style', 'Styles',
         help='The styles of the release.')
     distribution_territory = fields.Char(
         'Distribution Territory')  # many2one, -1
