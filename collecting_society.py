@@ -2122,8 +2122,8 @@ class Distribute(Wizard):
 #         help='The state identification of the imp utilisation.\n\n'
 #         '*Unidentified*: The imp utilisation is not yet identified.\n'
 #         '*Process Identification*: A identification process is running.\n'
-#         '*Done*: The identification is finished and a general utilisation is '
-#         'created')
+#         '*Done*: The identification is finished and a general utilisation '
+#         'is created')
 #     utilisation = fields.Function(
 #         fields.Many2One('creation.utilisation', 'Utilisation'),
 #         'get_utilisation')
@@ -2193,7 +2193,8 @@ class Distribute(Wizard):
 #         'utilisation_imp_identify_start_view_form', [
 #             Button('Cancel', 'end', 'tryton-cancel'),
 #             Button(
-#                 'Start Identification', 'identify', 'tryton-ok', default=True),
+#                 'Start Identification', 'identify', 'tryton-ok',
+#                 default=True),
 #         ])
 #     identify = StateTransition()
 
