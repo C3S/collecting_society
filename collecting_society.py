@@ -907,9 +907,9 @@ class ReleaseGenre(ModelSQL):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True)
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
     genre = fields.Many2One(
-        'genre', 'Genre', required=True, select=True)
+        'genre', 'Genre', required=True, select=True, ondelete='CASCADE')
 
 
 class Style(ModelSQL, ModelView):
@@ -928,9 +928,9 @@ class ReleaseStyle(ModelSQL):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True)
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
     style = fields.Many2One(
-        'style', 'Style', required=True, select=True)
+        'style', 'Style', required=True, select=True, ondelete='CASCADE')
 
 
 class CreationOriginalDerivative(ModelSQL, ModelView):
