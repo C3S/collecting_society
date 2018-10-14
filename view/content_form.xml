@@ -16,6 +16,8 @@
     <field name="uuid"/>
     <label name="category"/>
     <field name="category"/>
+    <label name="creation"/>
+    <field name="creation"/>
 
     <notebook colspan="6">
         <page string="File" id="file">
@@ -40,9 +42,6 @@
             <field name="sample_width"/>
         </page>
         <page string="Metadata" id="metadata">
-            <label name="creation"/>
-            <field name="creation"/>
-            <newline/>
             <label name="metadata_artist"/>
             <field name="metadata_artist"/>
             <newline/>

@@ -17,8 +17,6 @@ def register():
         Artist,
         ArtistArtist,
         ArtistPayeeAcceptance,
-        AccountTemplate,
-        Account,
         AccountMove,
         AccountMoveLine,
         WebUserRole,
@@ -32,8 +30,6 @@ def register():
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
-
-        # Archiving
         Checksum,
         Storehouse,
         HarddiskLabel,
@@ -42,9 +38,7 @@ def register():
         Filesystem,
         HarddiskTest,
         Content,
-
         Fingerprintlog,
-        CreationContent,
         Label,
         Release,
         ReleaseCreation,
@@ -71,6 +65,5 @@ def register():
         Address,
         module='collecting_society', type_='model')
     Pool.register(
-        # UtilisationIMPIdentify,
         Distribute,
         module='collecting_society', type_='wizard')

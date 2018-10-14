@@ -58,14 +58,10 @@ class WebUser:
         'web.user-party.party', 'user', 'party', 'Party',
         states={'required': Greater(Eval('active_id', -1), 0)},
         help='The party of the web user')
-    pocket_account = fields.Many2One(
-        'account.account', 'Account')
     clients = fields.One2Many('client', 'web_user', 'Clients')
     roles = fields.Many2Many(
         'web.user-web.user.role', 'user', 'role', 'Roles')
     default_role = fields.Selection('get_roles', 'Default Role')
-    show_creative_info = fields.Boolean(
-        'Show Creative Info', help='Check, if the infobox is shown')
     picture_data = fields.Binary(
         'Picture Data', help='Picture Data')
     picture_data_mime_type = fields.Char(
@@ -97,10 +93,6 @@ class WebUser:
             ('opt_in_uuid_uniq', 'UNIQUE(opt_in_uuid)',
                 'The opt-in UUID of the Webuser must be unique.'),
         ]
-
-    @staticmethod
-    def default_show_creative_info():
-        return True
 
     @staticmethod
     def default_opt_in_state():
@@ -141,128 +133,6 @@ class WebUser:
                         }])[0].id
 
         return super(WebUser, cls).create(vlist)
-
-    @classmethod
-    def get_balance(cls, items, names):
-        '''
-        Function to compute hat balance for artist
-        or pocket balance party items.
-        '''
-        res = {}
-        pool = Pool()
-        MoveLine = pool.get('account.move.line')
-        Account = pool.get('account.account')
-        User = pool.get('res.user')
-        cursor = Transaction().cursor
-
-        line = MoveLine.__table__()
-        account = Account.__table__()
-
-        for name in names:
-            if name not in ('hat_balance', 'pocket_balance'):
-                raise Exception('Bad argument')
-            res[name] = dict((i.id, Decimal('0.0')) for i in items)
-
-        user_id = Transaction().user
-        if user_id == 0 and 'user' in Transaction().context:
-            user_id = Transaction().context['user']
-        user = User(user_id)
-        if not user.company:
-            return res
-        company_id = user.company.id
-
-        with Transaction().set_context(posted=False):
-            line_query, _ = MoveLine.query_get(line)
-        clause = ()
-        if name == 'hat_balance':
-            field = line.artist
-            clause = line.artist.in_([i.id for i in items])
-        if name == 'pocket_balance':
-            field = line.party
-            clause = line.party.in_([i.id for i in items])
-        for name in names:
-            query = line.join(
-                account, condition=account.id == line.account).select(
-                    field,
-                    Sum(Coalesce(line.debit, 0) - Coalesce(line.credit, 0)),
-                    where=account.active
-                    & (account.kind == name[:-8])
-                    & clause
-                    & (line.reconciliation is None)
-                    & (account.company == company_id)
-                    & line_query,
-                    group_by=field)
-            cursor.execute(*query)
-            for id_, sum in cursor.fetchall():
-                # SQLite uses float for SUM
-                if not isinstance(sum, Decimal):
-                    sum = Decimal(str(sum))
-                res[name][id_] = - sum
-        return res
-
-    @classmethod
-    def search_balance(cls, name, clause):
-        pool = Pool()
-        MoveLine = pool.get('account.move.line')
-        Account = pool.get('account.account')
-        Company = pool.get('company.company')
-        User = pool.get('res.user')
-
-        line = MoveLine.__table__()
-        account = Account.__table__()
-
-        if name not in ('hat_balance', 'pocket_balance'):
-            raise Exception('Bad argument')
-
-        company_id = None
-        user_id = Transaction().user
-        if user_id == 0 and 'user' in Transaction().context:
-            user_id = Transaction().context['user']
-        user = User(user_id)
-        if Transaction().context.get('company'):
-            child_companies = Company.search(
-                [
-                    ('parent', 'child_of', [user.main_company.id]),
-                ])
-            if Transaction().context['company'] in child_companies:
-                company_id = Transaction().context['company']
-
-        if not company_id:
-            if user.company:
-                company_id = user.company.id
-            elif user.main_company:
-                company_id = user.main_company.id
-
-        if not company_id:
-            return []
-
-        line_query, _ = MoveLine.query_get(line)
-        Operator = fields.SQL_OPERATORS[clause[1]]
-        if name == 'hat_balance':
-            field = line.artist
-            where_clause = (line.artist is not None)
-            sign = -1
-        if name == 'pocket_balance':
-            field = line.party
-            where_clause = (line.party is not None)
-            sign = 1
-        query = line.join(
-            account, condition=account.id == line.account).select(
-                field,
-                where=account.active
-                & (account.kind == 'hat')
-                & where_clause
-                & (line.reconciliation is not None)
-                & (account.company == company_id)
-                & line_query,
-                group_by=field,
-                having=Operator(
-                    Mul(
-                        sign, Sum(
-                            Coalesce(line.debit, 0)
-                            - Coalesce(line.credit, 0))),
-                    Decimal(clause[2] or 0)))
-        return [('id', 'in', query)]
 
 
 class WebUserResUser(ModelSQL):

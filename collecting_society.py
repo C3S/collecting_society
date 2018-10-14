@@ -27,7 +27,6 @@ __all__ = [
     'Creation',
     'CreationOriginalDerivative',
     'CreationContribution',
-    'CreationContent',
     'Label',
     'Release',
     'ReleaseCreation',
@@ -93,10 +92,8 @@ class ClaimState(object):
             ('revised', 'Revised'),
         ], 'Claim', states={'required': True}, sort=False,
         help='The state in a claim process.\n\n'
-        '*Unclaimed*: The object is not yet claimed or a claim was'
-        ' cancelled.\n'
-        '*Claimed*: Someone has claimed this object but it was not revised,'
-        ' yet.\n'
+        '*Unclaimed*: Object is not yet claimed or a claim was cancelled.\n'
+        '*Claimed*: Someone claimed this object but it was not revised yet.\n'
         '*Revised*: The claim was confirmed by administration')
 
     @staticmethod
@@ -131,8 +128,8 @@ class EntityOrigin(object):
             ('direct', 'Direct'),
             ('indirect', 'Indirect'),
         ], 'Entity State', states={'required': True}, sort=False,
-        help='Defines, if an object was created as foreign object (indirect)'
-             ' or not.')
+        help='Defines, if an object was created as foreign object (indirect) '
+             'or not.')
     entity_creator = fields.Many2One(
         'party.party', 'Entity Creator',
         states={'required': True})
@@ -539,9 +536,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
             'release-style', None, None, 'Styles',
             help='Shows the collection of all styles of all releases'),
         'get_stylesgenres', searcher='search_styles')
-    content = fields.One2One(
-        'creation-content', 'creation', 'content',  'Content',
-        help='The content of the creation.')
+    content = fields.One2Many(
+        'content', 'creation', 'Content',
+        help='Content associated with the creation.')
     utilisation_sector_live = fields.Boolean('Live performance')
     utilisation_sector_reproduction = fields.Boolean(
         'recording, storage and reproduction via storage media')
@@ -687,30 +684,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
             'OR',
             ('code',) + tuple(clause[1:]),
             ('title',) + tuple(clause[1:]),
-        ]
-
-
-class CreationContent(ModelSQL, ModelView):
-    'Creation - Content'
-    __name__ = 'creation-content'
-    _history = True
-    creation = fields.Many2One(
-        'creation', 'Creation', ondelete='CASCADE', select=True, required=True)
-    content = fields.Many2One(
-        'content', 'Content', ondelete='CASCADE', select=True, required=True)
-
-    @classmethod
-    def __setup__(cls):
-        super(CreationContent, cls).__setup__()
-        cls._sql_constraints = [
-            ('creation_uniq', 'UNIQUE("creation")',
-                'Error!\n'
-                'A creation can only be linked to one and only one content.\n'
-                'The used creation is already linked to another content.'),
-            ('content_uniq', 'UNIQUE("content")',
-                'Error!\n'
-                'A content can only be linked to one and only one creation.\n'
-                'The used content is already linked to another creation.'),
         ]
 
 
@@ -1396,9 +1369,9 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
     # references
-    creation = fields.One2One(
-        'creation-content', 'content', 'creation', 'Creation',
-        help='The creation of the content.')
+    creation = fields.Many2One(
+        'creation', 'Creation', states=STATES, depends=DEPENDS,
+        help='The creation associated with the content.')
     duplicate_of = fields.Many2One(
         'content', 'Duplicate of',
         domain=[('duplicate_of', '=', None)],

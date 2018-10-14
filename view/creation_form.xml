@@ -29,9 +29,8 @@
             <field name="derivative_relations" string="Derivatives"/>
         </page>
         <page string="Content" id="content" col="6">
-            <label name="content"/>
-            <field name="content" xexpand="1" colspan="5"/>
-            <field name="identifiers" colspan="6"/>
+            <field name="content"/>
+            <field name="identifiers"/>
         </page>
         <page string="Releases" id="releases">
             <field name="releases"/>

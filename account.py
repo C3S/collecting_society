@@ -4,26 +4,26 @@ from trytond.model import fields
 from trytond.pool import PoolMeta
 
 
-__all__ = ['AccountTemplate', 'Account', 'AccountMove', 'AccountMoveLine']
+__all__ = ['AccountMove', 'AccountMoveLine']
 __metaclass__ = PoolMeta
 
 
-class AccountTemplate:
-    __name__ = 'account.account.template'
+# class AccountTemplate:
+#     __name__ = 'account.account.template'
 
-    @classmethod
-    def __setup__(cls):
-        super(AccountTemplate, cls).__setup__()
-        cls.kind.selection += [('hat', 'Hat'), ('pocket', 'Pocket')]
+#     @classmethod
+#     def __setup__(cls):
+#         super(AccountTemplate, cls).__setup__()
+#         cls.kind.selection += [('hat', 'Hat'), ('pocket', 'Pocket')]
 
 
-class Account:
-    __name__ = 'account.account'
+# class Account:
+#     __name__ = 'account.account'
 
-    @classmethod
-    def __setup__(cls):
-        super(Account, cls).__setup__()
-        cls.kind.selection += [('hat', 'Hat'), ('pocket', 'Pocket')]
+#     @classmethod
+#     def __setup__(cls):
+#         super(Account, cls).__setup__()
+#         cls.kind.selection += [('hat', 'Hat'), ('pocket', 'Pocket')]
 
 
 class AccountMove():
