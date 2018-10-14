@@ -102,11 +102,32 @@ class ClaimState(object):
         ' cancelled.\n'
         '*Claimed*: Someone has claimed this object but it was not revised,'
         ' yet.\n'
-        '*Revised*: The object was revised by the original web user')
+        '*Revised*: The claim was confirmed by administration')
 
     @staticmethod
     def default_claim_state():
         return "unclaimed"
+
+
+class CommitState(object):
+    commit_state = fields.Selection(
+        [
+            ('uncommited', 'Uncommited'),
+            ('commited', 'Commited'),
+            ('revised', 'Revised'),
+            ('rejected', 'Rejected'),
+            ('deleted', 'Deleted'),
+        ], 'Claim State', states={'required': True}, sort=False,
+        help='The state in a commit process.\n\n'
+        '*Uncommited*: The object was freshly created.\n'
+        '*Commited*: The object was commited by the web user.\n'
+        '*Revised*: The commit was revised by administration.\n'
+        '*Rejected*: The commit was rejected by administration.\n'
+        '*Deleted*: The rejeted object was deleted.\n')
+
+    @staticmethod
+    def default_commit_state():
+        return False
 
 
 class EntityOrigin(object):
@@ -126,21 +147,13 @@ class EntityOrigin(object):
         return "direct"
 
 
-class UserCommittedState(object):
-    user_committed_state = fields.Boolean('Item committed by user')
-
-    @staticmethod
-    def default_user_commited_state():
-        return False
-
-
 ##############################################################################
 # Creative
 ##############################################################################
 
 
 class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-             UserCommittedState):
+             CommitState):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -498,7 +511,7 @@ class License(ModelSQL, ModelView, CurrentState):
 
 
 class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-               UserCommittedState):
+               CommitState):
     'Creation'
     __name__ = 'creation'
     _history = True
@@ -717,7 +730,7 @@ class Label(ModelSQL, ModelView, CurrentState):
 
 
 class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-              UserCommittedState):
+              CommitState):
     'Release'
     __name__ = 'release'
     _history = True
@@ -1345,7 +1358,7 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
 
 
 class Content(ModelSQL, ModelView, CurrentState, EntityOrigin,
-              UserCommittedState):
+              CommitState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
