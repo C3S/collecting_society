@@ -6,9 +6,6 @@
     <field name="rec_name"/>
     <field name="party"/>
     <field name="group"/>
-    <field name="payee"/>
-    <field name="invitation_token" tree_invisible="1"/>
+    <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
-    <!--<field name="valid_payee"/>
-    <field name="hat_balance"/>-->
 </tree>

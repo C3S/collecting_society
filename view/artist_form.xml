@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Artist" col="6">
+<form string="Artist" col="8">
     <label name="name"/>
     <field name="name"/>
     <label name="code"/>
     <field name="code"/>
+    <label name="commit_state"/>
+    <field name="commit_state"/>
     <group col="20" colspan="2" id="checkboxes">
         <label name="group"/>
         <field name="group" xexpand="0" width="25"/>
@@ -14,13 +16,8 @@
     </group>
     <label name="party"/>
     <field name="party"/>
-    <label name="claim_state"/>
-    <field name="claim_state"/>
-    <label name="entity_origin"/>
-    <field name="entity_origin"/>
-    <label name="entity_creator"/>
-    <field name="entity_creator"/>
-    <notebook colspan="6">
+
+    <notebook colspan="8">
         <page string="General" id="general" col="6">
             <group id="misc" colspan="6" col="10">
                 <group id="image" colspan="1" col="1" xexpand="0">
@@ -39,12 +36,7 @@
             <field name="solo_artists" colspan="6"/>
             <field name="group_artists" colspan="6"/>
         </page>
-        <page string="Accounting" id="accounting" col="6">
-            <!--<label name="hat_account"/>
-            <field name="hat_account"/>
-            <label name="hat_balance"/>
-            <field name="hat_balance"/>
-            <newline/>-->
+        <!-- <page string="Accounting" id="accounting" col="6">
             <label name="payee"/>
             <field name="payee"/>
             <label name="valid_payee"/>
@@ -60,11 +52,16 @@
                 <field name="payee_proposal"/>
                 <field name="payee_acceptances" colspan="6"/>
             </group>
-        </page>
-        <page string="Access" id="access" col="6">
+        </page> -->
+        <page string="Owner" id="owner" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+            <label name="claim_state"/>
+            <field name="claim_state" colspan="5"/>
             <label name="invitation_token"/>
             <field name="invitation_token" colspan="5"/>
-            <field name="access_parties" colspan="6"/>
         </page>
     </notebook>
 </form>

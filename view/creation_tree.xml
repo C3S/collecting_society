@@ -3,9 +3,11 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Creation">
     <field name="code"/>
-    <field name="default_title"/>
+    <field name="title"/>
     <field name="artist"/>
     <field name="contributions"/>
     <field name="licenses"/>
+    <field name="content"/>
+    <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

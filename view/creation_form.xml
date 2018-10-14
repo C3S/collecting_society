@@ -1,44 +1,43 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creation" col="6">
-    <label name="default_title"/>
-    <field name="default_title" xexpand="1"/>
+<form string="Creation" col="8">
+    <label name="title"/>
+    <field name="title" xexpand="1"/>
     <label name="code"/>
     <field name="code"/>
+    <label name="commit_state"/>
+    <field name="commit_state"/>
     <group col="20" colspan="2" id="checkboxes">
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
         <!-- Add here some checkboxes ! -->
     </group>
-    <newline/>
     <label name="artist"/>
     <field name="artist"/>
-    <label name="default_license"/>
-    <field name="default_license"/>
-    <label name="claim_state"/>
-    <field name="claim_state"/>
-    <label name="entity_origin"/>
-    <field name="entity_origin"/>
-    <label name="entity_creator"/>
-    <field name="entity_creator"/>
-    <notebook colspan="6">
+    <label name="release"/>
+    <field name="release"/>
+    <label name="license"/>
+    <field name="license"/>
+
+    <notebook colspan="8">
         <page string="Contributions" id="contributions">
-            <field name="contributions" colspan="4"/>
+            <field name="contributions"/>
         </page>
-        <page string="Licenses" id="licenses">
-            <field name="licenses" colspan="4"/>
-        </page>
-        <page string="Originals/Derivatives" id="originals-derivatives">
-            <field name="original_relations" colspan="4"/>
-            <field name="derivative_relations" colspan="4"/>
+        <page string="Derivatives" id="derivatives">
+            <field name="original_relations" string="Originals"/>
+            <field name="derivative_relations" string="Derivatives"/>
         </page>
         <page string="Content" id="content" col="6">
             <label name="content"/>
-            <field name="content" colspan="5"/>
+            <field name="content" xexpand="1" colspan="5"/>
             <field name="identifiers" colspan="6"/>
         </page>
-        <page string="Utilisation Sectors" id="content" col="6">
+        <page string="Releases" id="releases">
+            <field name="releases"/>
+            <field name="licenses"/>
+        </page>
+        <page string="Tariff" id="tariff" col="6">
             <label name="utilisation_sector_live"/>
             <field name="utilisation_sector_live" colspan="5"/>
             <label name="utilisation_sector_reproduction"/>
@@ -58,7 +57,17 @@
             <label name="utilisation_sector_advertising"/>
             <field name="utilisation_sector_advertising" colspan="5"/>
         </page>
+        <page string="Tags" id="tags">
+            <field name="styles"/>
+            <field name="genres"/>
+        </page>
+        <page string="Owner" id="owner" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+            <label name="claim_state"/>
+            <field name="claim_state" colspan="5"/>
+        </page>
     </notebook>
-    <label name="state"/>
-    <field name="state" colspan="5"/>
 </form>

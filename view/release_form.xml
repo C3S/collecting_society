@@ -1,23 +1,25 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Release" col="6">
+<form string="Release" col="8">
     <label name="title"/>
     <field name="title"/>
     <label name="code"/>
     <field name="code"/>
+    <label name="commit_state"/>
+    <field name="commit_state"/>
     <group col="20" colspan="2" id="checkboxes">
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
     </group>
-    <newline/>
     <label name="isrc_code"/>
     <field name="isrc_code"/>
     <label name="label_catalog_number"/>
     <field name="label_catalog_number"/>
     <label name="ean_upc_code"/>
     <field name="ean_upc_code"/>
-    <notebook colspan="6">
+
+    <notebook colspan="8">
         <page string="General" id="general" col="6">
             <group id="image" colspan="1" col="1" xexpand="0">
                 <separator string="Picture" id="picture" xexpand="0"/>
@@ -63,17 +65,16 @@
             <newline/>
             <field name="genres" colspan="6" />
         </page>
-        <page string="Creations" id="creations" col="6">
-            <field name="creations" />
+        <page string="Tracks" id="creations">
+            <field name="creations" string="Tracks" />
         </page>
-        <page string="Access" id="access" col="6">
+        <page string="Owner" id="owner" col="6">
             <label name="entity_origin"/>
-            <field name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
             <label name="entity_creator"/>
-            <field name="entity_creator"/>
-            <newline/>
+            <field name="entity_creator" colspan="5"/>
             <label name="claim_state"/>
-            <field name="claim_state"/>
+            <field name="claim_state" colspan="5"/>
         </page>
     </notebook>
 </form>
