@@ -28,9 +28,7 @@ def register():
         WebUserParty,
         Client,
         License,
-
         Creation,
-
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
@@ -60,8 +58,6 @@ def register():
         Distribution,
         Allocation,
         Utilisation,
-        # UtilisationIMP,
-        # UtilisationIMPIdentifyStart,
         DistributeStart,
         Configuration,
         Oauth2Client,

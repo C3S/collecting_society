@@ -572,7 +572,6 @@
             <field name="prefix">A</field>
             <field name="padding">10</field>
         </record>
-
         <record model="ir.sequence.type" id="sequence_type_release">
             <field name="name">Release</field>
             <field name="code">release</field>
@@ -586,6 +585,36 @@
             <field name="name">Release</field>
             <field name="code">release</field>
             <field name="prefix">R</field>
+            <field name="padding">10</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_creation">
+            <field name="name">Creation</field>
+            <field name="code">creation</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_creation_group_admin">
+            <field name="sequence_type" ref="sequence_type_creation"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_creation">
+            <field name="name">Creation</field>
+            <field name="code">creation</field>
+            <field name="prefix">C</field>
+            <field name="padding">10</field>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_content">
+            <field name="name">Content</field>
+            <field name="code">content</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_content_group_admin">
+            <field name="sequence_type" ref="sequence_type_content"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_content">
+            <field name="name">Content</field>
+            <field name="code">content</field>
+            <field name="prefix">D</field>
             <field name="padding">10</field>
         </record>
         
@@ -617,34 +646,6 @@
             <field name="code">harddisk.filesystem.label</field>
         </record>
 
-        <record model="ir.sequence.type" id="sequence_type_creation">
-            <field name="name">Creation</field>
-            <field name="code">creation</field>
-        </record>
-        <record model="ir.sequence.type-res.group"
-            id="sequence_type_creation_group_admin">
-            <field name="sequence_type" ref="sequence_type_creation"/>
-            <field name="group" ref="res.group_admin"/>
-        </record>
-        <record model="ir.sequence" id="sequence_creation">
-            <field name="name">Creation</field>
-            <field name="code">creation</field>
-            <field name="prefix">C</field>
-            <field name="padding">10</field>
-        </record>
-        <record model="ir.sequence.type" id="sequence_type_contribution">
-            <field name="name">Contribution</field>
-            <field name="code">contribution</field>
-        </record>
-        <record model="ir.sequence.type-res.group"
-            id="sequence_type_contribution_group_admin">
-            <field name="sequence_type" ref="sequence_type_contribution"/>
-            <field name="group" ref="res.group_admin"/>
-        </record>
-        <record model="ir.sequence" id="sequence_contribution">
-            <field name="name">Contribution</field>
-            <field name="code">contribution</field>
-        </record>
         <record model="ir.sequence.type" id="sequence_type_utilisation">
             <field name="name">Utilisation</field>
             <field name="code">creation.utilisation</field>

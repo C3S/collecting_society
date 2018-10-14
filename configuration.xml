@@ -39,6 +39,23 @@
             <field name="value" eval="'ir.sequence,' + str(
                 ref('sequence_release'))"/>
         </record>
+        <record model="ir.property" id="property_creation_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'creation_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_creation'))"/>
+        </record>
+        <record model="ir.property" id="property_content_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'content_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_content'))"/>
+        </record>
+
         <record model="ir.property" id="property_harddisk_label_sequence">
             <field name="field"
                 search="[
@@ -54,22 +71,6 @@
                     ('name', '=', 'filesystem_label_sequence')]"/>
             <field name="value" eval="'ir.sequence,' + str(
                 ref('sequence_filesystem_label'))"/>
-        </record>
-        <record model="ir.property" id="property_creation_sequence">
-            <field name="field"
-                search="[
-                    ('model.model', '=', 'collecting_society.configuration'),
-                    ('name', '=', 'creation_sequence')]"/>
-            <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_creation'))"/>
-        </record>
-        <record model="ir.property" id="property_contribution_sequence">
-            <field name="field"
-                search="[
-                    ('model.model', '=', 'collecting_society.configuration'),
-                    ('name', '=', 'contribution_sequence')]"/>
-            <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_contribution'))"/>
         </record>
         <record model="ir.property" id="property_utilisation_sequence">
             <field name="field"

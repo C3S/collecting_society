@@ -1361,6 +1361,10 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='The unique code of the content')
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the Content.')
     category = fields.Selection(
@@ -1520,9 +1524,16 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         super(Content, cls).__setup__()
         cls._order.insert(1, ('name', 'ASC'))
         cls._sql_constraints += [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the Content must be unique.'),
             ('uuid_uniq', 'UNIQUE(uuid)',
                 'The UUID of the content must be unique.'),
         ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
 
     @staticmethod
     def default_category():
@@ -1552,6 +1563,26 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
             return company.currency.digits
         return 2
 
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(config.content_sequence.id)
+        return super(Content, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, contents, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(Content, cls).copy(contents, default=default)
+
     def get_rec_name(self, name):
         result = '%s: %s %s %s %sHz %sBit' % (
             self.name,
@@ -1571,6 +1602,15 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
             self.sample_width if self.sample_width else '0',
         )
         return result
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('uuid',) + tuple(clause[1:]),
+            ('name',) + tuple(clause[1:]),
+        ]
 
 
 ##############################################################################

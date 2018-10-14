@@ -2,17 +2,21 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Content" col="6">
-    <label name="active"/>
-    <field name="active"/>
+    <label name="code"/>
+    <field name="code"/>
     <label name="commit_state"/>
     <field name="commit_state"/>
-    <label name="mediation"/>
-    <field name="mediation"/>
-    <newline/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="mediation"/>
+        <field name="mediation" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
     <label name="uuid"/>
     <field name="uuid"/>
     <label name="category"/>
     <field name="category"/>
+
     <notebook colspan="6">
         <page string="File" id="file">
             <label name="name"/>
@@ -111,10 +115,6 @@
             <field name="entity_origin" colspan="5"/>
             <label name="entity_creator"/>
             <field name="entity_creator" colspan="5"/>
-            <label name="claim_state"/>
-            <field name="claim_state" colspan="5"/>
-            <label name="invitation_token"/>
-            <field name="invitation_token" colspan="5"/>
         </page>
     </notebook>
 </form>
