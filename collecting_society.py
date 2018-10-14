@@ -515,9 +515,9 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     'Creation'
     __name__ = 'creation'
     _history = True
-    default_title = fields.Function(
-        fields.Char('Default Title'), 'get_default_title',
-        searcher='search_default_title')
+    title = fields.Function(
+        fields.Char('Default Title'), 'get_title',
+        searcher='search_title')
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
@@ -533,9 +533,9 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     licenses = fields.Function(
         fields.One2Many('release-creation', 'license', 'Licenses'),
         'get_licenses')
-    default_license = fields.Function(
+    license = fields.Function(
         fields.Many2One('license', 'Default License'),
-        'get_default_license', searcher='search_default_license')
+        'get_license', searcher='search_license')
     identifiers = fields.One2Many(
         'creation.identification', 'creation', 'Identifiers',
         states=STATES, depends=DEPENDS)
@@ -588,37 +588,33 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         table, _ = tables[None]
         return [CharLength(table.code), table.code]
 
-    @staticmethod
-    def default_state():
-        return 'on_approval'
-
     def get_rec_name(self, name):
         result = '[%s] %s' % (
             self.artist.name if self.artist and self.artist.name
             else '<unknown artist>',
-            self.default_title)
+            self.title)
         return result
 
-    def get_default_title(self, name):
-        default_title = "<unknown title>"
+    def get_title(self, name):
+        title = "<unknown title>"
         earliest_date = None
         for releasecreation in self.releases:
             release = releasecreation.release
             online_date = release.online_release_date
             physical_date = release.release_date
             if not earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 if not online_date or physical_date < online_date:
                     earliest_date = physical_date
                 else:
                     earliest_date = online_date
             if physical_date < earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 earliest_date = physical_date
             if online_date < earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 earliest_date = online_date
-        return default_title
+        return title
 
     def get_licenses(self, name):
         licenses = []
@@ -627,14 +623,14 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
                 licenses.extend(releasecreation.license)
         return licenses
 
-    def get_default_license(self, name):
-        default = None
+    def get_license(self, name):
+        license = None
         for creationlicense in self.licenses:
             license = creationlicense.license
-            if not default or license.freedom_rank > default.freedom_rank:
-                default = license
-        if hasattr(default, 'id'):
-            return default.id
+            if not license or license.freedom_rank > license.freedom_rank:
+                license = license
+        if hasattr(license, 'id'):
+            return license.id
         return None
 
     def get_genres(self, name):
@@ -651,11 +647,11 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
                 styles.extend(releasecreation.release.styles)
         return styles
 
-    def search_default_title(self, name):
-        return self.get_default_title(name)
+    def search_title(self, name):
+        return self.get_title(name)
 
-    def search_default_license(self, name):
-        return self.get_default_license(name)
+    def search_license(self, name):
+        return self.get_license(name)
 
     def search_genres(self, name):
         return self.get_genres(name)
@@ -688,7 +684,7 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         return [
             'OR',
             ('code',) + tuple(clause[1:]),
-            ('default_title',) + tuple(clause[1:]),
+            ('title',) + tuple(clause[1:]),
         ]
 
 
@@ -1050,7 +1046,7 @@ class CreationContribution(ModelSQL, ModelView):
 
     def get_rec_name(self, name):
         result = '[%s] %s' % (
-            self.type, self.creation.default_title)
+            self.type, self.creation.title)
         return result
 
 
