@@ -540,12 +540,6 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     genres = fields.Many2Many(
         'release.genre', 'release', 'genre', 'Genres',
         help='The genres of the creation.')
-    state = fields.Selection(
-        [
-            ('on_approval', 'On Approval'),
-            ('approved', 'Approved'),
-            ('rejected', 'Rejected'),
-        ], 'State', states=STATES, depends=DEPENDS)
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
