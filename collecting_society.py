@@ -552,12 +552,12 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         help='The releases of this creation.')
     genres = fields.Function(
         fields.Many2Many(
-            'release.genre', None, None, 'Creation Genres',
+            'release-genre', None, None, 'Creation Genres',
             help='Shows the collection of all genres of all releases'),
         'get_genres', searcher='search_genres')
     styles = fields.Function(
         fields.Many2Many(
-            'release.style', None, None, 'Creation Styles',
+            'release-style', None, None, 'Creation Styles',
             help='Shows the collection of all styles of all releases'),
         'get_stylesgenres', searcher='search_styles')
     content = fields.One2One(
@@ -800,7 +800,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         'Production Date', help='Date of production.')  # -1
     producer = fields.Char('Producer')  # -1
     genres = fields.Many2Many(
-        'release.genre', 'release', 'genre', 'Genres',
+        'release-genre', 'release', 'genre', 'Genres',
         help='The genres of the release.')
     genres_as_string = fields.Function(
         fields.Char(
@@ -810,7 +810,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         'get_genres_as_string'
     )
     styles = fields.Many2Many(
-        'release.style', 'release', 'style', 'Styles',
+        'release-style', 'release', 'style', 'Styles',
         help='The styles of the release.')
     distribution_territory = fields.Char(
         'Distribution Territory')  # many2one, -1
@@ -933,7 +933,7 @@ class Genre(ModelSQL, ModelView):
 
 class ReleaseGenre(ModelSQL):
     'Release - Genre'
-    __name__ = 'release.genre'
+    __name__ = 'release-genre'
     _history = True
 
     release = fields.Many2One(
@@ -954,7 +954,7 @@ class Style(ModelSQL, ModelView):
 
 class ReleaseStyle(ModelSQL):
     'Release - Style'
-    __name__ = 'release.style'
+    __name__ = 'release-style'
     _history = True
 
     release = fields.Many2One(
