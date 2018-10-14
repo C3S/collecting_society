@@ -537,9 +537,16 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     releases = fields.One2Many(
         'release-creation', 'creation', 'Releases',
         help='The releases of this creation.')
-    genres = fields.Many2Many(
-        'release.genre', 'release', 'genre', 'Genres',
-        help='The genres of the creation.')
+    genres = fields.Function(
+        fields.Many2Many(
+            'release.genre', None, None, 'Creation Genres',
+            help='Shows the collection of all genres of all releases'),
+        'get_genres', searcher='search_genres')
+    styles = fields.Function(
+        fields.Many2Many(
+            'release.style', None, None, 'Creation Styles',
+            help='Shows the collection of all styles of all releases'),
+        'get_stylesgenres', searcher='search_styles')
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
@@ -617,11 +624,31 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
             return default.id
         return None
 
+    def get_genres(self, name):
+        genres = []
+        for releasecreation in self.releases:
+            if releasecreation.release.genres:
+                genres.extend(releasecreation.release.genres)
+        return genres
+
+    def get_styles(self, name):
+        styles = []
+        for releasecreation in self.releases:
+            if releasecreation.release.styles:
+                styles.extend(releasecreation.release.styles)
+        return styles
+
     def search_default_title(self, name):
         return self.get_default_title(name)
 
     def search_default_license(self, name):
         return self.get_default_license(name)
+
+    def search_genres(self, name):
+        return self.get_genres(name)
+
+    def search_styles(self, name):
+        return self.get_styles(name)
 
     @classmethod
     def create(cls, vlist):
