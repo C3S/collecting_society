@@ -11,7 +11,6 @@
     <group col="20" colspan="2" id="checkboxes">
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
-        <!-- Add here some checkboxes ! -->
     </group>
     <label name="artist"/>
     <field name="artist"/>

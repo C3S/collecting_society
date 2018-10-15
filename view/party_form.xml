@@ -14,14 +14,6 @@
             <field name="default_solo_artist" colspan="3"/>
             <field name="artists" colspan="4"/>
         </page>
-        <!-- <page string="IMP" id="imp">
-            <label name="pocket_account"/>
-            <field name="pocket_account"/>
-            <label name="pocket_balance"/>
-            <field name="pocket_balance"/>
-            <label name="pocket_budget"/>
-            <field name="pocket_budget"/>
-        </page> -->
         <page string="Registration Information" id="reginfo">
             <label name="firstname"/>
             <field name="firstname"/>

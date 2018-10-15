@@ -980,13 +980,30 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
         help='The type of contribution of the artist.\n\n'
         '*performer*: The artist contributes a performance.\n'
         '*composer*: The artist contributes a composition.\n'
-        '*writer*: The artist contributes text.')
+        '*text*: The artist contributes text.')
+    performance = fields.Selection(
+        [
+            ('recording', 'Recording'),
+            ('producing', 'Producing'),
+            ('mastering', 'Mastering'),
+            ('mixing', 'Mixing'),
+        ], 'Performance', depends=['type'], states={
+            'required': Eval('type') == 'performance',
+            'invisible': Eval('type') != 'performance'},
+        help='The type of performance of the performer.\n\n'
+        '*recording*: Recoding of voice or instruments for the creation.\n'
+        '*producing*: Producing of the creation.\n'
+        '*mastering*: Mastering of the creation.\n'
+        '*mixing*: Mixing of the creation')
     roles = fields.Many2Many(
         'creation.contribution-creation.role', 'contribution', 'role',
         'Roles',
         help='The roles the artist takes in this creation')
     roles_list = fields.Function(
         fields.Char('Roles List'), 'on_change_with_roles_list')
+    # collecting_society = fields.Many2One(
+    #     'party.party', 'Collecting Society')
+
     # TODO: still needed? reason?
     # composition_copyright_date = fields.Date(
     #     'Composition Copyright Date')
@@ -1009,8 +1026,6 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
     #     'Lyrics Publishing Date')
     # lyrics_publisher = fields.Many2One(
     #     'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
-    # collecting_society = fields.Many2One(
-    #     'party.party', 'Collecting Society')
 
     @fields.depends('roles')
     def on_change_with_roles_list(self, name=None):

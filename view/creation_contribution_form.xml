@@ -9,6 +9,9 @@
     <field name="artist"/>
     <label name="type"/>
     <field name="type"/>
+    <label name="performance"/>
+    <field name="performance"/>
+    <newline/>
     <label name="roles_list"/>
     <field name="roles" colspan="4"/>
 </form>

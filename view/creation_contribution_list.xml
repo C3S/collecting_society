@@ -5,5 +5,6 @@
     <field name="creation"/>
     <field name="artist"/>
     <field name="type"/>
+    <field name="performance"/>
     <field name="roles_list"/>
 </tree>
