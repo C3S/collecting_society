@@ -45,6 +45,7 @@ def register():
         Content,
         Fingerprintlog,
         Label,
+        Publisher,
         Release,
         ReleaseCreation,
         Genre,

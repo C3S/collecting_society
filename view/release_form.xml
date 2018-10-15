@@ -55,6 +55,8 @@
             <newline/>
             <label name="label"/>
             <field name="label"/>
+            <label name="publisher"/>
+            <field name="publisher"/>
             <label name="producer"/>
             <field name="producer"/>
             <newline/>

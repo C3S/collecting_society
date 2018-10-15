@@ -30,6 +30,7 @@ __all__ = [
     'CreationOriginalDerivative',
     'CreationContribution',
     'Label',
+    'Publisher',
     'Release',
     'ReleaseCreation',
     'Genre',
@@ -737,6 +738,16 @@ class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
+class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
+    'Publisher'
+    __name__ = 'publisher'
+    _history = True
+
+    name = fields.Char('Name', help='The name of the publisher.')
+    party = fields.Many2One(
+        'party.party', 'Party', help='The legal party of the publisher')
+
+
 class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
@@ -762,8 +773,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
     # TODO: clarify the role of a neighbouring rights society
     #       for now, just a string field is provided
     label = fields.Many2One(
-        'label', 'Label', help='The label of the release. LC00000 is reserved'
-        'for non-GVL labels and self-releases.')
+        'label', 'Label', help='The label of the release.')
+    publisher = fields.Many2One(
+        'publisher', 'Publisher', help='The publisher of the release.')
     label_name = fields.Char(
         'Label Name',
         help='Free text of label name (in case that the label is not a GVL '
