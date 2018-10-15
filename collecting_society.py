@@ -19,6 +19,8 @@ from trytond.pyson import Eval, Bool, Or, And
 
 __all__ = [
 
+    'CollectingSociety',
+
     # Creative
     'Artist',
     'ArtistArtist',
@@ -55,6 +57,10 @@ __all__ = [
     'Distribute',
 
     # Events
+    'TariffSystem',
+    'TariffCategory',
+    'Tariff',
+    'CreationTariffCategory',
     'Client',
     'Identifier',
     'Identification',
@@ -161,6 +167,23 @@ class PublicApi(object):
 ##############################################################################
 # Creative
 ##############################################################################
+
+class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
+    'Collecting Society'
+    __name__ = 'collecting_society'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+    party = fields.Many2One(
+        'party.party', 'Party', states=STATES, depends=DEPENDS,
+        help='The legal person or organization acting the collecting society')
+    represents_copyright = fields.Boolean(
+        'Represents Copyright', help='The collecting society '
+        'represents copyrights of authors')
+    represents_ancillary_copyright = fields.Boolean(
+        'Represents Ancillary Copyright', help='The collecting society '
+        'represents ancillary copyights of performers')
 
 
 class Artist(ModelSQL, ModelView, EntityOrigin, PublicApi,
@@ -539,17 +562,31 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
     content = fields.One2Many(
         'content', 'creation', 'Content',
         help='Content associated with the creation.')
-    utilisation_sector_live = fields.Boolean('Live performance')
-    utilisation_sector_reproduction = fields.Boolean(
-        'recording, storage and reproduction via storage media')
-    utilisation_sector_playing = fields.Boolean('public playing')
-    utilisation_sector_otherart = fields.Boolean(
-        'use in other art forms', help='e.g., audiovisual production')
-    utilisation_sector_radio = fields.Boolean('radio broadcasting')
-    utilisation_sector_tv = fields.Boolean('TV broadcasting')
-    utilisation_sector_movie = fields.Boolean('movie screening')
-    utilisation_sector_online = fields.Boolean('online use')
-    utilisation_sector_advertising = fields.Boolean('use in advertising')
+    tariff_categories = fields.Many2Many(
+        'creation-tariff_category', 'creation', 'category', 'Tariff Category',
+        help='Tariff categories of the creation.')
+    tariff_categories_list = fields.Function(
+        fields.Char('Tariff Category List'),
+        'on_change_with_tariff_categories_list')
+
+    @fields.depends('tariff_categories')
+    def on_change_with_tariff_categories_list(self, name=None):
+        tariff_categories = ''
+        for tariff_category in self.tariff_categories:
+            tariff_categories += '%s, ' % tariff_category.code
+        return tariff_categories.rstrip(', ')
+
+    # utilisation_sector_live = fields.Boolean('Live performance')
+    # utilisation_sector_reproduction = fields.Boolean(
+    #     'recording, storage and reproduction via storage media')
+    # utilisation_sector_playing = fields.Boolean('public playing')
+    # utilisation_sector_otherart = fields.Boolean(
+    #     'use in other art forms', help='e.g., audiovisual production')
+    # utilisation_sector_radio = fields.Boolean('radio broadcasting')
+    # utilisation_sector_tv = fields.Boolean('TV broadcasting')
+    # utilisation_sector_movie = fields.Boolean('movie screening')
+    # utilisation_sector_online = fields.Boolean('online use')
+    # utilisation_sector_advertising = fields.Boolean('use in advertising')
 
     @classmethod
     def __setup__(cls):
@@ -1606,12 +1643,176 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
 ##############################################################################
 
 
+class TariffSystem(ModelSQL, ModelView, CurrentState):
+    'Tariff System'
+    __name__ = 'tariff_system'
+    _history = True
+    _rec_name = 'version'
+
+    code = fields.Char(
+        'Code', required=True, select=True, states={'readonly': True})
+    version = fields.Char(
+        'Version', required=True, select=True, states=STATES, depends=DEPENDS)
+    valid_from = fields.Date(
+        'Valid from', help='Date from which the tariff is valid.')
+    valid_through = fields.Date(
+        'Valid through', help='Date thorugh which the tariff is valid.')
+    transitional_through = fields.Date(
+        'Transitional through',
+        help='Date of the end of the transitinal phase, through which the '
+        'tariff might still be used.')
+    tariffs = fields.One2Many(
+        'tariff_system.tariff', 'system', 'Tariffs',
+        help='The tariffs of the tariff system.')
+    # TODO: attachement
+    # TODO: formluar
+    # TODO: variables
+
+    @classmethod
+    def __setup__(cls):
+        super(TariffSystem, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the tariff system must be unique.'),
+            ('version_uniq', 'UNIQUE(version)',
+             'The version of the tariff system must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.tariff_system_sequence.id)
+        return super(TariffSystem, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(TariffSystem, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('version',) + tuple(clause[1:]),
+        ]
+
+
+class TariffCategory(ModelSQL, ModelView, CurrentState):
+    'Tariff Catefory'
+    __name__ = 'tariff_system.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+    code = fields.Char(
+        'Code', required=True, select=True, states=STATES, depends=DEPENDS)
+    description = fields.Text(
+        'Description', states=STATES, depends=DEPENDS,
+        help='A description of the tariff category.')
+    tariffs = fields.One2Many(
+        'tariff_system.tariff', 'category', 'Tariffs',
+        help='The tariffs in this tariff category.')
+    # creations = fields.Many2Many(
+    #     'creation-tariff_category', 'category', 'Creations',
+    #     help='The creations in this tariff category.')
+
+    @classmethod
+    def __setup__(cls):
+        super(TariffCategory, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(TariffCategory, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('name',) + tuple(clause[1:]),
+            ('code',) + tuple(clause[1:]),
+        ]
+
+
+class Tariff(ModelSQL, ModelView, CurrentState):
+    'Tariff'
+    __name__ = 'tariff_system.tariff'
+    _history = True
+
+    name = fields.Function(
+        fields.Char('Name'), 'get_name', searcher='search_name')
+    code = fields.Function(
+        fields.Char('Code'), 'get_code', searcher='search_code')
+    system = fields.Many2One(
+        'tariff_system', 'System', required=True, select=True)
+    category = fields.Many2One(
+        'tariff_system.category', 'Category', required=True, select=True)
+    # TODO: Variables
+
+    def get_name(self, name):
+        return self.category.name
+
+    def get_code(self, name):
+        return self.category.code + self.system.version
+
+    def search_name(self, name):
+        return self.get_title(name)
+
+    def search_code(self, name):
+        return self.get_code(name)
+
+
+class CreationTariffCategory(ModelSQL, ModelView):
+    'Creation - Tariff Category'
+    __name__ = 'creation-tariff_category'
+    _history = True
+
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
+    category = fields.Many2One(
+        'tariff_system.category', 'Category', required=True, select=True,
+        ondelete='CASCADE')
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society', select=True,
+        ondelete='CASCADE')
+
+
 class Client(ModelSQL, ModelView, CurrentState):
     'Client'
     __name__ = 'client'
     _history = True
     _rec_name = 'uuid'
-    web_user = fields.Many2One('web.user', 'Web User', required=True)
+    web_user = fields.Many2One(
+        'web.user', 'Web User', required=True)
     uuid = fields.Char(
         'UUID', required=True, help='The universally unique identifier '
         'of the client used by a web user')

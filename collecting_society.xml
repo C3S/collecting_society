@@ -462,6 +462,100 @@
         <menuitem parent="menu_collecting_society" action="act_label"
             sequence="80" id="menu_label"/>
 
+        <menuitem parent="menu_collecting_society"
+            sequence="100" id="menu_tariff" name="Tariffs"/>
+
+        <record model="ir.ui.view" id="tariff_system_form">
+            <field name="model">tariff_system</field>
+            <field name="type">form</field>
+            <field name="name">tariff_system_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_system_list">
+            <field name="model">tariff_system</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_system_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_system">
+            <field name="name">System</field>
+            <field name="res_model">tariff_system</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_tariff_system_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_system_list"/>
+            <field name="act_window" ref="act_tariff_system"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_tariff_system_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_system_form"/>
+            <field name="act_window" ref="act_tariff_system"/>
+        </record>
+        <menuitem parent="menu_tariff" action="act_tariff_system"
+            sequence="20" id="menu_tariff_system"/>
+
+        <record model="ir.ui.view" id="tariff_system_category_form">
+            <field name="model">tariff_system.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_system_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_system_category_list">
+            <field name="model">tariff_system.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_system_category_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_system_category">
+            <field name="name">Category</field>
+            <field name="res_model">tariff_system.category</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_system_category_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_system_category_list"/>
+            <field name="act_window" ref="act_tariff_system_category"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_system_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_system_category_form"/>
+            <field name="act_window" ref="act_tariff_system_category"/>
+        </record>
+        <menuitem parent="menu_tariff" action="act_tariff_system_category"
+            sequence="40" id="menu_tariff_system_category"/>
+
+        <record model="ir.ui.view" id="tariff_system_tariff_form">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">form</field>
+            <field name="name">tariff_system_tariff_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_system_tariff_list">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_system_tariff_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_system_tariff">
+            <field name="name">Tariff</field>
+            <field name="res_model">tariff_system.tariff</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_system_tariff_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_system_tariff_list"/>
+            <field name="act_window" ref="act_tariff_system_tariff"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_system_tariff_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_system_tariff_form"/>
+            <field name="act_window" ref="act_tariff_system_tariff"/>
+        </record>
+        <menuitem parent="menu_tariff" action="act_tariff_system_tariff"
+            sequence="60" id="menu_tariff_system_tariff"/>
+
 
         <record model="ir.ui.view" id="utilisation_form">
             <field name="model">creation.utilisation</field>
@@ -490,7 +584,7 @@
             <field name="act_window" ref="act_utilisation"/>
         </record>
         <menuitem parent="menu_collecting_society" action="act_utilisation"
-            sequence="100" id="menu_utilisation"/>
+            sequence="120" id="menu_utilisation"/>
 
 
         <record model="ir.ui.view" id="distribution_form">
@@ -523,7 +617,7 @@
         </record>
         <menuitem parent="menu_collecting_society"
             action="act_distribution"
-            sequence="120" id="menu_distribution"/>
+            sequence="140" id="menu_distribution"/>
 
         <record model="ir.ui.view" id="distribution_allocation_form">
             <field name="model">distribution.allocation</field>
@@ -556,6 +650,9 @@
         <menuitem parent="menu_distribution"
             action="act_distribution_allocation"
             sequence="60" id="menu_distribution_allocation"/>
+
+
+
 
         <record model="ir.sequence.type" id="sequence_type_artist">
             <field name="name">Artist</field>
@@ -615,6 +712,22 @@
             <field name="name">Content</field>
             <field name="code">content</field>
             <field name="prefix">D</field>
+            <field name="padding">10</field>
+        </record>
+
+        <record model="ir.sequence.type" id="sequence_type_tariff_system">
+            <field name="name">Tariff System</field>
+            <field name="code">tariff_system</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_tariff_system_group_admin">
+            <field name="sequence_type" ref="sequence_type_tariff_system"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_tariff_system">
+            <field name="name">Tariff System</field>
+            <field name="code">tariff_system</field>
+            <field name="prefix">T</field>
             <field name="padding">10</field>
         </record>
         

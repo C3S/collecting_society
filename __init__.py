@@ -14,6 +14,7 @@ def register():
     Pool.register(
         BankAccount,
         BankAccountNumber,
+        CollectingSociety,
         Artist,
         ArtistArtist,
         ArtistPayeeAcceptance,
@@ -30,6 +31,10 @@ def register():
         CreationOriginalDerivative,
         CreationContribution,
         CreationRole,
+        TariffSystem,
+        TariffCategory,
+        Tariff,
+        CreationTariffCategory,
         Checksum,
         Storehouse,
         HarddiskLabel,

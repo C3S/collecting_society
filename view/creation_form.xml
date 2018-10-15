@@ -36,24 +36,7 @@
             <field name="licenses"/>
         </page>
         <page string="Tariff" id="tariff" col="6">
-            <label name="utilisation_sector_live"/>
-            <field name="utilisation_sector_live" colspan="5"/>
-            <label name="utilisation_sector_reproduction"/>
-            <field name="utilisation_sector_reproduction" colspan="5"/>
-            <label name="utilisation_sector_playing"/>
-            <field name="utilisation_sector_playing" colspan="5"/>
-            <label name="utilisation_sector_otherart"/>
-            <field name="utilisation_sector_otherart" colspan="5"/>
-            <label name="utilisation_sector_radio"/>
-            <field name="utilisation_sector_radio" colspan="5"/>
-            <label name="utilisation_sector_tv"/>
-            <field name="utilisation_sector_tv" colspan="5"/>
-            <label name="utilisation_sector_movie"/>
-            <field name="utilisation_sector_movie" colspan="5"/>
-            <label name="utilisation_sector_online"/>
-            <field name="utilisation_sector_online" colspan="5"/>
-            <label name="utilisation_sector_advertising"/>
-            <field name="utilisation_sector_advertising" colspan="5"/>
+            <field name="tariff_categories"/>
         </page>
         <page string="Tags" id="tags">
             <field name="styles"/>

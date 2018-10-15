@@ -29,6 +29,12 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
         fields.Many2One('ir.sequence', 'Content Sequence', domain=[
             ('code', '=', 'content'),
         ]))
+
+    tariff_system_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Tariff System Sequence', domain=[
+            ('code', '=', 'tariff_system'),
+        ]))
+
     harddisk_label_sequence = fields.Property(
         fields.Many2One('ir.sequence', 'Harddisk Label Sequence', domain=[
             ('code', '=', 'harddisk.label'),

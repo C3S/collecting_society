@@ -56,6 +56,15 @@
                 ref('sequence_content'))"/>
         </record>
 
+        <record model="ir.property" id="property_tariff_system_sequence">
+            <field name="field"
+                search="[
+                    ('model.model', '=', 'collecting_society.configuration'),
+                    ('name', '=', 'tariff_system_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_tariff_system'))"/>
+        </record>
+
         <record model="ir.property" id="property_harddisk_label_sequence">
             <field name="field"
                 search="[
