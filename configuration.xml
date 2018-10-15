@@ -9,7 +9,7 @@
             <field name="name">configuration_form</field>
         </record>
         <record model="ir.action.act_window" id="act_configuration_form">
-            <field name="name">Collecting Society Configuration</field>
+            <field name="name">Collecting Society</field>
             <field name="res_model">collecting_society.configuration</field>
         </record>
         <record model="ir.action.act_window.view"

@@ -61,11 +61,6 @@ __all__ = [
     'Identification',
     'Fingerprintlog',
 
-    # Adore
-    # 'UtilisationIMP',
-    # 'UtilisationIMPIdentifyStart',
-    # 'UtilisationIMPIdentify',
-
     # Tryton
     'STATES',
     'DEPENDS',
@@ -96,17 +91,38 @@ class ClaimState(object):
             ('unclaimed', 'Unclaimed'),
             ('claimed', 'Claimed'),
             ('revised', 'Revised'),
-        ], 'Claim State', states={'required': True}, sort=False,
+        ], 'Claim', states={'required': True}, sort=False,
         help='The state in a claim process.\n\n'
         '*Unclaimed*: The object is not yet claimed or a claim was'
         ' cancelled.\n'
         '*Claimed*: Someone has claimed this object but it was not revised,'
         ' yet.\n'
-        '*Revised*: The object was revised by the original web user')
+        '*Revised*: The claim was confirmed by administration')
 
     @staticmethod
     def default_claim_state():
         return "unclaimed"
+
+
+class CommitState(object):
+    commit_state = fields.Selection(
+        [
+            ('uncommited', 'Uncommited'),
+            ('commited', 'Commited'),
+            ('revised', 'Revised'),
+            ('rejected', 'Rejected'),
+            ('deleted', 'Deleted'),
+        ], 'Commit', states={'required': True}, sort=False,
+        help='The state in a commit process.\n\n'
+        '*Uncommited*: The object was freshly created.\n'
+        '*Commited*: The object was commited by the web user.\n'
+        '*Revised*: The commit was revised by administration.\n'
+        '*Rejected*: The commit was rejected by administration.\n'
+        '*Deleted*: The rejeted object was deleted.\n')
+
+    @staticmethod
+    def default_commit_state():
+        return 'uncommited'
 
 
 class EntityOrigin(object):
@@ -126,12 +142,23 @@ class EntityOrigin(object):
         return "direct"
 
 
-class UserCommittedState(object):
-    user_committed_state = fields.Boolean('Item committed by user')
+class PublicApi(object):
+    oid = fields.Char(
+        'OID', required=True,
+        help='A unique object identifier used in the public web api to avoid'
+             'exposure of implementation details to the users.')
+
+    @classmethod
+    def __setup__(cls):
+        super(Client, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_oid', 'UNIQUE(oid)',
+                'The OID of the client must be unique.'),
+        ]
 
     @staticmethod
-    def default_user_commited_state():
-        return False
+    def default_oid():
+        return str(uuid.uuid4())
 
 
 ##############################################################################
@@ -139,8 +166,8 @@ class UserCommittedState(object):
 ##############################################################################
 
 
-class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-             UserCommittedState):
+class Artist(ModelSQL, ModelView, EntityOrigin, PublicApi,
+             CurrentState, ClaimState, CommitState):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -252,23 +279,6 @@ class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    # currency_digits = fields.Function(
-    #     fields.Integer('Currency Digits'), 'get_currency_digits')
-    # hat_account = fields.Property(
-    #     fields.Many2One(
-    #         'account.account', 'Hat Account', domain=[
-    #             ('kind', '=', 'hat'),
-    #             ('company', '=', Eval('context', {}).get('company', -1)),
-    #         ], states={
-    #             'required': Bool(Eval('context', {}).get('company')),
-    #             'invisible': ~Eval('context', {}).get('company'),
-    #         }))
-    # hat_balance = fields.Function(
-    #     fields.Numeric(
-    #         'Hat Account Balance',
-    #         digits=(16, Eval('currency_digits', 2)),
-    #         depends=['currency_digits']),
-    #     'get_hat_balance', searcher='search_hat_balance')
 
     @classmethod
     def __setup__(cls):
@@ -377,27 +387,6 @@ class Artist(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
                 'valid_payee': False}
         return changes
 
-    # @classmethod
-    # def get_hat_balance(cls, artists, names):
-    #     WebUser = Pool().get('web.user')
-
-    #     result = WebUser.get_balance(items=artists, names=names)
-    #     return result
-
-    # def get_currency_digits(self, name):
-    #     Company = Pool().get('company.company')
-    #     if Transaction().context.get('company'):
-    #         company = Company(Transaction().context['company'])
-    #         return company.currency.digits
-    #     return 2
-
-    # @classmethod
-    # def search_hat_balance(cls, name, clause):
-    #     WebUser = Pool().get('web.user')
-
-    #     result = WebUser.search_balance(name, clause)
-    #     return result
-
     @classmethod
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
@@ -455,7 +444,7 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class License(ModelSQL, ModelView, CurrentState):
+class License(ModelSQL, ModelView, CurrentState, PublicApi):
     'License'
     __name__ = 'license'
     _history = True
@@ -497,14 +486,14 @@ class License(ModelSQL, ModelView, CurrentState):
         ]
 
 
-class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-               UserCommittedState):
+class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
+               CurrentState, ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
     _history = True
-    default_title = fields.Function(
-        fields.Char('Default Title'), 'get_default_title',
-        searcher='search_default_title')
+    title = fields.Function(
+        fields.Char('Title'), 'get_title',
+        searcher='search_title')
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
@@ -520,9 +509,9 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     licenses = fields.Function(
         fields.One2Many('release-creation', 'license', 'Licenses'),
         'get_licenses')
-    default_license = fields.Function(
+    license = fields.Function(
         fields.Many2One('license', 'Default License'),
-        'get_default_license', searcher='search_default_license')
+        'get_license', searcher='search_license')
     identifiers = fields.One2Many(
         'creation.identification', 'creation', 'Identifiers',
         states=STATES, depends=DEPENDS)
@@ -537,15 +526,19 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
     releases = fields.One2Many(
         'release-creation', 'creation', 'Releases',
         help='The releases of this creation.')
-    genres = fields.Many2Many(
-        'release.genre', 'release', 'genre', 'Genres',
-        help='The genres of the creation.')
-    state = fields.Selection(
-        [
-            ('on_approval', 'On Approval'),
-            ('approved', 'Approved'),
-            ('rejected', 'Rejected'),
-        ], 'State', states=STATES, depends=DEPENDS)
+    release = fields.Function(
+        fields.Many2One('release', 'First Release'),
+        'get_release', searcher='search_release')
+    genres = fields.Function(
+        fields.Many2Many(
+            'release-genre', None, None, 'Genres',
+            help='Shows the collection of all genres of all releases'),
+        'get_genres', searcher='search_genres')
+    styles = fields.Function(
+        fields.Many2Many(
+            'release-style', None, None, 'Styles',
+            help='Shows the collection of all styles of all releases'),
+        'get_stylesgenres', searcher='search_styles')
     content = fields.One2One(
         'creation-content', 'creation', 'content',  'Content',
         help='The content of the creation.')
@@ -574,37 +567,33 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         table, _ = tables[None]
         return [CharLength(table.code), table.code]
 
-    @staticmethod
-    def default_state():
-        return 'on_approval'
-
     def get_rec_name(self, name):
         result = '[%s] %s' % (
             self.artist.name if self.artist and self.artist.name
             else '<unknown artist>',
-            self.default_title)
+            self.title)
         return result
 
-    def get_default_title(self, name):
-        default_title = "<unknown title>"
+    def get_title(self, name):
+        title = "<unknown title>"
         earliest_date = None
         for releasecreation in self.releases:
             release = releasecreation.release
             online_date = release.online_release_date
             physical_date = release.release_date
             if not earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 if not online_date or physical_date < online_date:
                     earliest_date = physical_date
                 else:
                     earliest_date = online_date
             if physical_date < earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 earliest_date = physical_date
             if online_date < earliest_date:
-                default_title = releasecreation.title
+                title = releasecreation.title
                 earliest_date = online_date
-        return default_title
+        return title
 
     def get_licenses(self, name):
         licenses = []
@@ -613,21 +602,64 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
                 licenses.extend(releasecreation.license)
         return licenses
 
-    def get_default_license(self, name):
-        default = None
+    def get_license(self, name):
+        license = None
         for creationlicense in self.licenses:
             license = creationlicense.license
-            if not default or license.freedom_rank > default.freedom_rank:
-                default = license
-        if hasattr(default, 'id'):
-            return default.id
+            if not license or license.freedom_rank > license.freedom_rank:
+                license = license
+        if hasattr(license, 'id'):
+            return license.id
         return None
 
-    def search_default_title(self, name):
-        return self.get_default_title(name)
+    def get_release(self, name):
+        release = None
+        earliest_date = None
+        for releasecreation in self.releases:
+            current_release = releasecreation.release
+            online_date = current_release.online_release_date
+            physical_date = current_release.release_date
+            if not release:
+                release = current_release
+                continue
+            if physical_date and physical_date < earliest_date:
+                earliest_date = physical_date
+                release = current_release
+            if online_date and online_date < earliest_date:
+                earliest_date = online_date
+                release = current_release
+        if hasattr(release, 'id'):
+            return release.id
+        return None
 
-    def search_default_license(self, name):
-        return self.get_default_license(name)
+    def get_genres(self, name):
+        genres = []
+        for releasecreation in self.releases:
+            if releasecreation.release.genres:
+                genres.extend(releasecreation.release.genres)
+        return genres
+
+    def get_styles(self, name):
+        styles = []
+        for releasecreation in self.releases:
+            if releasecreation.release.styles:
+                styles.extend(releasecreation.release.styles)
+        return styles
+
+    def search_title(self, name):
+        return self.get_title(name)
+
+    def search_license(self, name):
+        return self.get_license(name)
+
+    def search_release(self, name):
+        return self.get_release(name)
+
+    def search_genres(self, name):
+        return self.get_genres(name)
+
+    def search_styles(self, name):
+        return self.get_styles(name)
 
     @classmethod
     def create(cls, vlist):
@@ -654,7 +686,7 @@ class Creation(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         return [
             'OR',
             ('code',) + tuple(clause[1:]),
-            ('default_title',) + tuple(clause[1:]),
+            ('title',) + tuple(clause[1:]),
         ]
 
 
@@ -682,7 +714,7 @@ class CreationContent(ModelSQL, ModelView):
         ]
 
 
-class Label(ModelSQL, ModelView, CurrentState):
+class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
     'Label'
     __name__ = 'label'
     _history = True
@@ -695,8 +727,8 @@ class Label(ModelSQL, ModelView, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
-              UserCommittedState):
+class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
+              CurrentState, ClaimState, CommitState):
     'Release'
     __name__ = 'release'
     _history = True
@@ -770,7 +802,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         'Production Date', help='Date of production.')  # -1
     producer = fields.Char('Producer')  # -1
     genres = fields.Many2Many(
-        'release.genre', 'release', 'genre', 'Genres',
+        'release-genre', 'release', 'genre', 'Genres',
         help='The genres of the release.')
     genres_as_string = fields.Function(
         fields.Char(
@@ -780,7 +812,7 @@ class Release(ModelSQL, ModelView, CurrentState, ClaimState, EntityOrigin,
         'get_genres_as_string'
     )
     styles = fields.Many2Many(
-        'release.style', 'release', 'style', 'Styles',
+        'release-style', 'release', 'style', 'Styles',
         help='The styles of the release.')
     distribution_territory = fields.Char(
         'Distribution Territory')  # many2one, -1
@@ -891,7 +923,7 @@ class ReleaseCreation(ModelSQL, ModelView):
         'license', 'License', help='License for the creation on the release')
 
 
-class Genre(ModelSQL, ModelView):
+class Genre(ModelSQL, ModelView, PublicApi):
     'Genre'
     __name__ = 'genre'
     _history = True
@@ -901,9 +933,9 @@ class Genre(ModelSQL, ModelView):
         'Description', help='The description of the genre.')
 
 
-class ReleaseGenre(ModelSQL):
+class ReleaseGenre(ModelSQL, ModelView):
     'Release - Genre'
-    __name__ = 'release.genre'
+    __name__ = 'release-genre'
     _history = True
 
     release = fields.Many2One(
@@ -912,7 +944,7 @@ class ReleaseGenre(ModelSQL):
         'genre', 'Genre', required=True, select=True, ondelete='CASCADE')
 
 
-class Style(ModelSQL, ModelView):
+class Style(ModelSQL, ModelView, PublicApi):
     'Style'
     __name__ = 'style'
     _history = True
@@ -922,9 +954,9 @@ class Style(ModelSQL, ModelView):
         'Description', help='The description of the style.')
 
 
-class ReleaseStyle(ModelSQL):
+class ReleaseStyle(ModelSQL, ModelView):
     'Release - Style'
-    __name__ = 'release.style'
+    __name__ = 'release-style'
     _history = True
 
     release = fields.Many2One(
@@ -956,7 +988,7 @@ class CreationOriginalDerivative(ModelSQL, ModelView):
         '*Remix*: \n')
 
 
-class CreationContribution(ModelSQL, ModelView):
+class CreationContribution(ModelSQL, ModelView, PublicApi):
     'Creation Contribution'
     __name__ = 'creation.contribution'
     _history = True
@@ -1016,11 +1048,11 @@ class CreationContribution(ModelSQL, ModelView):
 
     def get_rec_name(self, name):
         result = '[%s] %s' % (
-            self.type, self.creation.default_title)
+            self.type, self.creation.title)
         return result
 
 
-class CreationRole(ModelSQL, ModelView):
+class CreationRole(ModelSQL, ModelView, EntityOrigin):
     'Roles'
     __name__ = 'creation.role'
     _history = True
@@ -1323,8 +1355,8 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, CurrentState, EntityOrigin,
-              UserCommittedState):
+class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
+              CurrentState, CommitState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
@@ -2074,175 +2106,3 @@ class Distribute(Wizard):
 #                amount=amount / Decimal(len(creation.original_creations)),
 #                result=result)
         return result
-
-
-##############################################################################
-# Adore
-##############################################################################
-
-
-# class UtilisationIMP(ModelSQL, ModelView):
-#     'Utilisation for IMP'
-#     __name__ = 'creation.utilisation.imp'
-#     _rec_name = 'create_date'
-
-#     client = fields.Many2One('client', 'Client', help='The used client')
-#     time_played = fields.DateTime(
-#         'Time Played',
-#         help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-#         'utilisation')
-#     time_submitted = fields.DateTime(
-#         'Time Submitted',
-#         help='The client timestamp (format: yyyy-mm-dd HH:MM:SS) of the '
-#         'utilisation submission')
-#     fingerprint = fields.Char(
-#         'Fingerprint', help='Fingerprint hash of the utilisation')
-#     fingerprinting_algorithm = fields.Char(
-#         'Algorithm',
-#         help='Fingerprinting mechanism of the utilisation, e.g. echoprint')
-#     fingerprinting_version = fields.Char(
-#         'Version', help='Fingerprinting algorithm version '
-#         'of the utilisation')
-#     title = fields.Char(
-#         'Title', help='Title tag of the utilisation')
-#     artist = fields.Char(
-#         'Artist', help='Artist tag of the utilisation')
-#     release = fields.Char(
-#         'Release', help='Release or album tag of the utilisation')
-#     track_number = fields.Char(
-#         'Track Number', help='Track number tag of the utilisation')
-#     duration = fields.Char(
-#         'Duration', help='Duration tag of the utilisation')
-#     state = fields.Selection(
-#         [
-#             ('unidentified', 'Unidentified'),
-#             ('processing', 'Process Identification'),
-#             ('identified', 'Identified'),
-#         ], 'State', required=True, sort=False,
-#         help='The state identification of the imp utilisation.\n\n'
-#         '*Unidentified*: The imp utilisation is not yet identified.\n'
-#         '*Process Identification*: A identification process is running.\n'
-#         '*Done*: The identification is finished and a general utilisation '
-#         'is created')
-#     utilisation = fields.Function(
-#         fields.Many2One('creation.utilisation', 'Utilisation'),
-#         'get_utilisation')
-
-#     @classmethod
-#     def __setup__(cls):
-#         super(UtilisationIMP, cls).__setup__()
-#         cls._order.insert(0, ('time_submitted', 'DESC'))
-
-#     @staticmethod
-#     def default_time_submitted():
-#         return datetime.datetime.now()
-
-#     @staticmethod
-#     def default_state():
-#         return 'unidentified'
-
-#     @staticmethod
-#     def default_title():
-#         return '<unknown title>'
-
-#     @staticmethod
-#     def default_artist():
-#         return '<unknown artist>'
-
-#     def get_utilisation(self, name):
-#         Utilisation = Pool().get('creation.utilisation')
-
-#         utilisations = Utilisation.search(
-#             [('origin', '=', 'creation.utilisation.imp,%s' % self.id)],
-#             limit=1)
-#         if not utilisations:
-#             return None
-#         return utilisations[0].id
-
-
-# class UtilisationIMPIdentifyStart(ModelView):
-#     'Identify IMP Utilisations Start'
-#     __name__ = 'creation.utilisation.imp.identify.start'
-
-#     from_date = fields.Date(
-#         'From Date',
-#         help='The earliest date to identify IMP utilisations')
-#     thru_date = fields.Date(
-#         'Thru Date',
-#         help='The latest date to identify IMP utilisations')
-
-#     @staticmethod
-#     def default_from_date():
-#         Date = Pool().get('ir.date')
-#         t = Date.today()
-#         return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
-
-#     @staticmethod
-#     def default_thru_date():
-#         Date = Pool().get('ir.date')
-#         return Date.today() - relativedelta(months=1) + relativedelta(day=31)
-
-
-# class UtilisationIMPIdentify(Wizard):
-#     "Identify IMP Utilisations"
-#     __name__ = 'creation.utilisation.imp.identify'
-
-#     start = StateView(
-#         'creation.utilisation.imp.identify.start',
-#         'collecting_society.'
-#         'utilisation_imp_identify_start_view_form', [
-#             Button('Cancel', 'end', 'tryton-cancel'),
-#             Button(
-#                 'Start Identification', 'identify', 'tryton-ok',
-#                 default=True),
-#         ])
-#     identify = StateTransition()
-
-#     def transition_identify(self):
-#         pool = Pool()
-#         Creation = pool.get('creation')
-#         Artist = pool.get('artist')
-#         Utilisation = pool.get('creation.utilisation')
-#         UtilisationIMP = pool.get('creation.utilisation.imp')
-
-#         imp_utilisations = UtilisationIMP.search([
-#             (
-#                 'time_submitted', '>=', datetime.datetime.combine(
-#                     self.start.from_date, datetime.time.min)
-#             ), (
-#                 'time_submitted', '<=', datetime.datetime.combine(
-#                     self.start.thru_date, datetime.time.max)
-#             ), ('state', '=', 'unidentified')])
-
-#         for imp_util in imp_utilisations:
-#             UtilisationIMP.write([imp_util], {'state': 'processing'})
-#             # identify
-#             # XXX: Add the identification of the fingerprint here
-#             creation_title = imp_util.title or 'Unknown Creation'
-#             artist_name = imp_util.artist or 'Unknown Artist'
-#             # find
-#             creation = Creation.search([
-#                 ('title', '=', creation_title),
-#                 ('artist.name', '=', artist_name),
-#             ])
-#             # create if not exist
-#             if not creation:
-#                 artist = Artist.search([('name', '=', artist_name)])
-#                 if not artist:
-#                     artist = Artist.create([{'name': artist_name}])
-#                 artist = artist[0]
-#                 creation = Creation.create([{
-#                     'title': creation_title,
-#                     'artist': artist.id,
-#                 }])
-#             creation = creation[0]
-#             # create utilisation
-#             Utilisation.create([{
-#                 'timestamp': imp_util.time_submitted,
-#                 'creation': creation.id,
-#                 'party': imp_util.client.web_user.party.id,
-#                 'origin': '%s,%i' % (
-#                     UtilisationIMP.__name__, imp_util.id),
-#             }])
-#             UtilisationIMP.write([imp_util], {'state': 'identified'})
-#         return 'end'

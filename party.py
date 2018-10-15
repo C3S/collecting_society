@@ -1,12 +1,10 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
+
+import uuid
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import PoolMeta
-# from trytond.pool import Pool, PoolMeta
-# from trytond.pyson import Eval, Bool
-# from trytond.transaction import Transaction
-
 
 __all__ = [
     'Party', 'PartyCategory', 'ContactMechanism', 'Category', 'Address'
@@ -29,46 +27,22 @@ class Party:
     birthdate = fields.Date('Birth Date')
     repertoire_terms_accepted = fields.Boolean(
         'Terms of Service Acceptance for Repertoire')
-    # currency_digits = fields.Function(
-    #     fields.Integer('Currency Digits'), 'get_currency_digits')
-    # pocket_balance = fields.Function(
-    #     fields.Numeric(
-    #         'Pocket Balance', digits=(16, Eval('currency_digits', 2)),
-    #         depends=['currency_digits']),
-    #     'get_pocket_balance', searcher='search_pocket_balance')
-    # pocket_budget = fields.Numeric(
-    #     'Budget', digits=(16, Eval('currency_digits', 2)),
-    #     depends=['currency_digits'])
-    # pocket_account = fields.Property(
-    #     fields.Many2One(
-    #         'account.account', 'Pocket Account', domain=[
-    #             ('kind', '=', 'pocket'),
-    #             ('company', '=', Eval('context', {}).get('company', -1)),
-    #         ], states={
-    #             'required': Bool(Eval('context', {}).get('company')),
-    #             'invisible': ~Eval('context', {}).get('company'),
-    #         }))
+    oid = fields.Char(
+        'OID', required=True,
+        help='A unique object identifier used in the public web api to avoid'
+             'exposure of implementation details to the users.')
 
-    # def get_currency_digits(self, name):
-    #     Company = Pool().get('company.company')
-    #     if Transaction().context.get('company'):
-    #         company = Company(Transaction().context['company'])
-    #         return company.currency.digits
-    #     return 2
+    @classmethod
+    def __setup__(cls):
+        super(Party, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_oid', 'UNIQUE(oid)',
+                'The OID of the client must be unique.'),
+        ]
 
-    # @classmethod
-    # def get_pocket_balance(cls, artists, names):
-    #     WebUser = Pool().get('web.user')
-
-    #     result = WebUser.get_balance(items=artists, names=names)
-    #     return result
-
-    # @classmethod
-    # def search_pocket_balance(cls, name, clause):
-    #     WebUser = Pool().get('web.user')
-
-    #     result = WebUser.search_balance(name, clause)
-    #     return result
+    @staticmethod
+    def default_oid():
+        return str(uuid.uuid4())
 
     @staticmethod
     def default_pocket_budget():
