@@ -527,12 +527,12 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
         depends=DEPENDS, help='All individual contributions to the creation '
         'like composition and lyric creators, band members and singer/solo '
         'artists and their role.')
-    licenses = fields.Function(
-        fields.One2Many('release-creation', 'license', 'Licenses'),
-        'get_licenses')
-    license = fields.Function(
-        fields.Many2One('license', 'Default License'),
-        'get_license', searcher='search_license')
+    # licenses = fields.Function(
+    #     fields.Many2Many('license', None, None, 'Licenses'),
+    #     'get_licenses')
+    # license = fields.Function(
+    #     fields.Many2One('license', 'Default License'),
+    #     'get_license', searcher='search_license')
     identifiers = fields.One2Many(
         'creation.identification', 'creation', 'Identifiers',
         states=STATES, depends=DEPENDS)
@@ -547,19 +547,19 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
     releases = fields.One2Many(
         'release-creation', 'creation', 'Releases',
         help='The releases of this creation.')
-    release = fields.Function(
-        fields.Many2One('release', 'First Release'),
-        'get_release', searcher='search_release')
-    genres = fields.Function(
-        fields.Many2Many(
-            'release-genre', None, None, 'Genres',
-            help='Shows the collection of all genres of all releases'),
-        'get_genres', searcher='search_genres')
-    styles = fields.Function(
-        fields.Many2Many(
-            'release-style', None, None, 'Styles',
-            help='Shows the collection of all styles of all releases'),
-        'get_stylesgenres', searcher='search_styles')
+    # release = fields.Function(
+    #     fields.Many2One('release', 'First Release'),
+    #     'get_release', searcher='search_release')
+    # genres = fields.Function(
+    #     fields.Many2Many(
+    #         'release-genre', None, None, 'Genres',
+    #         help='Shows the collection of all genres of all releases'),
+    #     'get_genres', searcher='search_genres')
+    # styles = fields.Function(
+    #     fields.Many2Many(
+    #         'release-style', None, None, 'Styles',
+    #         help='Shows the collection of all styles of all releases'),
+    #     'get_stylesgenres', searcher='search_styles')
     content = fields.One2Many(
         'content', 'creation', 'Content',
         help='Content associated with the creation.')
@@ -618,71 +618,71 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
                 earliest_date = online_date
         return title
 
-    def get_licenses(self, name):
-        licenses = []
-        for releasecreation in self.releases:
-            if releasecreation.license:
-                licenses.extend(releasecreation.license)
-        return licenses
+    # def get_licenses(self, name):
+    #     licenses = []
+    #     for releasecreation in self.releases:
+    #         if releasecreation.license:
+    #             licenses.extend(releasecreation.license)
+    #     return licenses
 
-    def get_license(self, name):
-        license = None
-        for creationlicense in self.licenses:
-            license = creationlicense.license
-            if not license or license.freedom_rank > license.freedom_rank:
-                license = license
-        if hasattr(license, 'id'):
-            return license.id
-        return None
+    # def get_license(self, name):
+    #     license = None
+    #     for creationlicense in self.licenses:
+    #         license = creationlicense.license
+    #         if not license or license.freedom_rank > license.freedom_rank:
+    #             license = license
+    #     if hasattr(license, 'id'):
+    #         return license.id
+    #     return None
 
-    def get_release(self, name):
-        release = None
-        earliest_date = None
-        for releasecreation in self.releases:
-            current_release = releasecreation.release
-            online_date = current_release.online_release_date
-            physical_date = current_release.release_date
-            if not release:
-                release = current_release
-                continue
-            if physical_date and physical_date < earliest_date:
-                earliest_date = physical_date
-                release = current_release
-            if online_date and online_date < earliest_date:
-                earliest_date = online_date
-                release = current_release
-        if hasattr(release, 'id'):
-            return release.id
-        return None
+    # def get_release(self, name):
+    #     release = None
+    #     earliest_date = None
+    #     for releasecreation in self.releases:
+    #         current_release = releasecreation.release
+    #         online_date = current_release.online_release_date
+    #         physical_date = current_release.release_date
+    #         if not release:
+    #             release = current_release
+    #             continue
+    #         if physical_date and physical_date < earliest_date:
+    #             earliest_date = physical_date
+    #             release = current_release
+    #         if online_date and online_date < earliest_date:
+    #             earliest_date = online_date
+    #             release = current_release
+    #     if hasattr(release, 'id'):
+    #         return release.id
+    #     return None
 
-    def get_genres(self, name):
-        genres = []
-        for releasecreation in self.releases:
-            if releasecreation.release.genres:
-                genres.extend(releasecreation.release.genres)
-        return genres
+    # def get_genres(self, name):
+    #     genres = []
+    #     for releasecreation in self.releases:
+    #         if releasecreation.release.genres:
+    #             genres.extend(releasecreation.release.genres)
+    #     return genres
 
-    def get_styles(self, name):
-        styles = []
-        for releasecreation in self.releases:
-            if releasecreation.release.styles:
-                styles.extend(releasecreation.release.styles)
-        return styles
+    # def get_styles(self, name):
+    #     styles = []
+    #     for releasecreation in self.releases:
+    #         if releasecreation.release.styles:
+    #             styles.extend(releasecreation.release.styles)
+    #     return styles
 
     def search_title(self, name):
         return self.get_title(name)
 
-    def search_license(self, name):
-        return self.get_license(name)
+    # def search_license(self, name):
+    #     return self.get_license(name)
 
-    def search_release(self, name):
-        return self.get_release(name)
+    # def search_release(self, name):
+    #     return self.get_release(name)
 
-    def search_genres(self, name):
-        return self.get_genres(name)
+    # def search_genres(self, name):
+    #     return self.get_genres(name)
 
-    def search_styles(self, name):
-        return self.get_styles(name)
+    # def search_styles(self, name):
+    #     return self.get_styles(name)
 
     @classmethod
     def create(cls, vlist):
@@ -778,11 +778,11 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
     #    'party.party', 'Copyright Owner(s)', help='Copyright owning parties')
     production_date = fields.Date(
         'Production Date', help='Date of production.')
-    producers = fields.Function(
-        fields.Many2Many(
-            'artist', None, None, 'Producer(s)',
-            help='Producers involved in the creations of the release.'),
-        'get_producers')
+    # producers = fields.Function(
+    #     fields.Many2Many(
+    #         'artist', None, None, 'Producer(s)',
+    #         help='Producers involved in the creations of the release.'),
+    #     'get_producers')
 
     # distribution
     ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
@@ -806,12 +806,12 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
         help='The labels catalog number of the release.')
     publisher = fields.Many2One(
         'publisher', 'Publisher', help='The publisher of the release.')
-    neighbouring_rights_societies = fields.Function(
-        fields.Many2Many(
-            'collecting_society', None, None, 'Neighbouring Rights Societies',
-            help='Neighbouring Rights Societies involved in the creations of '
-            'the release.'),
-        'get_neighbouring_rights_societies')
+    # neighbouring_rights_societies = fields.Function(
+    #     fields.Many2Many(
+    #         'collecting_society', None, None, 'Neighbouring Rights Societies',
+    #         help='Neighbouring Rights Societies involved in the creations of '
+    #         'the release.'),
+    #     'get_neighbouring_rights_societies')
 
     @classmethod
     def __setup__(cls):
@@ -870,24 +870,24 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
             ('title',) + tuple(clause[1:]),
         ]
 
-    def get_producers(self, name=None):
-        producers = []
-        for creation in self.creations:
-            for contribution in creation.contributions:
-                performance = (contribution.type == 'performance')
-                producing = (contribution.performance_type == 'producing')
-                if performance and producing:
-                    producers += contribution.artist.id
-        return producers
+    # def get_producers(self, name=None):
+    #     producers = []
+    #     for creation in self.creations:
+    #         for contribution in creation.contributions:
+    #             performance = (contribution.type == 'performance')
+    #             producing = (contribution.performance_type == 'producing')
+    #             if performance and producing:
+    #                 producers += contribution.artist.id
+    #     return producers
 
-    def get_neighbouring_rights_societies(self, name=None):
-        societies = []
-        for creation in self.creations:
-            for contribution in creation.contributions:
-                performance = (contribution.type == 'performance')
-                if performance and contribution.neighbouring_rights_society:
-                    societies += contribution.neighbouring_rights_society.id
-        return societies
+    # def get_neighbouring_rights_societies(self, name=None):
+    #     societies = []
+    #     for creation in self.creations:
+    #         for contribution in creation.contributions:
+    #             performance = (contribution.type == 'performance')
+    #             if performance and contribution.neighbouring_rights_society:
+    #                 societies += contribution.neighbouring_rights_society.id
+    #     return societies
 
 
 class ReleaseCreation(ModelSQL, ModelView):
