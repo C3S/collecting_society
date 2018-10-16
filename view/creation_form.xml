@@ -38,9 +38,9 @@
         <page string="Tariff" id="tariff" col="6">
             <field name="tariff_categories"/>
         </page>
-        <page string="Tags" id="tags">
-            <field name="styles"/>
+        <page string="Metadata" id="tags">
             <field name="genres"/>
+            <field name="styles"/>
         </page>
         <page string="Owner" id="owner" col="6">
             <label name="entity_origin"/>

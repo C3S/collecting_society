@@ -577,18 +577,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
             tariff_categories += '%s, ' % tariff_category.code
         return tariff_categories.rstrip(', ')
 
-    # utilisation_sector_live = fields.Boolean('Live performance')
-    # utilisation_sector_reproduction = fields.Boolean(
-    #     'recording, storage and reproduction via storage media')
-    # utilisation_sector_playing = fields.Boolean('public playing')
-    # utilisation_sector_otherart = fields.Boolean(
-    #     'use in other art forms', help='e.g., audiovisual production')
-    # utilisation_sector_radio = fields.Boolean('radio broadcasting')
-    # utilisation_sector_tv = fields.Boolean('TV broadcasting')
-    # utilisation_sector_movie = fields.Boolean('movie screening')
-    # utilisation_sector_online = fields.Boolean('online use')
-    # utilisation_sector_advertising = fields.Boolean('use in advertising')
-
     @classmethod
     def __setup__(cls):
         super(Creation, cls).__setup__()
@@ -754,95 +742,76 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
     __name__ = 'release'
     _history = True
     _rec_name = 'title'
+
+    # metadata
     title = fields.Char('Title')
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
         }, help='The identification code for the release')
-    creations = fields.One2Many(
-        'release-creation', 'release', 'Creations',
-        help='The creations included in the release')
-    neighbouring_rights_society = fields.Char(
-        'Neighbouring Rights Society',
-        help='Representing collecting society/PRO for neighbouring rights.'
-    )
-    # was once: neighbouring_rights_society = fields.Many2One(
-    #     'party.party', 'Neighbouring Rights Society',
-    #      help='Representing collecting society/PRO for neighbouring rights.'
-    # )  # -1 <- what does '-1' mean?
-    # TODO: clarify the role of a neighbouring rights society
-    #       for now, just a string field is provided
-    label = fields.Many2One(
-        'label', 'Label', help='The label of the release.')
-    publisher = fields.Many2One(
-        'publisher', 'Publisher', help='The publisher of the release.')
-    label_name = fields.Char(
-        'Label Name',
-        help='Free text of label name (in case that the label is not a GVL '
-        'member). Should be blank for self-releases.'
-    )
-    label_as_string = fields.Function(
-        fields.Char(
-            'Label',
-            help='Label as pretty print string'
-        ),
-        'get_label_as_string'
-    )
-    ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
-    number_mediums = fields.Integer(
-        'Number of Mediums', help='The number of mediums.')
-    label_catalog_number = fields.Char(
-        'Label Catalog Number',
-        help='The labels catalog number of the release.')
-    release_date = fields.Date('Release Date', help='Date of (first) release.')
-    release_cancellation_date = fields.Date(
-        'Release Cancellation Date', help='Date of release cancellation')  # -1
-    online_release_date = fields.Date(
-        'Online Release Date', help='The Date of digital online release.')
-    online_cancellation_date = fields.Date(
-        'Online Cancellation Date',
-        help='Date of online release cancellation.')  # -1
-    copyright_date = fields.Date(
-        'Copyright Date', help='Date of the copyright.')
-    copyright_owner = fields.Function(
-        fields.Char(
-            'Copyright Owner',
-            help=('Copyright owner or owners, '
-                  'derived from the associated creations')
-        ),
-        'get_copyright_owner'
-    )
-    # once was: copyright_owner = fields.Many2One(
-    #    'party.party', 'Copyright Owner', help='Copyright owning party')
     picture_data = fields.Binary(
         'Picture Data', states=STATES, depends=DEPENDS,
         help='Picture data of a photograph or logo')
     picture_data_mime_type = fields.Char(
         'Picture Data Mime Type', states=STATES, depends=DEPENDS,
         help='The mime type of picture data.')
-    production_date = fields.Date(
-        'Production Date', help='Date of production.')  # -1
-    producer = fields.Char('Producer')  # -1
     genres = fields.Many2Many(
         'release-genre', 'release', 'genre', 'Genres',
         help='The genres of the release.')
-    genres_as_string = fields.Function(
-        fields.Char(
-            'Genres',
-            help='Genres as string, nicely separated by commas'
-        ),
-        'get_genres_as_string'
-    )
     styles = fields.Many2Many(
         'release-style', 'release', 'style', 'Styles',
         help='The styles of the release.')
-    distribution_territory = fields.Char(
-        'Distribution Territory')  # many2one, -1
+    number_mediums = fields.Integer(
+        'Number of Mediums', help='The number of mediums.')
+    warning = fields.Char(
+        'Warning', help='A warning note for this release.')
+
+    # tracks
+    creations = fields.One2Many(
+        'release-creation', 'release', 'Creations',
+        help='The creations included in the release')
+
+    # production
+    copyright_date = fields.Date(
+        'Copyright Date', help='Date of the copyright.')
+    # copyright_owners = fields.Many2One(
+    #    'party.party', 'Copyright Owner(s)', help='Copyright owning parties')
+    production_date = fields.Date(
+        'Production Date', help='Date of production.')
+    producers = fields.Function(
+        fields.Many2Many(
+            'artist', None, None, 'Producer(s)',
+            help='Producers involved in the creations of the release.'),
+        'get_producers')
+
+    # distribution
+    ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
     isrc_code = fields.Char(
         'ISRC Code',
         help='The International Standard Recording Code of the release')
-    warning = fields.Char(
-        'Warning', help='A warning note for this release.')  # many2one, -1
+    release_date = fields.Date('Release Date', help='Date of (first) release.')
+    release_cancellation_date = fields.Date(
+        'Release Cancellation Date', help='Date of release cancellation')
+    online_release_date = fields.Date(
+        'Online Release Date', help='The Date of digital online release.')
+    online_cancellation_date = fields.Date(
+        'Online Cancellation Date',
+        help='Date of online release cancellation.')
+    distribution_territory = fields.Char(
+        'Distribution Territory')
+    label = fields.Many2One(
+        'label', 'Label', help='The label of the release.')
+    label_catalog_number = fields.Char(
+        'Label Catalog Number',
+        help='The labels catalog number of the release.')
+    publisher = fields.Many2One(
+        'publisher', 'Publisher', help='The publisher of the release.')
+    neighbouring_rights_societies = fields.Function(
+        fields.Many2Many(
+            'collecting_society', None, None, 'Neighbouring Rights Societies',
+            help='Neighbouring Rights Societies involved in the creations of '
+            'the release.'),
+        'get_neighbouring_rights_societies')
 
     @classmethod
     def __setup__(cls):
@@ -901,27 +870,24 @@ class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
             ('title',) + tuple(clause[1:]),
         ]
 
-    # perhaps better use tal:
-    # https://github.com/C3S/collecting_society.portal.repertoire
-    #       /blob/develop/collecting_society_portal_repertoire/templates/
-    #       /creation/show.pt#L51
-    def get_copyright_owners(self, name=None):
-        return ("TODO: Here comes a list of copyright owners as derived from "
-                "the associated creations")
+    def get_producers(self, name=None):
+        producers = []
+        for creation in self.creations:
+            for contribution in creation.contributions:
+                performance = (contribution.type == 'performance')
+                producing = (contribution.performance_type == 'producing')
+                if performance and producing:
+                    producers += contribution.artist.id
+        return producers
 
-    def get_genres_as_string(self, name=None):
-        genre_string = ""
-        for genre in self.genres:
-            if genre_string != "":
-                genre_string = genre_string + ", "
-            genre_string = genre_string + genre.name
-        return genre_string
-
-    def get_label_as_string(self, name=None):
-        label_string = ""
-        if self.label is not None:
-            label_string = self.label.name
-        return label_string
+    def get_neighbouring_rights_societies(self, name=None):
+        societies = []
+        for creation in self.creations:
+            for contribution in creation.contributions:
+                performance = (contribution.type == 'performance')
+                if performance and contribution.neighbouring_rights_society:
+                    societies += contribution.neighbouring_rights_society.id
+        return societies
 
 
 class ReleaseCreation(ModelSQL, ModelView):
@@ -1032,6 +998,7 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
         '*text*: The artist contributes text.')
     performance = fields.Selection(
         [
+            (None, ''),
             ('recording', 'Recording'),
             ('producing', 'Producing'),
             ('mastering', 'Mastering'),
@@ -1044,14 +1011,20 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
         '*producing*: Producing of the creation.\n'
         '*mastering*: Mastering of the creation.\n'
         '*mixing*: Mixing of the creation')
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society',
+        domain=[('represents_copyright', '=', True)],
+        states={'invisible': Eval('type') != 'text'}, depends=['type'])
+    neighbouring_rights_society = fields.Many2One(
+        'collecting_society', 'Neighbouring Rights Society',
+        domain=[('represents_ancillary_copyright', '=', True)],
+        states={'invisible': Eval('type') != 'performance'}, depends=['type'])
     roles = fields.Many2Many(
         'creation.contribution-creation.role', 'contribution', 'role',
         'Roles',
         help='The roles the artist takes in this creation')
     roles_list = fields.Function(
         fields.Char('Roles List'), 'on_change_with_roles_list')
-    # collecting_society = fields.Many2One(
-    #     'party.party', 'Collecting Society')
 
     # TODO: still needed? reason?
     # composition_copyright_date = fields.Date(
@@ -1100,7 +1073,7 @@ class CreationRole(ModelSQL, ModelView, EntityOrigin):
         'Description', translate=True, help='The description of the role')
 
 
-class ContributionRole(ModelSQL):
+class ContributionRole(ModelSQL, ModelView):
     'Contribution - Role'
     __name__ = 'creation.contribution-creation.role'
     _history = True
@@ -1398,6 +1371,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
+
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
@@ -1406,15 +1380,171 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         'UUID', required=True, help='The uuid of the Content.')
     category = fields.Selection(
         [
-            ('audio', 'Audio')
+            ('audio', 'Audio'),
+            ('sheet', 'Sheet Music'),
+            ('lyrics', 'Lyrics'),
         ], 'Category', required=True, help='The category of content.')
-    # low level metadata
+    creation = fields.Many2One(
+        'creation', 'Creation', states=STATES, depends=DEPENDS,
+        help='The creation associated with the content.')
+
+    # --- FILES --------------------------------------------------------------
+
+    _categories_without_file = ['text']
+
+    # file metadata
     name = fields.Char(
-        'File Name', help='The name of the file.')
+        'File Name', help='The name of the file.',
+        states={'invisible': Eval('category') in _categories_without_file},
+        depends=['category'])
     extension = fields.Function(
-        fields.Char('Extension'), 'on_change_with_extension')
-    size = fields.BigInteger('Size', help='The size of the content in Bytes.')
-    mime_type = fields.Char('Mime Type', help='The media or content type.')
+        fields.Char(
+            'Extension', states={
+                'invisible': Eval('category') in _categories_without_file},
+            depends=['category']),
+        'on_change_with_extension')
+    size = fields.BigInteger(
+        'Size', help='The size of the content in Bytes.',
+        states={'invisible': Eval('category') in _categories_without_file},
+        depends=['category'])
+    mime_type = fields.Char(
+        'Mime Type', help='The media or content type.',
+        states={'invisible': Eval('category') in _categories_without_file},
+        depends=['category'])
+    checksums = fields.One2Many(
+        'checksum', 'origin', 'Checksums',
+        help='The checksums of the content.',
+        states={'invisible': Eval('category') in _categories_without_file},
+        depends=['category'])
+
+    # file processing
+    path = fields.Char('Path', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') == 'deleted',
+            )
+        }, depends=['processing_state', 'category'])
+    preview_path = fields.Char('Preview Path', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') == 'deleted'
+            )
+        }, depends=['processing_state', 'category'])
+    filesystem_label = fields.Many2One(
+        'harddisk.filesystem.label', 'Filesystem Label', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') != 'archived'
+            )
+        }, depends=['processing_state', 'category'],
+        help='The Filesystem Label of the Content.')
+    processing_state = fields.Selection(
+        [
+            (None, ''),
+            ('uploaded', 'Upload finished'),
+            ('previewed', 'Preview created'),
+            ('checksummed', 'Checksum created'),
+            ('fingerprinted', 'Fingerprint created'),
+            ('dropped', 'Dropped'),
+            ('archived', 'Archived'),
+            ('deleted', 'Deleted'),
+            ('rejected', 'Rejected'),
+            ('unknown', 'Unknown'),
+        ], 'State',
+        states={
+            'invisible': Eval('category') in _categories_without_file,
+            'required': Eval('category') not in _categories_without_file
+        }, depends=['category'],
+        help='The processing state of the content.')
+    processing_hostname = fields.Char(
+        'Processor', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived'
+            )
+        }, depends=['processing_state', 'category'],
+        help='The hostname of the processing machine.')
+    storage_hostname = fields.Char(
+        'Storage', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') == 'deleted',
+                Eval('processing_state') == 'archived'
+            )
+        }, depends=['processing_state', 'category'],
+        help='The hostname of the storage machine.')
+    rejection_reason = fields.Selection(
+        [
+            (None, ''),
+            ('checksum_collision', 'Duplicate Checksum'),
+            ('fingerprint_collision', 'Duplicate Fingerprint'),
+            ('format_error', 'Format Error'),
+            ('no_fingerprint', 'No Fingerprint'),
+            ('lossy_compression', 'Lossy Compression'),
+            ('missing_database_record', 'Missing Database Record'),
+        ], 'Reason', states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') != 'rejected'
+            ),
+            'required': Eval('processing_state') == 'rejected'
+        }, depends=['processing_state', 'category'],
+        help='The reason of the rejection.')
+    rejection_reason_details = fields.Text(
+        'Details', help='Rejection Explanation',
+        states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                Eval('processing_state') != 'rejected'
+            )
+        }, depends=['category'])
+    duplicate_of = fields.Many2One(
+        'content', 'Duplicate of',
+        domain=[('duplicate_of', '=', None)],
+        states={
+            'invisible': Or(
+                Eval('category') in _categories_without_file,
+                And(
+                    Eval('rejection_reason') != 'checksum_collision',
+                    Eval('rejection_reason') != 'fingerprint_collision'
+                )
+            ),
+            'required': Or(
+                Eval('rejection_reason') == 'checksum_collision',
+                Eval('rejection_reason') == 'fingerprint_collision',
+            )
+        }, depends=['processing_state', 'rejection_reason', 'category'],
+        help='The original duplicated Content.')
+    duplicates = fields.One2Many(
+        'content', 'duplicate_of', 'Duplicates',
+        domain=[
+            (
+                'rejection_reason', 'in',
+                ['checksum_collision', 'fingerprint_collision']
+            ),
+        ], states={
+            'invisible': Eval('category') in _categories_without_file,
+        }, depends=['rejection_reason', 'category'],
+        help='The original duplicated Content.')
+    mediation = fields.Boolean(
+        'Mediation', depends=['category'],
+        states={'invisible': Eval('category') in _categories_without_file})
+
+    # --- LYRICS --------------------------------------------------------------
+
+    lyrics = fields.Char(
+        'Lyrics', help='The Lyrics of a creation.', depends=['category'],
+        states={
+            'invisible': Eval('category') != 'lyrics',
+            'required': Eval('category') == 'lyrics'
+        })
+
+    # --- SHEET ---------------------------------------------------------------
+
+    # --- AUDIO ---------------------------------------------------------------
+
+    # low level audio metadata
     length = fields.Float(
         'Length', digits=(16, 6),
         help='The length or duration of the audio content in seconds [s].',
@@ -1432,129 +1562,65 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         'Sample Width', help='Sample width in Bits.',
         states={'invisible': Eval('category') != 'audio'},
         depends=['category'])
-    # references
-    creation = fields.Many2One(
-        'creation', 'Creation', states=STATES, depends=DEPENDS,
-        help='The creation associated with the content.')
-    duplicate_of = fields.Many2One(
-        'content', 'Duplicate of',
-        domain=[('duplicate_of', '=', None)],
-        states={
-            'invisible': And(
-                Eval('rejection_reason') != 'checksum_collision',
-                Eval('rejection_reason') != 'fingerprint_collision'
-            ),
-            'required': Or(
-                Eval('rejection_reason') == 'checksum_collision',
-                Eval('rejection_reason') == 'fingerprint_collision',
-            )
-        }, depends=['processing_state', 'rejection_reason'],
-        help='The original duplicated Content.')
-    duplicates = fields.One2Many(
-        'content', 'duplicate_of', 'Duplicates',
-        domain=[
-            (
-                'rejection_reason', 'in',
-                ['checksum_collision', 'fingerprint_collision']
-            ),
-        ], depends=['rejection_reason'],
-        help='The original duplicated Content.')
-    # high level metadata
+
+    # high level audio metadata
     metadata_artist = fields.Char(
-        'Metadata Artist', help='Artist in uploaded metadata.')
+        'Metadata Artist', help='Artist in uploaded metadata.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     metadata_title = fields.Char(
-        'Metadata Title', help='Title in uploaded metadata.')
+        'Metadata Title', help='Title in uploaded metadata.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     metadata_release = fields.Char(
-        'Metadata Release', help='Release in uploaded metadata.')
+        'Metadata Release', help='Release in uploaded metadata.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     metadata_release_date = fields.Char(
-        'Metadata Release Date', help='Release date in uploaded metadata.')
+        'Metadata Release Date', help='Release date in uploaded metadata.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     metadata_track_number = fields.Char(
-        'Metadata Track Number', help='Track number in uploaded metadata.')
-    # derived data
-    checksums = fields.One2Many(
-        'checksum', 'origin', 'Checksums',
-        help='The checksums of the content.')
+        'Metadata Track Number', help='Track number in uploaded metadata.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     fingerprintlogs = fields.One2Many(
         'content.fingerprintlog', 'content', 'Fingerprintlogs',
-        help='The fingerprinting log for the content.')
+        help='The fingerprinting log for the content.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
+
     # temporary data for analysis
     pre_ingest_excerpt_score = fields.Integer(
         'Pre Ingest Excerpt Score',
-        help='Fingerprint match score before ingestion')
+        help='Fingerprint match score before ingestion',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     post_ingest_excerpt_score = fields.Integer(
         'Post Ingest Excerpt Score',
-        help='Fingerprint match score after ingestion')
+        help='Fingerprint match score after ingestion',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     uniqueness = fields.Function(
         fields.Float(
             'Uniqueness',
-            help='Ratio of fingerprint match score after/before ingestion'),
+            help='Ratio of fingerprint match score after/before ingestion',
+            states={'invisible': Eval('category') != 'audio'},
+            depends=['category']),
         'get_uniqueness')
     most_similiar_content = fields.Many2One(
-        'content', 'Most Similiar Content', states=STATES, depends=DEPENDS,
-        help='The most similiar content in our database.')
+        'content', 'Most Similiar Content',
+        help='The most similiar content in our database.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     most_similiar_artist = fields.Char(
-        'Most Similiar Artist', help='The most similiar artist in echoprint.')
+        'Most Similiar Artist', help='The most similiar artist in echoprint.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
     most_similiar_track = fields.Char(
-        'Most Similiar Track', help='The most similiar track in echoprint.')
-    # processing
-    path = fields.Char('Path', states={
-            'invisible': Eval('processing_state') == 'deleted'
-        }, depends=['processing_state'])
-    preview_path = fields.Char('Preview Path', states={
-            'invisible': Eval('processing_state') == 'deleted'
-        }, depends=['processing_state'])
-    filesystem_label = fields.Many2One(
-        'harddisk.filesystem.label', 'Filesystem Label', states={
-            'invisible': Eval('processing_state') != 'archived'
-        }, depends=['processing_state'],
-        help='The Filesystem Label of the Content.')
-    processing_state = fields.Selection(
-        [
-            ('uploaded', 'Upload finished'),
-            ('previewed', 'Preview created'),
-            ('checksummed', 'Checksum created'),
-            ('fingerprinted', 'Fingerprint created'),
-            ('dropped', 'Dropped'),
-            ('archived', 'Archived'),
-            ('deleted', 'Deleted'),
-            ('rejected', 'Rejected'),
-            ('unknown', 'Unknown'),
-        ], 'State', required=True,
-        help='The processing state of the content.')
-    processing_hostname = fields.Char(
-        'Processor', states={
-            'invisible': Or(
-                Eval('processing_state') == 'deleted',
-                Eval('processing_state') == 'archived'
-            )
-        }, depends=['processing_state'],
-        help='The hostname of the processing machine.')
-    storage_hostname = fields.Char(
-        'Storage', states={
-            'invisible': Or(
-                Eval('processing_state') == 'deleted',
-                Eval('processing_state') == 'archived'
-            )
-        }, depends=['processing_state'],
-        help='The hostname of the storage machine.')
-    rejection_reason = fields.Selection(
-        [
-            (None, ''),
-            ('checksum_collision', 'Duplicate Checksum'),
-            ('fingerprint_collision', 'Duplicate Fingerprint'),
-            ('format_error', 'Format Error'),
-            ('no_fingerprint', 'No Fingerprint'),
-            ('lossy_compression', 'Lossy Compression'),
-            ('missing_database_record', 'Missing Database Record'),
-        ], 'Reason', states={
-            'invisible': Eval('processing_state') != 'rejected',
-            'required': Eval('processing_state') == 'rejected'
-        }, depends=['processing_state'],
-        help='The reason of the rejection.')
-    rejection_reason_details = fields.Text(
-        'Details', help='ID3 tag',
-        states={'invisible': Eval('processing_state') != 'rejected'})
-    mediation = fields.Boolean('Mediation')
+        'Most Similiar Track', help='The most similiar track in echoprint.',
+        states={'invisible': Eval('category') != 'audio'},
+        depends=['category'])
 
     @classmethod
     def __setup__(cls):

@@ -20,8 +20,8 @@
     <field name="ean_upc_code"/>
 
     <notebook colspan="8">
-        <page string="General" id="general" col="6">
-            <group id="image" colspan="1" col="1" xexpand="0">
+        <page string="Metadata" id="general" col="4">
+            <group id="image" col="1" xexpand="0">
                 <separator string="Picture" id="picture" xexpand="0"/>
                 <field name="picture_data" widget="image"
                     height="200" width="200" readonly="1"
@@ -29,43 +29,41 @@
                     yexpand="0" xexpand="0"/>
                 <field name="picture_data" xexpand="0"/>
             </group>
-            <group id="dates" colspan="2" col="2" xexpand="0">
-                <label name="release_date"/>
-                <field name="release_date"/>
-                <label name="release_cancellation_date"/>
-                <field name="release_cancellation_date"/>
-                <label name="online_release_date"/>
-                <field name="online_release_date"/>
-                <label name="online_cancellation_date"/>
-                <field name="online_cancellation_date"/>
-                <label name="copyright_date"/>
-                <field name="copyright_date"/>
-                <label name="production_date"/>
-                <field name="production_date"/>
-            </group>
-            <group id="medium" colspan="2" col="2" xexpand="0">
+            <group id="medium" colspan="3" col="2" xexpand="0">
                 <label name="number_mediums"/>
                 <field name="number_mediums"/>
+                <label name="warning"/>
+                <field name="warning"/>
             </group>
+            <field name="genres" colspan="2"/>
+            <field name="styles" colspan="2"/>
+        </page>
+        <page string="Production" id="production">
+            <label name="copyright_date"/>
+            <field name="copyright_date"/>
+            <!-- <label name="copyright_owners"/>
+            <field name="copyright_owners"/> -->
             <newline/>
-<!--             <label name="copyright_owner"/>
-            <field name="copyright_owner"/>   -->
-            <label name="neighbouring_rights_society"/>
-            <field name="neighbouring_rights_society"/>
-            <newline/>
+            <label name="production_date"/>
+            <field name="production_date"/>
+            <field name="producers" colspan="6"/>
+        </page>
+        <page string="Distribution" id="distribution" col="2">
+            <label name="release_date"/>
+            <field name="release_date"/>
+            <label name="release_cancellation_date"/>
+            <field name="release_cancellation_date"/>
+            <label name="online_release_date"/>
+            <field name="online_release_date"/>
+            <label name="online_cancellation_date"/>
+            <field name="online_cancellation_date"/>
+            <label name="distribution_territory"/>
+            <field name="distribution_territory"/>
             <label name="label"/>
             <field name="label"/>
             <label name="publisher"/>
             <field name="publisher"/>
-            <label name="producer"/>
-            <field name="producer"/>
-            <newline/>
-            <label name="distribution_territory"/>
-            <field name="distribution_territory"/>
-            <label name="warning"/>
-            <field name="warning"/>
-            <newline/>
-            <field name="genres" colspan="6" />
+            <field name="neighbouring_rights_societies" colspan="6"/>
         </page>
         <page string="Tracks" id="creations">
             <field name="creations" string="Tracks" />

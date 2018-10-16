@@ -9,9 +9,13 @@
     <field name="artist"/>
     <label name="type"/>
     <field name="type"/>
+    <newline/>
     <label name="performance"/>
     <field name="performance"/>
+    <label name="collecting_society"/>
+    <field name="collecting_society"/>
+    <label name="neighbouring_rights_society"/>
+    <field name="neighbouring_rights_society"/>
     <newline/>
-    <label name="roles_list"/>
     <field name="roles" colspan="4"/>
 </form>

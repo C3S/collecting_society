@@ -46,6 +46,37 @@
             action="act_client" sequence="10"
             id="menu_client"/>-->
 
+        <record model="ir.ui.view" id="collecting_society_form">
+            <field name="model">collecting_society</field>
+            <field name="type">form</field>
+            <field name="name">collecting_society_form</field>
+        </record>
+        <record model="ir.ui.view" id="collecting_society_list">
+            <field name="model">collecting_society</field>
+            <field name="type">tree</field>
+            <field name="name">collecting_society_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_collecting_society">
+            <field name="name">Society</field>
+            <field name="res_model">collecting_society</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_collecting_society_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="collecting_society_list"/>
+            <field name="act_window" ref="act_collecting_society"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_collecting_society_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="collecting_society_form"/>
+            <field name="act_window" ref="act_collecting_society"/>
+        </record>
+        <menuitem parent="menu_collecting_society" action="act_collecting_society"
+            id="menu_collecting_society_society" sequence="10"/>
+
         <record model="ir.ui.view" id="artist_form">
             <field name="model">artist</field>
             <field name="type">form</field>
@@ -492,10 +523,6 @@
         <menuitem parent="menu_collecting_society" action="act_publisher"
             sequence="100" id="menu_publisher"/>
 
-
-        <menuitem parent="menu_collecting_society"
-            sequence="120" id="menu_tariff" name="Tariffs"/>
-
         <record model="ir.ui.view" id="tariff_system_form">
             <field name="model">tariff_system</field>
             <field name="type">form</field>
@@ -507,7 +534,7 @@
             <field name="name">tariff_system_list</field>
         </record>
         <record model="ir.action.act_window" id="act_tariff_system">
-            <field name="name">System</field>
+            <field name="name">Tariffsystem</field>
             <field name="res_model">tariff_system</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
@@ -522,8 +549,8 @@
             <field name="view" ref="tariff_system_form"/>
             <field name="act_window" ref="act_tariff_system"/>
         </record>
-        <menuitem parent="menu_tariff" action="act_tariff_system"
-            sequence="20" id="menu_tariff_system"/>
+        <menuitem parent="menu_collecting_society" action="act_tariff_system"
+            sequence="120" id="menu_tariff"/>
 
         <record model="ir.ui.view" id="tariff_system_category_form">
             <field name="model">tariff_system.category</field>

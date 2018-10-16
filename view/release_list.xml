@@ -8,7 +8,6 @@
     <field name="publisher"/>
     <field name="isrc_code"/>
     <field name="ean_upc_code"/>
-    <field name="neighbouring_rights_society" tree_invisible="1"/>
     <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>
