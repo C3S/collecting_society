@@ -14,10 +14,10 @@
     </group>
     <label name="artist"/>
     <field name="artist"/>
-    <!-- <label name="release"/>
+    <label name="release"/>
     <field name="release"/>
     <label name="license"/>
-    <field name="license"/> -->
+    <field name="license"/>
 
     <notebook colspan="8">
         <page string="Contributions" id="contributions">
@@ -33,15 +33,15 @@
         </page>
         <page string="Releases" id="releases">
             <field name="releases"/>
-            <!-- <field name="licenses"/> -->
+            <field name="licenses"/>
         </page>
         <page string="Tariff" id="tariff" col="6">
             <field name="tariff_categories"/>
         </page>
-        <!-- <page string="Metadata" id="tags">
+        <page string="Metadata" id="tags">
             <field name="genres"/>
             <field name="styles"/>
-        </page> -->
+        </page>
         <page string="Owner" id="owner" col="6">
             <label name="entity_origin"/>
             <field name="entity_origin" colspan="5"/>

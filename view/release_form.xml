@@ -41,12 +41,12 @@
         <page string="Production" id="production">
             <label name="copyright_date"/>
             <field name="copyright_date"/>
-            <!-- <label name="copyright_owners"/>
-            <field name="copyright_owners"/> -->
+            <!-- <label name="copyright_owners"/> -->
+            <!-- <field name="copyright_owners"/> -->
             <newline/>
             <label name="production_date"/>
             <field name="production_date"/>
-            <!-- <field name="producers" colspan="6"/> -->
+            <field name="producers" colspan="6"/>
         </page>
         <page string="Distribution" id="distribution" col="2">
             <label name="release_date"/>
@@ -63,7 +63,7 @@
             <field name="label"/>
             <label name="publisher"/>
             <field name="publisher"/>
-            <!-- <field name="neighbouring_rights_societies" colspan="6"/> -->
+            <field name="neighbouring_rights_societies" colspan="6"/>
         </page>
         <page string="Tracks" id="creations">
             <field name="creations" string="Tracks" />
