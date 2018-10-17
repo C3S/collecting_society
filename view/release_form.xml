@@ -38,6 +38,9 @@
             <field name="genres" colspan="2"/>
             <field name="styles" colspan="2"/>
         </page>
+        <page string="Tracks" id="creations">
+            <field name="creations" string="Tracks" />
+        </page>
         <page string="Production" id="production">
             <label name="copyright_date"/>
             <field name="copyright_date"/>
@@ -48,25 +51,23 @@
             <field name="production_date"/>
             <field name="producers" colspan="6"/>
         </page>
-        <page string="Distribution" id="distribution" col="2">
+        <page string="Distribution" id="distribution" col="4">
             <label name="release_date"/>
             <field name="release_date"/>
-            <label name="release_cancellation_date"/>
-            <field name="release_cancellation_date"/>
             <label name="online_release_date"/>
             <field name="online_release_date"/>
+            <label name="release_cancellation_date"/>
+            <field name="release_cancellation_date"/>
             <label name="online_cancellation_date"/>
             <field name="online_cancellation_date"/>
-            <label name="distribution_territory"/>
-            <field name="distribution_territory"/>
             <label name="label"/>
             <field name="label"/>
+            <label name="distribution_territory"/>
+            <field name="distribution_territory"/>
             <label name="publisher"/>
             <field name="publisher"/>
-            <field name="neighbouring_rights_societies" colspan="6"/>
-        </page>
-        <page string="Tracks" id="creations">
-            <field name="creations" string="Tracks" />
+            <newline/>
+            <field name="neighbouring_rights_societies" colspan="4"/>
         </page>
         <page string="Owner" id="owner" col="6">
             <label name="entity_origin"/>

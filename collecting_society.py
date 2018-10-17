@@ -640,9 +640,12 @@ class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
             current_release = releasecreation.release
             online_date = current_release.online_release_date
             physical_date = current_release.release_date
-            if not release:
+            if not earliest_date:
                 release = current_release
-                continue
+                if not online_date or physical_date < online_date:
+                    earliest_date = physical_date
+                else:
+                    earliest_date = online_date
             if physical_date and physical_date < earliest_date:
                 earliest_date = physical_date
                 release = current_release
@@ -1389,50 +1392,48 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
 
     # --- FILES --------------------------------------------------------------
 
-    _categories_without_file = ['text']
-
     # file metadata
     name = fields.Char(
         'File Name', help='The name of the file.',
-        states={'invisible': Eval('category') in _categories_without_file},
+        states={'invisible': Eval('category') == 'lyrics'},
         depends=['category'])
     extension = fields.Function(
         fields.Char(
             'Extension', states={
-                'invisible': Eval('category') in _categories_without_file},
+                'invisible': Eval('category') == 'lyrics'},
             depends=['category']),
         'on_change_with_extension')
     size = fields.BigInteger(
         'Size', help='The size of the content in Bytes.',
-        states={'invisible': Eval('category') in _categories_without_file},
+        states={'invisible': Eval('category') == 'lyrics'},
         depends=['category'])
     mime_type = fields.Char(
         'Mime Type', help='The media or content type.',
-        states={'invisible': Eval('category') in _categories_without_file},
+        states={'invisible': Eval('category') == 'lyrics'},
         depends=['category'])
     checksums = fields.One2Many(
         'checksum', 'origin', 'Checksums',
         help='The checksums of the content.',
-        states={'invisible': Eval('category') in _categories_without_file},
+        states={'invisible': Eval('category') == 'lyrics'},
         depends=['category'])
 
     # file processing
     path = fields.Char('Path', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted',
             )
         }, depends=['processing_state', 'category'])
     preview_path = fields.Char('Preview Path', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted'
             )
         }, depends=['processing_state', 'category'])
     filesystem_label = fields.Many2One(
         'harddisk.filesystem.label', 'Filesystem Label', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') != 'archived'
             )
         }, depends=['processing_state', 'category'],
@@ -1451,14 +1452,14 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
             ('unknown', 'Unknown'),
         ], 'State',
         states={
-            'invisible': Eval('category') in _categories_without_file,
-            'required': Eval('category') not in _categories_without_file
+            'invisible': Eval('category') == 'lyrics',
+            'required': Eval('category') != 'lyrics'
         }, depends=['category'],
         help='The processing state of the content.')
     processing_hostname = fields.Char(
         'Processor', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted',
                 Eval('processing_state') == 'archived'
             )
@@ -1467,7 +1468,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
     storage_hostname = fields.Char(
         'Storage', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted',
                 Eval('processing_state') == 'archived'
             )
@@ -1484,7 +1485,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
             ('missing_database_record', 'Missing Database Record'),
         ], 'Reason', states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') != 'rejected'
             ),
             'required': Eval('processing_state') == 'rejected'
@@ -1494,7 +1495,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         'Details', help='Rejection Explanation',
         states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 Eval('processing_state') != 'rejected'
             )
         }, depends=['category'])
@@ -1503,7 +1504,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
         domain=[('duplicate_of', '=', None)],
         states={
             'invisible': Or(
-                Eval('category') in _categories_without_file,
+                Eval('category') == 'lyrics',
                 And(
                     Eval('rejection_reason') != 'checksum_collision',
                     Eval('rejection_reason') != 'fingerprint_collision'
@@ -1523,12 +1524,12 @@ class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
                 ['checksum_collision', 'fingerprint_collision']
             ),
         ], states={
-            'invisible': Eval('category') in _categories_without_file,
+            'invisible': Eval('category') == 'lyrics',
         }, depends=['rejection_reason', 'category'],
         help='The original duplicated Content.')
     mediation = fields.Boolean(
         'Mediation', depends=['category'],
-        states={'invisible': Eval('category') in _categories_without_file})
+        states={'invisible': Eval('category') == 'lyrics'})
 
     # --- LYRICS --------------------------------------------------------------
 

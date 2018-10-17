@@ -6,9 +6,8 @@
     <field name="uuid"/>
     <field name="name"/>
     <field name="creation"/>
-    <field name="filesystem_label"/>
+    <field name="category"/>
     <field name="processing_state"/>
-    <field name="entity_creator"/>
     <field name="commit_state"/>
     <field name="mediation"/>
     <field name="active" tree_invisible="1"/>
