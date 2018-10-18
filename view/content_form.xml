@@ -91,7 +91,8 @@
             <field name="fingerprintlogs"/>
             <field name="duplicates" colspan="8"/>
         </page>
-        <page string="Owner" id="owner" col="6">
+        <page string="Access" id="access" col="6">
+            <field name="web_acl" colspan="6"/>
             <label name="entity_origin"/>
             <field name="entity_origin" colspan="5"/>
             <label name="entity_creator"/>

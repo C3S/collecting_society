@@ -16,6 +16,68 @@
             <field name="icon">tryton-c3s-logo</field>
         </record>
 
+        <record model="ir.ui.view" id="ace_form">
+            <field name="model">ace</field>
+            <field name="type">form</field>
+            <field name="name">ace_form</field>
+        </record>
+        <record model="ir.ui.view" id="ace_list">
+            <field name="model">ace</field>
+            <field name="type">tree</field>
+            <field name="name">ace_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_ace">
+            <field name="name">Access</field>
+            <field name="res_model">ace</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_ace_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="ace_list"/>
+            <field name="act_window" ref="act_ace"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_ace_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="ace_form"/>
+            <field name="act_window" ref="act_ace"/>
+        </record>
+        <menuitem parent="menu_configuration" action="act_ace"
+            id="menu_ace" sequence="10"/>
+
+        <record model="ir.ui.view" id="ace_permission_form">
+            <field name="model">ace.permission</field>
+            <field name="type">form</field>
+            <field name="name">ace_permission_form</field>
+        </record>
+        <record model="ir.ui.view" id="ace_permission_list">
+            <field name="model">ace.permission</field>
+            <field name="type">tree</field>
+            <field name="name">ace_permission_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_ace_permission">
+            <field name="name">Role</field>
+            <field name="res_model">ace.permission</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_ace_permission_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="ace_permission_list"/>
+            <field name="act_window" ref="act_ace_permission"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_ace_permission_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="ace_permission_form"/>
+            <field name="act_window" ref="act_ace_permission"/>
+        </record>
+        <menuitem parent="menu_ace" action="act_ace_permission"
+            id="menu_ace_permission" sequence="10"/>
+
         <!--<record model="ir.ui.view" id="client_form">
             <field name="model">client</field>
             <field name="type">form</field>
