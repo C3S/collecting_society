@@ -589,9 +589,10 @@ class Creation(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
     'Creation'
     __name__ = 'creation'
     _history = True
-    title = fields.Function(
-        fields.Char('Title'), 'get_title',
-        searcher='search_title')
+    title = fields.Char(
+        'Working Title', required=True, states=STATES, depends=DEPENDS,
+        help='The working title of the creation, needed to identify '
+        'it later as a track within a release, for example.')
     code = fields.Char(
         'Code', required=True, select=True, states={
             'readonly': True,
@@ -675,27 +676,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
             self.title)
         return result
 
-    def get_title(self, name):
-        title = "<unknown title>"
-        earliest_date = None
-        for releasecreation in self.releases:
-            release = releasecreation.release
-            online_date = release.online_release_date
-            physical_date = release.release_date
-            if not earliest_date:
-                title = releasecreation.title
-                if not online_date or physical_date < online_date:
-                    earliest_date = physical_date
-                else:
-                    earliest_date = online_date
-            if physical_date < earliest_date:
-                title = releasecreation.title
-                earliest_date = physical_date
-            if online_date < earliest_date:
-                title = releasecreation.title
-                earliest_date = online_date
-        return title
-
     def get_licenses(self, name):
         licenses = []
         for releasecreation in self.releases:
@@ -746,9 +726,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
                 if style.id not in styles:
                     styles.append(style.id)
         return styles
-
-    def search_title(self, name):
-        return self.get_title(name)
 
     def search_license(self, name):
         return self.get_license(name)
