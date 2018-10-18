@@ -6,6 +6,8 @@
     <field name="rec_name"/>
     <field name="party"/>
     <field name="group"/>
+    <field name="creations"/>
+    <field name="releases"/>
     <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

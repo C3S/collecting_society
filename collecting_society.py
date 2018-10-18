@@ -30,6 +30,7 @@ __all__ = [
     # Repertoire
     'Artist',
     'ArtistArtist',
+    'ArtistRelease',
     'ArtistPayeeAcceptance',
     'License',
     'Creation',
@@ -202,6 +203,16 @@ class AccessControlEntry(ModelSQL, ModelView):
         'ace-ace.permission', 'ace', 'permission', 'Permissions',
         states={'required': True},
         help='Individual roles of a party for an object.')
+    permissions_list = fields.Function(
+        fields.Char('Permissions List'),
+        'on_change_with_permissions_list')
+
+    @fields.depends('permissions')
+    def on_change_with_permissions_list(self, name=None):
+        permissions = ''
+        for permission in self.permissions:
+            permissions += '%s, ' % permission.name
+        return permissions.rstrip(', ')
 
 
 class AccessControlPermission(ModelSQL, ModelView):
@@ -288,6 +299,13 @@ class Artist(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
             'invisible': Bool(Eval('group')),
         }, depends=['active', 'group'],
         help='The groups this solo artist is member of')
+    releases = fields.Many2Many(
+        'artist-release', 'artist', 'release', 'Releases',
+        help='The releases, which belongs to the artist')
+    creations = fields.One2Many(
+        'creation', 'artist', 'Creations', states=STATES,
+        depends=DEPENDS, help='The creations, which belong to the artist.')
+    # TODO: remove access_parties, change payee workflow to web_acl
     access_parties = fields.Function(
         fields.Many2Many(
             'party.party', None, None, 'Access Parties',
@@ -803,6 +821,32 @@ class Release(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
     _history = True
     _rec_name = 'title'
 
+    type = fields.Selection(
+        [
+            ('artist', 'Artist Release'),
+            ('compilation', 'Compilation'),
+        ], 'Release Type', required=True, help='The release type:\n\n'
+        '*Artist Release*: The release belongs to one or more artists '
+        '(artist/split album).\n'
+        '*Compilation*: The release belongs to the producer of the '
+        'compilation and usually contains various artists.')
+
+    # artists
+    artists = fields.One2Many(
+        'artist-release', 'release', 'Artists',
+        help='The artists, to which the release belongs.',
+        states={
+            'required': Eval('type') == 'artist',
+            'invisible': Eval('type') != 'artist',
+        }, depends=['type'])
+    artists_list = fields.Function(
+        fields.Char('Artists List'), 'on_change_with_artists_list')
+
+    # tracks
+    creations = fields.One2Many(
+        'release-creation', 'release', 'Creations',
+        help='The creations included in the release')
+
     # metadata
     title = fields.Char('Title')
     code = fields.Char(
@@ -825,11 +869,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
         'Number of Mediums', help='The number of mediums.')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')
-
-    # tracks
-    creations = fields.One2Many(
-        'release-creation', 'release', 'Creations',
-        help='The creations included in the release')
 
     # production
     copyright_date = fields.Date(
@@ -930,6 +969,13 @@ class Release(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
             ('title',) + tuple(clause[1:]),
         ]
 
+    @fields.depends('artists')
+    def on_change_with_artists_list(self, name=None):
+        artists = ''
+        for artistrelease in self.artists:
+            artists += '%s, ' % artistrelease.artist.name
+        return artists.rstrip(', ')
+
     def get_producers(self, name):
         producers = []
         for track in self.creations:
@@ -970,6 +1016,17 @@ class ReleaseCreation(ModelSQL, ModelView):
         'Track Number', help='Track number on the medium')
     license = fields.Many2One(
         'license', 'License', help='License for the creation on the release')
+
+
+class ArtistRelease(ModelSQL, ModelView):
+    'ArtistRelease'
+    __name__ = 'artist-release'
+    _history = True
+
+    artist = fields.Many2One(
+        'artist', 'Artist', required=True)
+    release = fields.Many2One(
+        'release', 'Release', required=True)
 
 
 class Genre(ModelSQL, ModelView, PublicApi):

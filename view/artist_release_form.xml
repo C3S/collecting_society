@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Access">
-    <field name="party"/>
-    <field name="entity"/>
-    <field name="permissions_list"/>
-</tree>
+<form string="Artist Release" col="2">
+    <label name="artist"/>
+    <field name="artist"/>
+    <label name="release"/>
+    <field name="release"/>
+</form>

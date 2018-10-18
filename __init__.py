@@ -51,6 +51,7 @@ def register():
         Publisher,
         Release,
         ReleaseCreation,
+        ArtistRelease,
         Genre,
         ReleaseGenre,
         Style,

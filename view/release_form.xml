@@ -12,6 +12,8 @@
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
     </group>
+    <label name="type"/>
+    <field name="type"/>
     <label name="isrc_code"/>
     <field name="isrc_code"/>
     <label name="label_catalog_number"/>
@@ -20,7 +22,7 @@
     <field name="ean_upc_code"/>
 
     <notebook colspan="8">
-        <page string="Metadata" id="general" col="4">
+        <page string="Metadata" id="metadata" col="4">
             <group id="image" col="1" xexpand="0">
                 <separator string="Picture" id="picture" xexpand="0"/>
                 <field name="picture_data" widget="image"
@@ -30,6 +32,7 @@
                 <field name="picture_data" xexpand="0"/>
             </group>
             <group id="medium" colspan="3" col="2" xexpand="0">
+                <field name="artists" colspan="3"/>
                 <label name="number_mediums"/>
                 <field name="number_mediums"/>
                 <label name="warning"/>

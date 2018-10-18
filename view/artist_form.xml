@@ -36,6 +36,12 @@
             <field name="solo_artists" colspan="6"/>
             <field name="group_artists" colspan="6"/>
         </page>
+        <page string="Creations" id="creations" col="6">
+            <field name="creations"/>
+        </page>
+        <page string="Releases" id="releases" col="6">
+            <field name="releases"/>
+        </page>
         <!-- <page string="Accounting" id="accounting" col="6">
             <label name="payee"/>
             <field name="payee"/>

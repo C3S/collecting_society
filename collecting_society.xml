@@ -195,6 +195,40 @@
         <menuitem parent="menu_artist" action="act_artist_tree"
             id="menu_artist_tree" sequence="10"/>
 
+        <record model="ir.ui.view" id="artist_release_form">
+            <field name="model">artist-release</field>
+            <field name="type">form</field>
+            <field name="name">artist_release_form</field>
+        </record>
+        <record model="ir.ui.view" id="artist_release_list">
+            <field name="model">artist-release</field>
+            <field name="type">tree</field>
+            <field name="name">artist_release_list</field>
+        </record>
+        <record model="ir.ui.view" id="artist_release_tree">
+            <field name="model">artist_release</field>
+            <field name="type">tree</field>
+            <field name="name">artist_release_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_artist_release">
+            <field name="name">Artist Release</field>
+            <field name="res_model">artist-release</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_release_view_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_release_list"/>
+            <field name="act_window" ref="act_artist_release"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_release_view_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_release_form"/>
+            <field name="act_window" ref="act_artist_release"/>
+        </record>
+
 
         <record model="ir.ui.view" id="release_form">
             <field name="model">release</field>
@@ -703,8 +737,8 @@
             <field name="view" ref="utilisation_form"/>
             <field name="act_window" ref="act_utilisation"/>
         </record>
-        <menuitem parent="menu_collecting_society" action="act_utilisation"
-            sequence="140" id="menu_utilisation"/>
+        <!-- <menuitem parent="menu_collecting_society" action="act_utilisation"
+            sequence="140" id="menu_utilisation"/> -->
 
 
         <record model="ir.ui.view" id="distribution_form">
@@ -735,9 +769,9 @@
             <field name="view" ref="distribution_form"/>
             <field name="act_window" ref="act_distribution"/>
         </record>
-        <menuitem parent="menu_collecting_society"
+        <!--<menuitem parent="menu_collecting_society"
             action="act_distribution"
-            sequence="160" id="menu_distribution"/>
+            sequence="160" id="menu_distribution"/>-->
 
         <record model="ir.ui.view" id="distribution_allocation_form">
             <field name="model">distribution.allocation</field>
@@ -767,9 +801,9 @@
             <field name="view" ref="distribution_allocation_form"/>
             <field name="act_window" ref="act_distribution_allocation"/>
         </record>
-        <menuitem parent="menu_distribution"
+        <!-- <menuitem parent="menu_distribution"
             action="act_distribution_allocation"
-            sequence="60" id="menu_distribution_allocation"/>
+            sequence="60" id="menu_distribution_allocation"/> -->
 
 
 
