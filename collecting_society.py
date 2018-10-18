@@ -19,9 +19,15 @@ from trytond.pyson import Eval, Bool, Or, And
 
 __all__ = [
 
+    # Portal
+    'AccessControlEntry',
+    'AccessControlPermission',
+    'AccessControlEntryPermission',
+
+    # Collecting Society
     'CollectingSociety',
 
-    # Creative
+    # Repertoire
     'Artist',
     'ArtistArtist',
     'ArtistPayeeAcceptance',
@@ -146,6 +152,13 @@ class EntityOrigin(object):
         return "direct"
 
 
+class WebAcl(object):
+    web_acl = fields.One2Many(
+        'ace', 'entity', 'Access Control List',
+        states=STATES, depends=DEPENDS,
+        help='A list of acces control entries with object permissions.')
+
+
 class PublicApi(object):
     oid = fields.Char(
         'OID', required=True,
@@ -169,6 +182,52 @@ class PublicApi(object):
 # Creative
 ##############################################################################
 
+
+class AccessControlEntry(ModelSQL, ModelView):
+    'Access Control Entry'
+    __name__ = 'ace'
+    _history = True
+
+    party = fields.Many2One(
+        'party.party', 'Party', required=True,
+        help='The party interacting with an object.')
+    entity = fields.Reference(
+        'Object', [
+            ('artist', 'Artist'),
+            ('release', 'Release'),
+            ('creation', 'Creation'),
+            ('content', 'Content'),
+        ], required=True, help='The object being interacted with.')
+    permissions = fields.Many2Many(
+        'ace-ace.permission', 'ace', 'permission', 'Permissions',
+        states={'required': True},
+        help='Individual roles of a party for an object.')
+
+
+class AccessControlPermission(ModelSQL, ModelView):
+    'Access Control Permission'
+    __name__ = 'ace.permission'
+    _history = True
+
+    name = fields.Char(
+        'Permission', required=True,
+        help='The access permission of a party for an object.')
+    description = fields.Text(
+        'Description', help='The description of the access role.')
+
+
+class AccessControlEntryPermission(ModelSQL, ModelView):
+    'Access Control Entry - Access Control Permission'
+    __name__ = 'ace-ace.permission'
+    _history = True
+
+    ace = fields.Many2One(
+        'ace', 'Entry', required=True, select=True, ondelete='CASCADE')
+    permission = fields.Many2One(
+        'ace.permission', 'Permission',
+        required=True, select=True, ondelete='CASCADE')
+
+
 class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
     'Collecting Society'
     __name__ = 'collecting_society'
@@ -187,7 +246,7 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
         'represents ancillary copyights of performers')
 
 
-class Artist(ModelSQL, ModelView, EntityOrigin, PublicApi,
+class Artist(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
              CurrentState, ClaimState, CommitState):
     'Artist'
     __name__ = 'artist'
@@ -507,7 +566,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class Creation(ModelSQL, ModelView, EntityOrigin, PublicApi,
+class Creation(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
                CurrentState, ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
@@ -737,7 +796,7 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
         'party.party', 'Party', help='The legal party of the publisher')
 
 
-class Release(ModelSQL, ModelView, EntityOrigin, PublicApi,
+class Release(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
     __name__ = 'release'
@@ -1367,7 +1426,7 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, EntityOrigin, PublicApi,
+class Content(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
               CurrentState, CommitState):
     'Content'
     __name__ = 'content'

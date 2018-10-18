@@ -14,6 +14,9 @@ def register():
     Pool.register(
         BankAccount,
         BankAccountNumber,
+        AccessControlEntry,
+        AccessControlPermission,
+        AccessControlEntryPermission,
         CollectingSociety,
         Artist,
         ArtistArtist,
