@@ -153,8 +153,8 @@ class EntityOrigin(object):
         return "direct"
 
 
-class WebAcl(object):
-    web_acl = fields.One2Many(
+class AccessControlList(object):
+    acl = fields.One2Many(
         'ace', 'entity', 'Access Control List',
         states=STATES, depends=DEPENDS,
         help='A list of acces control entries with object permissions.')
@@ -189,9 +189,9 @@ class AccessControlEntry(ModelSQL, ModelView):
     __name__ = 'ace'
     _history = True
 
-    party = fields.Many2One(
-        'party.party', 'Party', required=True,
-        help='The party interacting with an object.')
+    web_user = fields.Many2One(
+        'web.user', 'Web User', required=True,
+        help='The Web User interacting with an object.')
     entity = fields.Reference(
         'Object', [
             ('artist', 'Artist'),
@@ -257,7 +257,7 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
         'represents ancillary copyights of performers')
 
 
-class Artist(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
+class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
              CurrentState, ClaimState, CommitState):
     'Artist'
     __name__ = 'artist'
@@ -305,7 +305,7 @@ class Artist(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
     creations = fields.One2Many(
         'creation', 'artist', 'Creations', states=STATES,
         depends=DEPENDS, help='The creations, which belong to the artist.')
-    # TODO: remove access_parties, change payee workflow to web_acl
+    # TODO: remove access_parties, change payee workflow to acl
     access_parties = fields.Function(
         fields.Many2Many(
             'party.party', None, None, 'Access Parties',
@@ -584,7 +584,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class Creation(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
+class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                CurrentState, ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
@@ -791,7 +791,7 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
         'party.party', 'Party', help='The legal party of the publisher')
 
 
-class Release(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
+class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
     __name__ = 'release'
@@ -1460,7 +1460,7 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, EntityOrigin, WebAcl, PublicApi,
+class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
               CurrentState, CommitState):
     'Content'
     __name__ = 'content'

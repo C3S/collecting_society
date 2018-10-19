@@ -8,8 +8,7 @@
         <field name="party"/>
         <field name="nickname"/>
         <field name="default_role"/>
-        <field name="clients"/>
-        <field name="show_creative_info"/>
+        <!--<field name="clients"/>-->
         <field name="abuse_rank"/>
     </xpath>
 </data>

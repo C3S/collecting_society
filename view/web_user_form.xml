@@ -15,8 +15,6 @@
         <label name="user"/>
         <field name="user"/>
         <group col="20" colspan="2" id="checkboxes">
-            <label name="show_creative_info"/>
-            <field name="show_creative_info" xexpand="0" width="25"/>
             <label name="abuse_rank"/>
             <field name="abuse_rank"/>
         </group>
@@ -30,7 +28,7 @@
                 <newline/>
                 <field name="picture_data" xexpand="0"/>
             </group>
-            <field name="clients" colspan="19" xexpand="1" xfill="1"/>
+            <!-- <field name="clients" colspan="19" xexpand="1" xfill="1"/> -->
         </group>
         <notebook colspan="4">
             <page string="Roles" id="roles" col="4">
@@ -47,6 +45,9 @@
                 <field name="opt_in_timestamp"/>
                 <label name="opt_out_timestamp"/>
                 <field name="opt_out_timestamp"/>
+            </page>
+            <page string="Access" id="access" col="1">
+                <field name="acl"/>
             </page>
         </notebook>
     </xpath>

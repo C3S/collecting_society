@@ -55,17 +55,13 @@
         <!--
              Initial Data
         -->
-        <record model="web.user.role" id="web_user_role_creative">
-            <field name="name">Creative</field>
-            <field name="code">creative</field>
+        <record model="web.user.role" id="web_user_role_licenser">
+            <field name="name">Licenser</field>
+            <field name="code">licenser</field>
         </record>
-        <record model="web.user.role" id="web_user_role_imp">
-            <field name="name">IMP</field>
-            <field name="code">imp</field>
-        </record>
-        <record model="web.user.role" id="web_user_role_impd">
-            <field name="name">IMP</field>
-            <field name="code">imp</field>
+        <record model="web.user.role" id="web_user_role_licensee">
+            <field name="name">Licensee</field>
+            <field name="code">licensee</field>
         </record>
     </data>
 </tryton>

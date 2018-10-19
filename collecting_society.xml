@@ -75,6 +75,14 @@
             <field name="view" ref="ace_permission_form"/>
             <field name="act_window" ref="act_ace_permission"/>
         </record>
+        <record model="ace.permission" id="ace_permission_administrator">
+            <field name="name">Administrator</field>
+            <field name="description">Permission to edit the entry.\nFor artists, this includes also the permission to edit the creations and releases belonging to the artist.</field>
+        </record>
+        <record model="ace.permission" id="ace_permission_stakeholder">
+            <field name="name">Stakeholder</field>
+            <field name="description">Permission to read the entry.\nThe entry is added to the respective list of the web user.</field>
+        </record>
         <menuitem parent="menu_ace" action="act_ace_permission"
             id="menu_ace_permission" sequence="10"/>
 

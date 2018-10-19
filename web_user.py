@@ -62,6 +62,9 @@ class WebUser:
     roles = fields.Many2Many(
         'web.user-web.user.role', 'user', 'role', 'Roles')
     default_role = fields.Selection('get_roles', 'Default Role')
+    acl = fields.One2Many(
+        'ace', 'web_user', 'Access Control List',
+        help="The permissions for a web user.")
     picture_data = fields.Binary(
         'Picture Data', help='Picture Data')
     picture_data_mime_type = fields.Char(
@@ -113,20 +116,56 @@ class WebUser:
         pool = Pool()
         User = pool.get('res.user')
         Party = pool.get('party.party')
+        Artist = pool.get('artist')
+        WebUserRole = pool.get('web.user.role')
+
+        licenser = WebUserRole.search([('code', '=', 'licenser')])
+        if licenser:
+            licenser = licenser[0].id
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
+            nickname = values.get('nickname')
+            roles = values.get('roles')
             email = values.get('email')
             user_email = email + ':::' + ''.join(
                 random.sample(string.lowercase, 10))
+
+            # autocreate party
             if not values.get('party'):
-                values['party'] = Party.create(
-                    [{'name': email}])[0].id
+                party, = Party.create(
+                    [
+                        {
+                            'name': nickname or email,
+                            'contact_mechanisms': [(
+                                'create', [{
+                                    'type': 'email',
+                                    'value': email
+                                }]
+                            )]
+                        }])
+
+                # autocreate first artist
+                if licenser and roles and licenser in roles[0][1] and nickname:
+                    artist, = Artist.create(
+                        [
+
+                            {
+                                'name': nickname,
+                                'party': party.id,
+                                'entity_creator': party.id
+                            }])
+                    party.artists = [artist]
+                    party.default_solo_artist = artist.id
+                    party.save()
+                values['party'] = party.id
+
+            # autocreate user
             if not values.get('user'):
                 values['user'] = User.create(
                     [
                         {
-                            'name': user_email,
+                            'name': nickname or user_email,
                             'login': user_email,
                             'email': email,
                             'active': False,

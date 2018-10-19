@@ -73,7 +73,7 @@
             <field name="neighbouring_rights_societies" colspan="4"/>
         </page>
         <page string="Access" id="access" col="6">
-            <field name="web_acl" colspan="6"/>
+            <field name="acl" colspan="6"/>
             <label name="entity_origin"/>
             <field name="entity_origin" colspan="5"/>
             <label name="entity_creator"/>
