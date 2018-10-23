@@ -4,6 +4,10 @@
 <form string="Permission" col="2">
     <label name="name"/>
     <field name="name"/>
+    <label name="code"/>
+    <field name="code"/>
+    <label name="entity"/>
+    <field name="entity"/>
     <label name="description"/>
     <field name="description"/>
 </form>

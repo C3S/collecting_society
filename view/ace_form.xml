@@ -4,8 +4,10 @@
 <form string="Access" col="2">
     <label name="web_user"/>
     <field name="web_user"/>
+    <label name="party"/>
+    <field name="party"/>
     <label name="entity"/>
     <field name="entity"/>
-    <label name="permissions"/>
-    <field name="permissions"/>
+    <label name="roles"/>
+    <field name="roles"/>
 </form>

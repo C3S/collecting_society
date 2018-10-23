@@ -153,7 +153,8 @@ class WebUser:
                             {
                                 'name': nickname,
                                 'party': party.id,
-                                'entity_creator': party.id
+                                'entity_creator': party.id,
+                                'claim_state': 'claimed'
                             }])
                     party.artists = [artist]
                     party.default_solo_artist = artist.id

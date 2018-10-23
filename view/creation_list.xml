@@ -9,5 +9,6 @@
     <field name="content"/>
     <field name="tariff_categories_list"/>
     <field name="commit_state"/>
+    <field name="claim_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

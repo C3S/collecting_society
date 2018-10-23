@@ -2,13 +2,13 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Release">
-    <field name="code"/>
-    <field name="title"/>
-    <field name="artists_list"/>
-    <field name="label"/>
-    <field name="publisher"/>
-    <field name="isrc_code"/>
-    <field name="ean_upc_code"/>
+    <field name="code" expand="1"/>
+    <field name="title" expand="1"/>
+    <field name="artists_list" expand="1"/>
+    <field name="label" expand="1"/>
+    <field name="publisher" expand="1"/>
+    <field name="isrc_code" expand="1"/>
+    <field name="ean_upc_code" expand="1"/>
     <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

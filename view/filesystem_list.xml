@@ -3,11 +3,11 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Filesystems">
     <field name="label"/>
-    <field name="uuid_partition"/>
-    <field name="uuid_raid"/>
-    <field name="uuid_raid_sub"/>
-    <field name="uuid_crypto"/>
-    <field name="uuid_lvm"/>
-    <field name="uuid_filesystem"/>
+    <field name="uuid_partition" expand="1"/>
+    <field name="uuid_raid" expand="1"/>
+    <field name="uuid_raid_sub" expand="1"/>
+    <field name="uuid_crypto" expand="1"/>
+    <field name="uuid_lvm" expand="1"/>
+    <field name="uuid_filesystem" expand="1"/>
     <field name="closed"/>
 </tree>

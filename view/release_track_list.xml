@@ -2,9 +2,9 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Track">
-    <field name="creation"/>
-    <field name="release"/>
+    <field name="creation" expand="1"/>
+    <field name="release" expand="1"/>
     <field name="medium_number"/>
     <field name="track_number"/>
-    <field name="license"/>
+    <field name="license" expand="1"/>
 </tree>

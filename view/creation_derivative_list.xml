@@ -2,7 +2,7 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Derivative">
-    <field name="original_creation"/>
-    <field name="derivative_creation"/>
-    <field name="allocation_type"/>
+    <field name="original_creation" expand="1"/>
+    <field name="derivative_creation" expand="1"/>
+    <field name="allocation_type" expand="1"/>
 </tree>

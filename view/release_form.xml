@@ -23,6 +23,7 @@
 
     <notebook colspan="8">
         <page string="Metadata" id="metadata" col="4">
+            <field name="artists" colspan="4" height="60"/>
             <group id="image" col="1" xexpand="0">
                 <separator string="Picture" id="picture" xexpand="0"/>
                 <field name="picture_data" widget="image"
@@ -31,18 +32,17 @@
                     yexpand="0" xexpand="0"/>
                 <field name="picture_data" xexpand="0"/>
             </group>
-            <group id="medium" colspan="3" col="2" xexpand="0">
-                <field name="artists" colspan="3"/>
+            <group id="medium" colspan="3" col="2">
                 <label name="number_mediums"/>
                 <field name="number_mediums"/>
                 <label name="warning"/>
                 <field name="warning"/>
             </group>
-            <field name="genres" colspan="2"/>
-            <field name="styles" colspan="2"/>
+            <field name="genres" colspan="2" yexpand="1"/>
+            <field name="styles" colspan="2" yexpand="1"/>
         </page>
-        <page string="Tracks" id="creations">
-            <field name="creations" string="Tracks" />
+        <page string="Tracks" id="tracks">
+            <field name="tracks" string="Tracks" />
         </page>
         <page string="Production" id="production">
             <label name="copyright_date"/>

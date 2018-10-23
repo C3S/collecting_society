@@ -1,17 +1,20 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Collecting Society" col="6">
+<form string="Collecting Society" col="4">
     <label name="name"/>
-    <field name="name"/>
+    <field name="name" colspan="2"/>
+    <group col="20" colspan="1" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
     <label name="party"/>
-    <field name="party"/>
-    <group col="20" colspan="2" id="checkboxes">
+    <field name="party" colspan="3"/>
+    <newline/>
+    <group col="2" colspan="4" id="checkboxes">
         <label name="represents_copyright"/>
         <field name="represents_copyright"/>
         <label name="represents_ancillary_copyright"/>
         <field name="represents_ancillary_copyright"/>
-        <label name="active"/>
-        <field name="active" xexpand="0" width="25"/>
-    </group>  
+    </group>
 </form>

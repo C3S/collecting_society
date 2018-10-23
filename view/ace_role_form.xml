@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Role" col="2">
+    <group id="role_info" col="2" yfill="1">
+        <label name="name"/>
+        <field name="name"/>
+        <label name="description"/>
+        <field name="description"/>
+    </group>
+    <field name="permissions" yexpand="1"/>
+</form>

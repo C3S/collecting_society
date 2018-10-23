@@ -2,7 +2,7 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Harddisktests">
-    <field name="harddisk"/>
+    <field name="harddisk" expand="1"/>
+    <field name="status" expand="1"/>
     <field name="timestamp"/>
-    <field name="status"/>
 </tree>

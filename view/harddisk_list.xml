@@ -2,10 +2,10 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Harddisks">
-    <field name="label"/>
+    <field name="label" expand="1"/>
     <field name="version"/>
     <field name="storehouse"/>
-    <field name="uuid_host"/>
-    <field name="uuid_harddisk"/>
+    <field name="uuid_host" expand="1"/>
+    <field name="uuid_harddisk" expand="1"/>
     <field name="closed"/>
 </tree>

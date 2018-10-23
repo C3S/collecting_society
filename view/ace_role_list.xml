@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Label">
+<tree string="Roles">
     <field name="name" expand="1"/>
-    <field name="party" expand="1"/>
-    <field name="gvl_code" expand="1"/>
+    <field name="description" expand="1"/>
+    <field name="permissions_list" expand="1"/>
 </tree>

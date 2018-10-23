@@ -19,60 +19,60 @@ from trytond.pyson import Eval, Bool, Or, And
 
 __all__ = [
 
-    # Portal
-    'AccessControlEntry',
-    'AccessControlPermission',
-    'AccessControlEntryPermission',
-
     # Collecting Society
     'CollectingSociety',
-
-    # Repertoire
-    'Artist',
-    'ArtistArtist',
-    'ArtistRelease',
-    'ArtistPayeeAcceptance',
-    'License',
-    'Creation',
-    'CreationOriginalDerivative',
-    'CreationContribution',
-    'Label',
-    'Publisher',
-    'Release',
-    'ReleaseCreation',
-    'Genre',
-    'ReleaseGenre',
-    'Style',
-    'ReleaseStyle',
-    'CreationRole',
-    'ContributionRole',
-
-    # Archiving
-    'Checksum',
-    'Storehouse',
-    'HarddiskLabel',
-    'Harddisk',
-    'FilesystemLabel',
-    'Filesystem',
-    'HarddiskTest',
-    'Content',
-
-    # Accounting,
+    'TariffSystem',
+    'TariffCategory',
+    'Tariff',
     'Allocation',
-    'Utilisation',
     'Distribution',
     'DistributeStart',
     'Distribute',
 
-    # Events
-    'TariffSystem',
-    'TariffCategory',
-    'Tariff',
+    # Licenser
+    'License',
+    'Artist',
+    'ArtistArtist',
+    'ArtistRelease',
+    'ArtistPayeeAcceptance',
+    'Creation',
+    'CreationDerivative',
+    'CreationContribution',
+    'CreationContributionRole',
+    'CreationRole',
     'CreationTariffCategory',
+    'Release',
+    'ReleaseTrack',
+    'ReleaseGenre',
+    'ReleaseStyle',
+    'Genre',
+    'Style',
+    'Label',
+    'Publisher',
+
+    # Licensee
+    'Utilisation',
     'Client',
     'Identifier',
     'Identification',
     'Fingerprintlog',
+
+    # Archiving
+    'Storehouse',
+    'HarddiskLabel',
+    'Harddisk',
+    'HarddiskTest',
+    'FilesystemLabel',
+    'Filesystem',
+    'Content',
+    'Checksum',
+
+    # Portal
+    'AccessControlEntry',
+    'AccessControlEntryRole',
+    'AccessRole',
+    'AccessRolePermission',
+    'AccessPermission',
 
     # Tryton
     'STATES',
@@ -85,12 +85,14 @@ STATES = {
 DEPENDS = ['active']
 SEPARATOR = u' /25B6 '
 
+
 ##############################################################################
 # Mixins
 ##############################################################################
 
 
 class CurrentState(object):
+    'Mixin for the active state'
     active = fields.Boolean('Active')
 
     @staticmethod
@@ -99,6 +101,7 @@ class CurrentState(object):
 
 
 class ClaimState(object):
+    'Mixin for the claim workflow'
     claim_state = fields.Selection(
         [
             ('unclaimed', 'Unclaimed'),
@@ -116,6 +119,7 @@ class ClaimState(object):
 
 
 class CommitState(object):
+    'Mixin for the commit workflow'
     commit_state = fields.Selection(
         [
             ('uncommited', 'Uncommited'),
@@ -137,30 +141,24 @@ class CommitState(object):
 
 
 class EntityOrigin(object):
+    'Mixin to track the origin of the entity'
     entity_origin = fields.Selection(
         [
             ('direct', 'Direct'),
             ('indirect', 'Indirect'),
-        ], 'Entity State', states={'required': True}, sort=False,
+        ], 'Entity Origin', states={'required': True}, sort=False,
         help='Defines, if an object was created as foreign object (indirect) '
              'or not.')
     entity_creator = fields.Many2One(
-        'party.party', 'Entity Creator',
-        states={'required': True})
+        'party.party', 'Entity Creator', states={'required': True})
 
     @staticmethod
     def default_entity_origin():
         return "direct"
 
 
-class AccessControlList(object):
-    acl = fields.One2Many(
-        'ace', 'entity', 'Access Control List',
-        states=STATES, depends=DEPENDS,
-        help='A list of acces control entries with object permissions.')
-
-
 class PublicApi(object):
+    'Mixin to add an unique identifier for public use'
     oid = fields.Char(
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
@@ -168,10 +166,10 @@ class PublicApi(object):
 
     @classmethod
     def __setup__(cls):
-        super(Client, cls).__setup__()
+        super(PublicApi, cls).__setup__()
         cls._sql_constraints += [
             ('uuid_oid', 'UNIQUE(oid)',
-                'The OID of the client must be unique.'),
+                'The OID of the object must be unique.'),
         ]
 
     @staticmethod
@@ -179,64 +177,40 @@ class PublicApi(object):
         return str(uuid.uuid4())
 
 
+class AccessControlList(object):
+    'Mixin to add an Access Control List'
+    acl = fields.One2Many(
+        'ace', 'entity', 'Access Control List',
+        states=STATES, depends=DEPENDS,
+        help='A list of acces control entries with object permissions.')
+
+    def permits(self, web_user, code):
+        for ace in self.acl:
+            if ace.web_user != web_user:
+                continue
+            for role in ace.roles:
+                for permission in role.permissions:
+                    if permission.code == code:
+                        return True
+        return False
+
+    def permissions(self, web_user, valid_codes=False):
+        permissions = set()
+        for ace in self.acl:
+            if ace.web_user != web_user:
+                continue
+            permissions.update([
+                permission.code
+                for role in ace.roles
+                for permission in role.permissions])
+        if valid_codes:
+            return permissions.intersection(valid_codes)
+        return permissions
+
+
 ##############################################################################
-# Creative
+# Collecting Society
 ##############################################################################
-
-
-class AccessControlEntry(ModelSQL, ModelView):
-    'Access Control Entry'
-    __name__ = 'ace'
-    _history = True
-
-    web_user = fields.Many2One(
-        'web.user', 'Web User', required=True,
-        help='The Web User interacting with an object.')
-    entity = fields.Reference(
-        'Object', [
-            ('artist', 'Artist'),
-            ('release', 'Release'),
-            ('creation', 'Creation'),
-            ('content', 'Content'),
-        ], required=True, help='The object being interacted with.')
-    permissions = fields.Many2Many(
-        'ace-ace.permission', 'ace', 'permission', 'Permissions',
-        states={'required': True},
-        help='Individual roles of a party for an object.')
-    permissions_list = fields.Function(
-        fields.Char('Permissions List'),
-        'on_change_with_permissions_list')
-
-    @fields.depends('permissions')
-    def on_change_with_permissions_list(self, name=None):
-        permissions = ''
-        for permission in self.permissions:
-            permissions += '%s, ' % permission.name
-        return permissions.rstrip(', ')
-
-
-class AccessControlPermission(ModelSQL, ModelView):
-    'Access Control Permission'
-    __name__ = 'ace.permission'
-    _history = True
-
-    name = fields.Char(
-        'Permission', required=True,
-        help='The access permission of a party for an object.')
-    description = fields.Text(
-        'Description', help='The description of the access role.')
-
-
-class AccessControlEntryPermission(ModelSQL, ModelView):
-    'Access Control Entry - Access Control Permission'
-    __name__ = 'ace-ace.permission'
-    _history = True
-
-    ace = fields.Many2One(
-        'ace', 'Entry', required=True, select=True, ondelete='CASCADE')
-    permission = fields.Many2One(
-        'ace.permission', 'Permission',
-        required=True, select=True, ondelete='CASCADE')
 
 
 class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
@@ -255,6 +229,555 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
     represents_ancillary_copyright = fields.Boolean(
         'Represents Ancillary Copyright', help='The collecting society '
         'represents ancillary copyights of performers')
+
+
+class TariffSystem(ModelSQL, ModelView, CurrentState):
+    'Tariff System'
+    __name__ = 'tariff_system'
+    _history = True
+    _rec_name = 'version'
+
+    code = fields.Char(
+        'Code', required=True, select=True, states={'readonly': True})
+    version = fields.Char(
+        'Version', required=True, select=True, states=STATES, depends=DEPENDS)
+    valid_from = fields.Date(
+        'Valid from', help='Date from which the tariff is valid.')
+    valid_through = fields.Date(
+        'Valid through', help='Date thorugh which the tariff is valid.')
+    transitional_through = fields.Date(
+        'Transitional through',
+        help='Date of the end of the transitinal phase, through which the '
+        'tariff might still be used.')
+    tariffs = fields.One2Many(
+        'tariff_system.tariff', 'system', 'Tariffs',
+        help='The tariffs of the tariff system.')
+    # TODO: attachement
+    # TODO: formluar
+    # TODO: variables
+
+    @classmethod
+    def __setup__(cls):
+        super(TariffSystem, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the tariff system must be unique.'),
+            ('version_uniq', 'UNIQUE(version)',
+             'The version of the tariff system must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.tariff_system_sequence.id)
+        return super(TariffSystem, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(TariffSystem, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('version',) + tuple(clause[1:]),
+        ]
+
+
+class TariffCategory(ModelSQL, ModelView, CurrentState):
+    'Tariff Catefory'
+    __name__ = 'tariff_system.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+    code = fields.Char(
+        'Code', required=True, select=True, states=STATES, depends=DEPENDS)
+    description = fields.Text(
+        'Description', states=STATES, depends=DEPENDS,
+        help='A description of the tariff category.')
+    tariffs = fields.One2Many(
+        'tariff_system.tariff', 'category', 'Tariffs',
+        help='The tariffs in this tariff category.')
+    # creations = fields.Many2Many(
+    #     'creation-tariff_category', 'category', 'Creations',
+    #     help='The creations in this tariff category.')
+
+    @classmethod
+    def __setup__(cls):
+        super(TariffCategory, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(TariffCategory, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('name',) + tuple(clause[1:]),
+            ('code',) + tuple(clause[1:]),
+        ]
+
+
+class Tariff(ModelSQL, ModelView, CurrentState):
+    'Tariff'
+    __name__ = 'tariff_system.tariff'
+    _history = True
+
+    name = fields.Function(
+        fields.Char('Name'), 'get_name', searcher='search_name')
+    code = fields.Function(
+        fields.Char('Code'), 'get_code', searcher='search_code')
+    system = fields.Many2One(
+        'tariff_system', 'System', required=True, select=True)
+    category = fields.Many2One(
+        'tariff_system.category', 'Category', required=True, select=True)
+    # TODO: Variables
+
+    def get_name(self, name):
+        return self.category.name
+
+    def get_code(self, name):
+        return self.category.code + self.system.version
+
+    def search_name(self, name):
+        return self.get_title(name)
+
+    def search_code(self, name):
+        return self.get_code(name)
+
+
+class Allocation(ModelSQL, ModelView):
+    'Allocation'
+    __name__ = 'distribution.allocation'
+    distribution = fields.Many2One(
+        'distribution', 'Distribution', required=True,
+        help='The distribution of the allocation')
+    type = fields.Selection(
+        [
+            ('pocket2hats', 'Pocket to Hats'),
+            ('hat2pockets', 'Hat to Pockets'),
+        ], 'Type', required=True, sort=False, help='The allocation type:\n'
+        '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
+        '*Hat to Pockets*: Allocates amount from a hat to many pockets')
+    party = fields.Many2One(
+        'party.party', 'Party', required=True,
+        help='The party which utilises creations')
+    currency_digits = fields.Function(
+        fields.Integer('Currency Digits'), 'get_currency_digits')
+    amount = fields.Numeric(
+        'Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'], help='The amount to distribute')
+    share_amount = fields.Numeric(
+        'Share Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'], help='The share for each utilisation')
+    move_lines = fields.One2Many(
+        'account.move.line', 'origin', 'Account Move Lines',
+        domain=[('origin', 'like', 'distribution.allocation,%')],
+        help='The account move lines of the allocation')
+    utilisations = fields.One2Many(
+        'creation.utilisation', 'allocation', 'Utilisations',
+        help='The allocated utilisations')
+
+    @classmethod
+    def __setup__(cls):
+        super(Allocation, cls).__setup__()
+        cls._order.insert(1, ('distribution', 'ASC'))
+        cls._order.insert(2, ('party', 'ASC'))
+
+    @staticmethod
+    def default_type():
+        return 'pocket2hats'
+
+    def get_currency_digits(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency.digits
+        return 2
+
+
+class Distribution(ModelSQL, ModelView):
+    'Distribution'
+    __name__ = 'distribution'
+    _rec_name = 'code'
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        })
+    date = fields.Date(
+        'Distribution Date', required=True, select=True,
+        help='The date of the distribution')
+    from_date = fields.Date(
+        'From Date',
+        help='Include utilisations equal or after from date')
+    thru_date = fields.Date(
+        'Thru Date', help='Include utilisations until thru date')
+    allocations = fields.One2Many(
+        'distribution.allocation', 'distribution', 'Allocations',
+        help='All allocations in this distributon')
+
+    @classmethod
+    def __setup__(cls):
+        super(Distribution, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the distribution must be unique.')
+        ]
+        cls._order.insert(1, ('date', 'ASC'))
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @staticmethod
+    def default_date():
+        Date = Pool().get('ir.date')
+        return Date.today()
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.distribution_sequence.id)
+        return super(Distribution, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, distributions, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(Distribution, cls).copy(distributions, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('date',) + tuple(clause[1:]),
+        ]
+
+
+class DistributeStart(ModelView):
+    'Distribute Start'
+    __name__ = 'distribution.distribute.start'
+
+    date = fields.Date(
+        'Distribution Date', required=True,
+        help='The date of the distribution')
+    from_date = fields.Date(
+        'From Date', required=True,
+        help='The earliest date to distribute utilisations')
+    thru_date = fields.Date(
+        'Thru Date', required=True,
+        help='The latest date to distribute utilisations')
+
+    @staticmethod
+    def default_date():
+        Date = Pool().get('ir.date')
+        return Date.today()
+
+    @staticmethod
+    def default_from_date():
+        Date = Pool().get('ir.date')
+        t = Date.today()
+        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
+
+    @staticmethod
+    def default_thru_date():
+        Date = Pool().get('ir.date')
+        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
+
+
+class Distribute(Wizard):
+    "Distribute"
+    __name__ = 'distribution.distribute'
+
+    start = StateView(
+        'distribution.distribute.start',
+        'collecting_society.distribution_distribute_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button(
+                'Start', 'distribute', 'tryton-ok', default=True),
+        ])
+    distribute = StateTransition()
+
+    def transition_distribute(self):
+        pool = Pool()
+        Company = pool.get('company.company')
+        Distribution = pool.get('distribution')
+        Allocation = pool.get('distribution.allocation')
+        Utilisation = pool.get('creation.utilisation')
+        Account = pool.get('account.account')
+        AccountMove = pool.get('account.move')
+        AccountJournal = pool.get('account.journal')
+        Party = pool.get('party.party')
+        Period = pool.get('account.period')
+
+        company = Company(Transaction().context['company'])
+        currency = company.currency
+        # TODO:
+        # * Redistribution
+        # * Check if distribution period overlaps with existing distribution
+
+        # Collect utilisations
+        utilisations = Utilisation.search([
+            (
+                'timestamp', '>=', datetime.datetime.combine(
+                    self.start.from_date, datetime.time.min)
+            ), (
+                'timestamp', '<=', datetime.datetime.combine(
+                    self.start.thru_date, datetime.time.max)
+            ), ('state', '=', 'not_distributed'),
+        ])
+        if not utilisations:
+            return 'end'
+        # Create always a new distribution
+        distribution, = Distribution.create(
+            [
+                {
+                    'date': self.start.date,
+                    'from_date': self.start.thru_date,
+                    'thru_date': self.start.thru_date,
+                }
+            ]
+        )
+
+        party_utilisations = defaultdict(list)
+        for utilisation in utilisations:
+            party_utilisations[utilisation.party.id].append(utilisation)
+
+        account_moves = []
+        for party_id, utilisations in party_utilisations.iteritems():
+            if not utilisations:
+                continue
+            party = Party(party_id)
+            amount = party.pocket_balance
+            if not amount:
+                continue
+
+            if party.pocket_budget < party.pocket_balance:
+                amount = party.pocket_budget
+            amount = currency.round(amount)
+            fee_amount = currency.round(amount * Decimal(10) / Decimal(100))
+            share_amount = currency.round(
+                (amount - fee_amount) / len(utilisations))
+            allocation = {
+                'party': party_id,
+                'distribution': distribution.id,
+                'type': 'pocket2hats',
+                'amount': amount,
+                'share_amount': share_amount,
+            }
+            # create allocation
+            allocation, = Allocation.create([allocation])
+
+            Utilisation.write(
+                utilisations,
+                {
+                    'state': 'processing',
+                    'allocation': allocation.id,
+                })
+            account_move_lines = [{
+                # Company fees move line
+                'party': company.party.id,
+                'artist': None,
+                'account': Account.search([('kind', '=', 'revenue')])[0],
+                'debit': Decimal(0),
+                'credit': fee_amount,
+                'state': 'draft',
+            }, {
+                # Pocket move line
+                'party': party.id,
+                'artist': None,
+                'account': party.pocket_account.id,
+                'debit': amount,
+                'credit': Decimal(0),
+                'state': 'draft',
+            }]
+            for utilisation in utilisations:
+                breakdown = self._allocate(
+                    utilisation.creation,
+                    share_amount)
+                for artist, amount in breakdown.iteritems():
+                    account_move_lines += [{
+                        # Hat move lines
+                        'party': None,
+                        'artist': artist.id,
+                        'account': artist.hat_account.id,
+                        'debit': Decimal(0),
+                        'credit': currency.round(amount),
+                        'state': 'draft',
+                    }]
+            period_id = Period.find(company.id, date=self.start.date)
+            journal, = AccountJournal.search([('code', '=', 'TRANS')])
+            origin = 'distribution.allocation,%s' % (allocation.id)
+            account_moves.append({
+                'journal': journal.id,
+                'origin': origin,
+                'date': self.start.date,
+                'period': period_id,
+                'state': 'draft',
+                'lines': [('create', account_move_lines)],
+            })
+        AccountMove.create(account_moves)
+        Utilisation.write(utilisations, {'state': 'distributed'})
+        return 'end'
+
+    def _allocate(self, creation, amount, result=None):
+        '''
+        Allocates an amount to all involved artists of a creation.
+        The tree of original creations is traversed and every node creation is
+        allocated by the appropriate derivative types.
+
+        Returns a dictionary with artist as key and the sum of amounts
+        as value.
+        '''
+        amount = Decimal(amount)
+
+        if result is None:
+            result = Counter()
+
+        if not creation.contributions:
+            # Handle creations from unclaimed fingerprinting identification:
+            # allocate complete amount to creation artist
+            result[creation.artist] = amount
+            return result
+
+        composer = [
+            c.artist for c in creation.contributions
+            if c.type == 'composition']
+        texter = [
+            c.artist for c in creation.contributions if c.type == 'text']
+        performers = [
+            c.artist for c in creation.contributions
+            if c.type == 'performance']
+        creators = composer or texter
+
+        performer_amount = Decimal(0)
+        composer_amount = Decimal(0)
+        texter_amount = Decimal(0)
+
+        if performers and creators:
+            amount = amount / Decimal(2)
+
+        if composer and texter:
+            composer_amount = (
+                amount * Decimal(65) / Decimal(100) / Decimal(len(composer)))
+            texter_amount = (
+                amount * Decimal(35) / Decimal(100) / Decimal(len(texter)))
+        elif texter:
+            texter_amount = amount / Decimal(len(texter))
+        elif composer:
+            composer_amount = amount / Decimal(len(composer))
+
+        if performers:
+            performer_amount = amount / Decimal(len(performers))
+
+        for c in composer:
+            result[c] += composer_amount
+        for t in texter:
+            result[t] += texter_amount
+        for p in performers:
+            result[p] += performer_amount
+
+        # Traverse Originators
+        # for original in creation.original_creations:
+        #     if not original.derivative_type:
+        #         result = self._allocate(
+        #             creation=original.original_creation,
+        #             amount=amount / Decimal(
+        #                 len(creation.original_creations)),
+        #             result=result)
+
+        return result
+
+
+##############################################################################
+# Licenser
+##############################################################################
+
+
+class License(ModelSQL, ModelView, CurrentState, PublicApi):
+    'License'
+    __name__ = 'license'
+    _history = True
+    name = fields.Char('Name', required=True, select=True)
+    code = fields.Char('Code', required=True, select=True)
+    freedom_rank = fields.Integer('Freedom Rank')
+    version = fields.Char('Version', required=True, select=False)
+    country = fields.Char('Country', required=True, select=False)
+    link = fields.Char('Link', required=True, select=False)
+
+    @classmethod
+    def __setup__(cls):
+        super(License, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+        cls._order.insert(1, ('freedom_rank', 'ASC'))
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, licenses, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(License, cls).copy(licenses, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('name',) + tuple(clause[1:]),
+        ]
 
 
 class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -532,6 +1055,17 @@ class ArtistArtist(ModelSQL):
         'artist', 'Solo Artist', required=True, select=True)
 
 
+class ArtistRelease(ModelSQL, ModelView):
+    'ArtistRelease'
+    __name__ = 'artist-release'
+    _history = True
+
+    artist = fields.Many2One(
+        'artist', 'Artist', required=True)
+    release = fields.Many2One(
+        'release', 'Release', required=True)
+
+
 class ArtistPayeeAcceptance(ModelSQL):
     'Artist Payee Acceptance'
     __name__ = 'artist.payee.acceptance'
@@ -540,48 +1074,6 @@ class ArtistPayeeAcceptance(ModelSQL):
         'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
     party = fields.Many2One(
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
-
-
-class License(ModelSQL, ModelView, CurrentState, PublicApi):
-    'License'
-    __name__ = 'license'
-    _history = True
-    name = fields.Char('Name', required=True, select=True)
-    code = fields.Char('Code', required=True, select=True)
-    freedom_rank = fields.Integer('Freedom Rank')
-    version = fields.Char('Version', required=True, select=False)
-    country = fields.Char('Country', required=True, select=False)
-    link = fields.Char('Link', required=True, select=False)
-
-    @classmethod
-    def __setup__(cls):
-        super(License, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the license must be unique.')
-        ]
-        cls._order.insert(1, ('freedom_rank', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, licenses, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(License, cls).copy(licenses, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('name',) + tuple(clause[1:]),
-        ]
 
 
 class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -607,7 +1099,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'artists and their role.')
     licenses = fields.Function(
         fields.Many2Many(
-            'release-creation', 'creation', 'license', 'Licenses'),
+            'release.track', 'creation', 'license', 'Licenses'),
         'get_licenses')
     license = fields.Function(
         fields.Many2One('license', 'Default License'),
@@ -624,7 +1116,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'Originating Relations', states=STATES, depends=DEPENDS,
         help='All creations originating the actual creation')
     releases = fields.One2Many(
-        'release-creation', 'creation', 'Releases',
+        'release.track', 'creation', 'Releases',
         help='The releases of this creation.')
     release = fields.Function(
         fields.Many2One('release', 'First Release'),
@@ -768,27 +1260,150 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         ]
 
 
-class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
-    'Label'
-    __name__ = 'label'
+class CreationDerivative(ModelSQL, ModelView):
+    'Creation - Original - Derivative'
+    __name__ = 'creation.original.derivative'
     _history = True
 
-    name = fields.Char('Name', help='The name of the label.')
-    party = fields.Many2One(
-        'party.party', 'Party', help='The legal party of the label')
-    gvl_code = fields.Char(
-        'GVL Code', help='The label code of the german '
-        '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
+    original_creation = fields.Many2One(
+        'creation', 'Original Creation', select=True, required=True)
+    derivative_creation = fields.Many2One(
+        'creation', 'Derivative Creation', select=True, required=True)
+    allocation_type = fields.Selection(
+        [
+            (None, ''),
+            ('adaption', 'Adaption'),
+            ('cover', 'Cover'),
+            ('remix', 'Remix'),
+        ], 'Allocation Type', required=True, sort=False,
+        help='The allocation type of the actual creation in the relation '
+        'from its origins or towards its derivatives\n'
+        '*Adaption*: \n'
+        '*Cover*: \n'
+        '*Remix*: \n')
 
 
-class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
-    'Publisher'
-    __name__ = 'publisher'
+class CreationContribution(ModelSQL, ModelView, PublicApi):
+    'Creation Contribution'
+    __name__ = 'creation.contribution'
     _history = True
 
-    name = fields.Char('Name', help='The name of the publisher.')
-    party = fields.Many2One(
-        'party.party', 'Party', help='The legal party of the publisher')
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True, select=True)
+    artist = fields.Many2One(
+        'artist', 'Artist', help='The involved artist contributing to the '
+        'creation')
+    type = fields.Selection(
+        [
+            ('performance', 'Performance'),
+            ('composition', 'Composition'),
+            ('text', 'Text'),
+        ], 'Type', required=True,
+        help='The type of contribution of the artist.\n\n'
+        '*performer*: The artist contributes a performance.\n'
+        '*composer*: The artist contributes a composition.\n'
+        '*text*: The artist contributes text.')
+    performance = fields.Selection(
+        [
+            (None, ''),
+            ('recording', 'Recording'),
+            ('producing', 'Producing'),
+            ('mastering', 'Mastering'),
+            ('mixing', 'Mixing'),
+        ], 'Performance', depends=['type'], states={
+            'required': Eval('type') == 'performance',
+            'invisible': Eval('type') != 'performance'},
+        help='The type of performance of the performer.\n\n'
+        '*recording*: Recoding of voice or instruments for the creation.\n'
+        '*producing*: Producing of the creation.\n'
+        '*mastering*: Mastering of the creation.\n'
+        '*mixing*: Mixing of the creation')
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society',
+        domain=[('represents_copyright', '=', True)],
+        states={'invisible': Eval('type') != 'text'}, depends=['type'])
+    neighbouring_rights_society = fields.Many2One(
+        'collecting_society', 'Neighbouring Rights Society',
+        domain=[('represents_ancillary_copyright', '=', True)],
+        states={'invisible': Eval('type') != 'performance'}, depends=['type'])
+    roles = fields.Many2Many(
+        'creation.contribution-creation.role', 'contribution', 'role',
+        'Roles',
+        help='The roles the artist takes in this creation')
+    roles_list = fields.Function(
+        fields.Char('Roles List'), 'on_change_with_roles_list')
+
+    # TODO: still needed? reason?
+    # composition_copyright_date = fields.Date(
+    #     'Composition Copyright Date')
+    # composition_copyright_owner = fields.Many2One(
+    #     'party.party', 'Composition Copyright Owner')
+    # composition_license = fields.Many2One(
+    #     'license', 'License')
+    # composition_publishing_date = fields.Date(
+    #     'Composition Publishing Date')
+    # composition_publisher = fields.Many2One(
+    #     'party.party', 'Composition Publisher',
+    #     help='Composition Publishing Entity')
+    # lyrics_copyright_date = fields.Date(
+    #     'Lyrics Copyright Date')
+    # lyrics_copyright_artist = fields.Many2One(
+    #     'artist', 'Lyrics Copyright Artist')
+    # lyrics_license = fields.Many2One(
+    #     'license', 'License')
+    # lyrics_publishing_date = fields.Date(
+    #     'Lyrics Publishing Date')
+    # lyrics_publisher = fields.Many2One(
+    #     'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
+
+    @fields.depends('roles')
+    def on_change_with_roles_list(self, name=None):
+        roles = ''
+        for role in self.roles:
+            roles += '%s, ' % role.name
+        return roles.rstrip(', ')
+
+    def get_rec_name(self, name):
+        result = '[%s] %s' % (
+            self.type, self.creation.title)
+        return result
+
+
+class CreationContributionRole(ModelSQL, ModelView):
+    'Creation Contribution - Creation Role'
+    __name__ = 'creation.contribution-creation.role'
+    _history = True
+
+    contribution = fields.Many2One(
+        'creation.contribution', 'Contribution', required=True, select=True)
+    role = fields.Many2One('creation.role', 'Role', required=True, select=True)
+
+
+class CreationRole(ModelSQL, ModelView, EntityOrigin):
+    'Creation Role'
+    __name__ = 'creation.role'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, translate=True, help='The name of the role')
+    description = fields.Text(
+        'Description', translate=True, help='The description of the role')
+
+
+class CreationTariffCategory(ModelSQL, ModelView):
+    'Creation - Tariff Category'
+    __name__ = 'creation-tariff_category'
+    _history = True
+
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
+    category = fields.Many2One(
+        'tariff_system.category', 'Category', required=True, select=True,
+        ondelete='CASCADE')
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society', select=True,
+        ondelete='CASCADE')
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -820,9 +1435,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         fields.Char('Artists List'), 'on_change_with_artists_list')
 
     # tracks
-    creations = fields.One2Many(
-        'release-creation', 'release', 'Creations',
-        help='The creations included in the release')
+    tracks = fields.One2Many(
+        'release.track', 'release', 'Creations',
+        help='The tracks of the release')
 
     # metadata
     title = fields.Char('Title')
@@ -933,8 +1548,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             if record.genres:
                 record.genres = []
                 record.save()
-            if record.creations:
-                record.creations = []
+            if record.tracks:
+                record.tracks = []
                 record.save()
         return super(Release, cls).delete(records)
 
@@ -948,14 +1563,14 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     @fields.depends('artists')
     def on_change_with_artists_list(self, name=None):
-        artists = ''
+        artists = []
         for artistrelease in self.artists:
-            artists += '%s, ' % artistrelease.artist.name
-        return artists.rstrip(', ')
+            artists.append(artistrelease.artist.name)
+        return ", ".join(artists)
 
     def get_producers(self, name):
         producers = []
-        for track in self.creations:
+        for track in self.tracks:
             for contribution in track.creation.contributions:
                 performance = (contribution.type == 'performance')
                 producing = (contribution.performance == 'producing')
@@ -965,7 +1580,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     def get_neighbouring_rights_societies(self, name):
         societies = []
-        for track in self.creations:
+        for track in self.tracks:
             for contribution in track.creation.contributions:
                 performance = (contribution.type == 'performance')
                 society = contribution.neighbouring_rights_society
@@ -974,9 +1589,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         return societies
 
 
-class ReleaseCreation(ModelSQL, ModelView):
-    'Release Creation'
-    __name__ = 'release-creation'
+class ReleaseTrack(ModelSQL, ModelView):
+    'Release Track'
+    __name__ = 'release.track'
     _history = True
 
     release = fields.Many2One(
@@ -995,27 +1610,6 @@ class ReleaseCreation(ModelSQL, ModelView):
         'license', 'License', help='License for the creation on the release')
 
 
-class ArtistRelease(ModelSQL, ModelView):
-    'ArtistRelease'
-    __name__ = 'artist-release'
-    _history = True
-
-    artist = fields.Many2One(
-        'artist', 'Artist', required=True)
-    release = fields.Many2One(
-        'release', 'Release', required=True)
-
-
-class Genre(ModelSQL, ModelView, PublicApi):
-    'Genre'
-    __name__ = 'genre'
-    _history = True
-
-    name = fields.Char('Name', help='The name of the genre.')
-    description = fields.Text(
-        'Description', help='The description of the genre.')
-
-
 class ReleaseGenre(ModelSQL, ModelView):
     'Release - Genre'
     __name__ = 'release-genre'
@@ -1025,16 +1619,6 @@ class ReleaseGenre(ModelSQL, ModelView):
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
     genre = fields.Many2One(
         'genre', 'Genre', required=True, select=True, ondelete='CASCADE')
-
-
-class Style(ModelSQL, ModelView, PublicApi):
-    'Style'
-    __name__ = 'style'
-    _history = True
-
-    name = fields.Char('Name', help='The name of the style.')
-    description = fields.Text(
-        'Description', help='The description of the style.')
 
 
 class ReleaseStyle(ModelSQL, ModelView):
@@ -1048,165 +1632,230 @@ class ReleaseStyle(ModelSQL, ModelView):
         'style', 'Style', required=True, select=True, ondelete='CASCADE')
 
 
-class CreationOriginalDerivative(ModelSQL, ModelView):
-    'Creation - Original - Derivative'
-    __name__ = 'creation.original.derivative'
+class Genre(ModelSQL, ModelView, PublicApi):
+    'Genre'
+    __name__ = 'genre'
     _history = True
 
-    original_creation = fields.Many2One(
-        'creation', 'Original Creation', select=True, required=True)
-    derivative_creation = fields.Many2One(
-        'creation', 'Derivative Creation', select=True, required=True)
-    allocation_type = fields.Selection(
-        [
-            (None, ''),
-            ('adaption', 'Adaption'),
-            ('cover', 'Cover'),
-            ('remix', 'Remix'),
-        ], 'Allocation Type', required=True, sort=False,
-        help='The allocation type of the actual creation in the relation '
-        'from its origins or towards its derivatives\n'
-        '*Adaption*: \n'
-        '*Cover*: \n'
-        '*Remix*: \n')
+    name = fields.Char('Name', help='The name of the genre.')
+    description = fields.Text(
+        'Description', help='The description of the genre.')
 
 
-class CreationContribution(ModelSQL, ModelView, PublicApi):
-    'Creation Contribution'
-    __name__ = 'creation.contribution'
+class Style(ModelSQL, ModelView, PublicApi):
+    'Style'
+    __name__ = 'style'
     _history = True
 
+    name = fields.Char('Name', help='The name of the style.')
+    description = fields.Text(
+        'Description', help='The description of the style.')
+
+
+class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
+    'Label'
+    __name__ = 'label'
+    _history = True
+
+    name = fields.Char('Name', help='The name of the label.')
+    party = fields.Many2One(
+        'party.party', 'Party', help='The legal party of the label')
+    gvl_code = fields.Char(
+        'GVL Code', help='The label code of the german '
+        '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
+
+
+class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
+    'Publisher'
+    __name__ = 'publisher'
+    _history = True
+
+    name = fields.Char('Name', help='The name of the publisher.')
+    party = fields.Many2One(
+        'party.party', 'Party', help='The legal party of the publisher')
+
+
+##############################################################################
+# Licensee
+##############################################################################
+
+
+class Utilisation(ModelSQL, ModelView):
+    'Utilisation'
+    __name__ = 'creation.utilisation'
+    timestamp = fields.DateTime(
+        'Timestamp', required=True, select=True,
+        help='Point in time of utilisation')
+    code = fields.Char(
+        'Code', required=True, select=True, states={
+            'readonly': True,
+        }, help='Sequential code number of the utilisation')
+    party = fields.Many2One(
+        'party.party', 'Utiliser Party',
+        help='The party who uses the creation')
     creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True)
-    artist = fields.Many2One(
-        'artist', 'Artist', help='The involved artist contributing to the '
-        'creation')
-    type = fields.Selection(
+        'creation', 'Creation', required=True,
+        help='The work which is used by the utilizer')
+    allocation = fields.Many2One(
+        'distribution.allocation', 'Allocation',
+        help='The allocation of the utilisation')
+    state = fields.Selection(
         [
-            ('performance', 'Performance'),
-            ('composition', 'Composition'),
-            ('text', 'Text'),
-        ], 'Type', required=True,
-        help='The type of contribution of the artist.\n\n'
-        '*performer*: The artist contributes a performance.\n'
-        '*composer*: The artist contributes a composition.\n'
-        '*text*: The artist contributes text.')
-    performance = fields.Selection(
-        [
-            (None, ''),
-            ('recording', 'Recording'),
-            ('producing', 'Producing'),
-            ('mastering', 'Mastering'),
-            ('mixing', 'Mixing'),
-        ], 'Performance', depends=['type'], states={
-            'required': Eval('type') == 'performance',
-            'invisible': Eval('type') != 'performance'},
-        help='The type of performance of the performer.\n\n'
-        '*recording*: Recoding of voice or instruments for the creation.\n'
-        '*producing*: Producing of the creation.\n'
-        '*mastering*: Mastering of the creation.\n'
-        '*mixing*: Mixing of the creation')
-    collecting_society = fields.Many2One(
-        'collecting_society', 'Collecting Society',
-        domain=[('represents_copyright', '=', True)],
-        states={'invisible': Eval('type') != 'text'}, depends=['type'])
-    neighbouring_rights_society = fields.Many2One(
-        'collecting_society', 'Neighbouring Rights Society',
-        domain=[('represents_ancillary_copyright', '=', True)],
-        states={'invisible': Eval('type') != 'performance'}, depends=['type'])
-    roles = fields.Many2Many(
-        'creation.contribution-creation.role', 'contribution', 'role',
-        'Roles',
-        help='The roles the artist takes in this creation')
-    roles_list = fields.Function(
-        fields.Char('Roles List'), 'on_change_with_roles_list')
+            ('not_distributed', 'Not Distributed'),
+            ('processing', 'Distribution in Process'),
+            ('distributed', 'Distributed'),
+        ], 'State', required=True, sort=False,
+        help='The distribution state of the utilisation.\n\n'
+        '*Not Distributed*: The default state for newly created '
+        'utilisations.\n'
+        '*Distribution in Process*: A distribution is in process.\n'
+        '*Distributed*: The distribution is finished and an allocation is '
+        'created')
+    # origin = fields.Reference(
+    #     'Origin', [
+    #         ('creation.utilisation.imp', 'IMP')
+    #     ],
+    #     help='The originating data of the use')
 
-    # TODO: still needed? reason?
-    # composition_copyright_date = fields.Date(
-    #     'Composition Copyright Date')
-    # composition_copyright_owner = fields.Many2One(
-    #     'party.party', 'Composition Copyright Owner')
-    # composition_license = fields.Many2One(
-    #     'license', 'License')
-    # composition_publishing_date = fields.Date(
-    #     'Composition Publishing Date')
-    # composition_publisher = fields.Many2One(
-    #     'party.party', 'Composition Publisher',
-    #     help='Composition Publishing Entity')
-    # lyrics_copyright_date = fields.Date(
-    #     'Lyrics Copyright Date')
-    # lyrics_copyright_artist = fields.Many2One(
-    #     'artist', 'Lyrics Copyright Artist')
-    # lyrics_license = fields.Many2One(
-    #     'license', 'License')
-    # lyrics_publishing_date = fields.Date(
-    #     'Lyrics Publishing Date')
-    # lyrics_publisher = fields.Many2One(
-    #     'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
+    @classmethod
+    def __setup__(cls):
+        super(Utilisation, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the utilisation must be unique.')
+        ]
+        cls._order.insert(1, ('timestamp', 'ASC'))
 
-    @fields.depends('roles')
-    def on_change_with_roles_list(self, name=None):
-        roles = ''
-        for role in self.roles:
-            roles += '%s, ' % role.name
-        return roles.rstrip(', ')
+    @staticmethod
+    def default_state():
+        return 'not_distributed'
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
 
     def get_rec_name(self, name):
-        result = '[%s] %s' % (
-            self.type, self.creation.title)
-        return result
+        return '%s: %s' % (self.creation.title, self.creation.artist)
+
+    @classmethod
+    def create(cls, vlist):
+        Sequence = Pool().get('ir.sequence')
+        Configuration = Pool().get('collecting_society.configuration')
+
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                values['code'] = Sequence.get_id(
+                    config.utilisation_sequence.id)
+        return super(Utilisation, cls).create(vlist)
+
+    @classmethod
+    def copy(cls, utilisations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(Utilisation, cls).copy(utilisations, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('code',) + tuple(clause[1:]),
+            ('timestamp',) + tuple(clause[1:]),
+        ]
 
 
-class CreationRole(ModelSQL, ModelView, EntityOrigin):
-    'Roles'
-    __name__ = 'creation.role'
+class Client(ModelSQL, ModelView, CurrentState):
+    'Client'
+    __name__ = 'client'
     _history = True
+    _rec_name = 'uuid'
+    web_user = fields.Many2One(
+        'web.user', 'Web User', required=True)
+    uuid = fields.Char(
+        'UUID', required=True, help='The universally unique identifier '
+        'of the client used by a web user')
+    player_name = fields.Char(
+        'Player Name', required=True,
+        help='Name of the media player used by the client')
+    player_version = fields.Char(
+        'Player Version',
+        help='Version of the client media player used by the client')
+    plugin_name = fields.Char(
+        'Plugin Name', help='Name of the plugin used by the media player')
+    plugin_version = fields.Char(
+        'Plugin Version', help='The version of the plugin used '
+        'by the media player')
+    plugin_vendor = fields.Char(
+        'Plugin Vendor', help='Vendor of the plugin used by the media player')
 
-    name = fields.Char(
-        'Name', required=True, translate=True, help='The name of the role')
-    description = fields.Text(
-        'Description', translate=True, help='The description of the role')
+    @classmethod
+    def __setup__(cls):
+        super(Client, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the client must be unique.'),
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
 
 
-class ContributionRole(ModelSQL, ModelView):
-    'Contribution - Role'
-    __name__ = 'creation.contribution-creation.role'
+class Identifier(ModelSQL, ModelView):
+    'Identifier'
+    __name__ = 'creation.identification.identifier'
     _history = True
+    _rec_name = 'identifier'
+    identification = fields.Many2One(
+        'creation.identification', 'Identification',
+        help='The identification of a creation for this identifier')
+    identifier = fields.Text('Identifier')
 
-    contribution = fields.Many2One(
-        'creation.contribution', 'Contribution', required=True, select=True)
-    role = fields.Many2One('creation.role', 'Role', required=True, select=True)
+
+class Identification(ModelSQL, ModelView):
+    'Identification'
+    __name__ = 'creation.identification'
+    _history = True
+    identifiers = fields.One2Many(
+        'creation.identification.identifier', 'identification', 'Identifiers',
+        help='The identifiers of the creation')
+    creation = fields.Many2One(
+        'creation', 'Creation', help='The creation identified by '
+        'the identifiers')
+    id3 = fields.Text('ID3', help='ID3 tag')
+
+    def get_rec_name(self, name):
+        return (self.creation.title if self.creation else 'unknown')
+
+
+class Fingerprintlog(ModelSQL, ModelView):
+    'Fingerprintlog'
+    __name__ = 'content.fingerprintlog'
+    _history = True
+    content = fields.Many2One(
+        'content', 'Content', required=True,
+        help='The fingerprinted content.')
+    user = fields.Many2One(
+        'res.user', 'User', states={'required': True},
+        help='The user which fingerprinted the content.')
+    timestamp = fields.DateTime(
+        'Timestamp', states={'required': True}, select=True,
+        help='Point in time of fingerprinting')
+    fingerprinting_algorithm = fields.Char(
+        'Algorithm', states={'required': True},
+        help='Fingerprinting mechanism of the content, e.g. echoprint')
+    fingerprinting_version = fields.Char(
+        'Version', states={'required': True},
+        help='Fingerprinting algorithm version of the content')
 
 
 ##############################################################################
 # Archive
 ##############################################################################
-
-
-class Checksum(ModelSQL, ModelView):
-    'Checksum'
-    __name__ = 'checksum'
-    _rec_name = 'code'
-    _history = True
-    origin = fields.Reference(
-        'Origin', [
-            ('content', 'Content'),
-            ('harddisk', 'Harddisk'),
-            ('harddisk.filesystem', 'Filesystem')
-        ],
-        help='The originating data of the checksum')
-    code = fields.Char(
-        'Checksum', required=True, help='The string of the Checksum.')
-    timestamp = fields.DateTime(
-        'Timestamp', states={'required': True},
-        help='The point in time of the Checksum.')
-    algorithm = fields.Char(
-        'Algorithm', states={'required': True},
-        help='The algorithm for the Checksum.')
-    begin = fields.Integer(
-        'Begin', help='The position of the first byte of the Checksum.')
-    end = fields.Integer(
-        'End', help='The position of the last byte of the Checksum.')
 
 
 class Storehouse(ModelSQL, ModelView, CurrentState):
@@ -1809,700 +2458,151 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         ]
 
 
-##############################################################################
-# Events
-##############################################################################
-
-
-class TariffSystem(ModelSQL, ModelView, CurrentState):
-    'Tariff System'
-    __name__ = 'tariff_system'
+class Checksum(ModelSQL, ModelView):
+    'Checksum'
+    __name__ = 'checksum'
+    _rec_name = 'code'
     _history = True
-    _rec_name = 'version'
-
+    origin = fields.Reference(
+        'Origin', [
+            ('content', 'Content'),
+            ('harddisk', 'Harddisk'),
+            ('harddisk.filesystem', 'Filesystem')
+        ],
+        help='The originating data of the checksum')
     code = fields.Char(
-        'Code', required=True, select=True, states={'readonly': True})
-    version = fields.Char(
-        'Version', required=True, select=True, states=STATES, depends=DEPENDS)
-    valid_from = fields.Date(
-        'Valid from', help='Date from which the tariff is valid.')
-    valid_through = fields.Date(
-        'Valid through', help='Date thorugh which the tariff is valid.')
-    transitional_through = fields.Date(
-        'Transitional through',
-        help='Date of the end of the transitinal phase, through which the '
-        'tariff might still be used.')
-    tariffs = fields.One2Many(
-        'tariff_system.tariff', 'system', 'Tariffs',
-        help='The tariffs of the tariff system.')
-    # TODO: attachement
-    # TODO: formluar
-    # TODO: variables
-
-    @classmethod
-    def __setup__(cls):
-        super(TariffSystem, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the tariff system must be unique.'),
-            ('version_uniq', 'UNIQUE(version)',
-             'The version of the tariff system must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = Sequence.get_id(
-                    config.tariff_system_sequence.id)
-        return super(TariffSystem, cls).create(vlist)
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(TariffSystem, cls).copy(vlist, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('version',) + tuple(clause[1:]),
-        ]
+        'Checksum', required=True, help='The string of the Checksum.')
+    timestamp = fields.DateTime(
+        'Timestamp', states={'required': True},
+        help='The point in time of the Checksum.')
+    algorithm = fields.Char(
+        'Algorithm', states={'required': True},
+        help='The algorithm for the Checksum.')
+    begin = fields.Integer(
+        'Begin', help='The position of the first byte of the Checksum.')
+    end = fields.Integer(
+        'End', help='The position of the last byte of the Checksum.')
 
 
-class TariffCategory(ModelSQL, ModelView, CurrentState):
-    'Tariff Catefory'
-    __name__ = 'tariff_system.category'
+##############################################################################
+# Portal
+##############################################################################
+
+
+acl_objects = [
+    ('artist', 'Artist'),
+    ('release', 'Release'),
+    ('creation', 'Creation'),
+    ('content', 'Content'),
+]
+
+
+class AccessControlEntry(ModelSQL, ModelView):
+    'Access Control Entry'
+    __name__ = 'ace'
+    _history = True
+
+    web_user = fields.Many2One(
+        'web.user', 'Web User', required=True,
+        help='The web user interacting with an object.')
+    party = fields.Function(
+        fields.Many2One(
+            'party.party', 'Party',
+            help='The party of the web user interacting with an object.'
+        ), 'get_party')
+    entity = fields.Reference(
+        'Object', acl_objects, required=True,
+        help='The object being interacted with.')
+    roles = fields.Many2Many(
+        'ace-ace.role', 'ace', 'role', 'Roles',
+        states={'required': True},
+        help='Individual roles of a party for an object.')
+    roles_list = fields.Function(
+        fields.Char('Roles'), 'on_change_with_roles_list')
+
+    @fields.depends('roles')
+    def on_change_with_roles_list(self, name=None):
+        roles = "\n".join([p.name for p in self.roles])
+        return roles
+
+    @fields.depends('web_user')
+    def get_party(self, name):
+        return self.web_user.party.id
+
+
+class AccessControlEntryRole(ModelSQL, ModelView):
+    'Access Control Entry - Access Role'
+    __name__ = 'ace-ace.role'
+    _history = True
+
+    ace = fields.Many2One(
+        'ace', 'Entry', required=True, select=True, ondelete='CASCADE')
+    role = fields.Many2One(
+        'ace.role', 'Role', required=True, select=True, ondelete='CASCADE')
+    # recursive = fields.Boolean(
+    #     'Including Subobjects',  # TODO: require for artist, invisible else
+    #     help="Does the role also apply to the subobjects?")
+
+
+class AccessRole(ModelSQL, ModelView):
+    'Access Role'
+    __name__ = 'ace.role'
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
-    code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Role', required=True, help='The role of a party regarding an object.')
     description = fields.Text(
-        'Description', states=STATES, depends=DEPENDS,
-        help='A description of the tariff category.')
-    tariffs = fields.One2Many(
-        'tariff_system.tariff', 'category', 'Tariffs',
-        help='The tariffs in this tariff category.')
-    # creations = fields.Many2Many(
-    #     'creation-tariff_category', 'category', 'Creations',
-    #     help='The creations in this tariff category.')
+        'Description', help='The description of the role.')
+    permissions = fields.Many2Many(
+        'ace.role-ace.permission', 'role', 'permission', 'Permissions',
+        help='Permissions of a role.')
+    permissions_list = fields.Function(
+        fields.Char('Permissions'), 'on_change_with_permissions_list')
+
+    @fields.depends('permissions')
+    def on_change_with_permissions_list(self, name=None):
+        permissions = {}
+        for permission in self.permissions:
+            if permission.entity not in permissions:
+                permissions[permission.entity] = []
+            permissions[permission.entity].append(permission.name)
+        return "\n".join([n for e in permissions for n in permissions[e]])
+
+
+class AccessRolePermission(ModelSQL, ModelView):
+    'Access Role - Access Permission'
+    __name__ = 'ace.role-ace.permission'
+    _history = True
+
+    role = fields.Many2One(
+        'ace.role', 'Role', required=True, select=True, ondelete='CASCADE')
+    permission = fields.Many2One(
+        'ace.permission', 'Permission',
+        required=True, select=True, ondelete='CASCADE')
+
+
+class AccessPermission(ModelSQL, ModelView):
+    'Access Permission'
+    __name__ = 'ace.permission'
+    _history = True
+
+    code = fields.Char(
+        'Code', required=True, states={'readonly': True},
+        help='The internal code for the permission.')
+    entity = fields.Selection(
+        acl_objects, 'Object', required=True, states={'readonly': True},
+        help='The object to grant the permission for.')
+    name = fields.Char(
+        'Role', states={'readonly': True},
+        help='The permission to be granted for a role.')
+    description = fields.Text(
+        'Description', states={'readonly': True},
+        help='The description of the permission.')
 
     @classmethod
     def __setup__(cls):
-        super(TariffCategory, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(TariffCategory, cls).copy(vlist, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('name',) + tuple(clause[1:]),
-            ('code',) + tuple(clause[1:]),
-        ]
-
-
-class Tariff(ModelSQL, ModelView, CurrentState):
-    'Tariff'
-    __name__ = 'tariff_system.tariff'
-    _history = True
-
-    name = fields.Function(
-        fields.Char('Name'), 'get_name', searcher='search_name')
-    code = fields.Function(
-        fields.Char('Code'), 'get_code', searcher='search_code')
-    system = fields.Many2One(
-        'tariff_system', 'System', required=True, select=True)
-    category = fields.Many2One(
-        'tariff_system.category', 'Category', required=True, select=True)
-    # TODO: Variables
-
-    def get_name(self, name):
-        return self.category.name
-
-    def get_code(self, name):
-        return self.category.code + self.system.version
-
-    def search_name(self, name):
-        return self.get_title(name)
-
-    def search_code(self, name):
-        return self.get_code(name)
-
-
-class CreationTariffCategory(ModelSQL, ModelView):
-    'Creation - Tariff Category'
-    __name__ = 'creation-tariff_category'
-    _history = True
-
-    creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True,
-        ondelete='CASCADE')
-    category = fields.Many2One(
-        'tariff_system.category', 'Category', required=True, select=True,
-        ondelete='CASCADE')
-    collecting_society = fields.Many2One(
-        'collecting_society', 'Collecting Society', select=True,
-        ondelete='CASCADE')
-
-
-class Client(ModelSQL, ModelView, CurrentState):
-    'Client'
-    __name__ = 'client'
-    _history = True
-    _rec_name = 'uuid'
-    web_user = fields.Many2One(
-        'web.user', 'Web User', required=True)
-    uuid = fields.Char(
-        'UUID', required=True, help='The universally unique identifier '
-        'of the client used by a web user')
-    player_name = fields.Char(
-        'Player Name', required=True,
-        help='Name of the media player used by the client')
-    player_version = fields.Char(
-        'Player Version',
-        help='Version of the client media player used by the client')
-    plugin_name = fields.Char(
-        'Plugin Name', help='Name of the plugin used by the media player')
-    plugin_version = fields.Char(
-        'Plugin Version', help='The version of the plugin used '
-        'by the media player')
-    plugin_vendor = fields.Char(
-        'Plugin Vendor', help='Vendor of the plugin used by the media player')
-
-    @classmethod
-    def __setup__(cls):
-        super(Client, cls).__setup__()
+        super(AccessPermission, cls).__setup__()
         cls._sql_constraints += [
-            ('uuid_uniq', 'UNIQUE(uuid)',
-                'The UUID of the client must be unique.'),
+            ('uuid_code', 'UNIQUE(code)',
+                'The code of the permission must be unique.'),
         ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
-
-
-class Identifier(ModelSQL, ModelView):
-    'Identifier'
-    __name__ = 'creation.identification.identifier'
-    _history = True
-    _rec_name = 'identifier'
-    identification = fields.Many2One(
-        'creation.identification', 'Identification',
-        help='The identification of a creation for this identifier')
-    identifier = fields.Text('Identifier')
-
-
-class Identification(ModelSQL, ModelView):
-    'Identification'
-    __name__ = 'creation.identification'
-    _history = True
-    identifiers = fields.One2Many(
-        'creation.identification.identifier', 'identification', 'Identifiers',
-        help='The identifiers of the creation')
-    creation = fields.Many2One(
-        'creation', 'Creation', help='The creation identified by '
-        'the identifiers')
-    id3 = fields.Text('ID3', help='ID3 tag')
-
-    def get_rec_name(self, name):
-        return (self.creation.title if self.creation else 'unknown')
-
-
-class Fingerprintlog(ModelSQL, ModelView):
-    'Fingerprintlog'
-    __name__ = 'content.fingerprintlog'
-    _history = True
-    content = fields.Many2One(
-        'content', 'Content', required=True,
-        help='The fingerprinted content.')
-    user = fields.Many2One(
-        'res.user', 'User', states={'required': True},
-        help='The user which fingerprinted the content.')
-    timestamp = fields.DateTime(
-        'Timestamp', states={'required': True}, select=True,
-        help='Point in time of fingerprinting')
-    fingerprinting_algorithm = fields.Char(
-        'Algorithm', states={'required': True},
-        help='Fingerprinting mechanism of the content, e.g. echoprint')
-    fingerprinting_version = fields.Char(
-        'Version', states={'required': True},
-        help='Fingerprinting algorithm version of the content')
-
-
-##############################################################################
-# Accounting
-##############################################################################
-
-
-class Distribution(ModelSQL, ModelView):
-    'Distribution'
-    __name__ = 'distribution'
-    _rec_name = 'code'
-    code = fields.Char(
-        'Code', required=True, select=True, states={
-            'readonly': True,
-        })
-    date = fields.Date(
-        'Distribution Date', required=True, select=True,
-        help='The date of the distribution')
-    from_date = fields.Date(
-        'From Date',
-        help='Include utilisations equal or after from date')
-    thru_date = fields.Date(
-        'Thru Date', help='Include utilisations until thru date')
-    allocations = fields.One2Many(
-        'distribution.allocation', 'distribution', 'Allocations',
-        help='All allocations in this distributon')
-
-    @classmethod
-    def __setup__(cls):
-        super(Distribution, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the distribution must be unique.')
-        ]
-        cls._order.insert(1, ('date', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @staticmethod
-    def default_date():
-        Date = Pool().get('ir.date')
-        return Date.today()
-
-    @classmethod
-    def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = Sequence.get_id(
-                    config.distribution_sequence.id)
-        return super(Distribution, cls).create(vlist)
-
-    @classmethod
-    def copy(cls, distributions, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(Distribution, cls).copy(distributions, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('date',) + tuple(clause[1:]),
-        ]
-
-
-class Allocation(ModelSQL, ModelView):
-    'Allocation'
-    __name__ = 'distribution.allocation'
-    distribution = fields.Many2One(
-        'distribution', 'Distribution', required=True,
-        help='The distribution of the allocation')
-    type = fields.Selection(
-        [
-            ('pocket2hats', 'Pocket to Hats'),
-            ('hat2pockets', 'Hat to Pockets'),
-        ], 'Type', required=True, sort=False, help='The allocation type:\n'
-        '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
-        '*Hat to Pockets*: Allocates amount from a hat to many pockets')
-    party = fields.Many2One(
-        'party.party', 'Party', required=True,
-        help='The party which utilises creations')
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
-    amount = fields.Numeric(
-        'Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount to distribute')
-    share_amount = fields.Numeric(
-        'Share Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The share for each utilisation')
-    move_lines = fields.One2Many(
-        'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'distribution.allocation,%')],
-        help='The account move lines of the allocation')
-    utilisations = fields.One2Many(
-        'creation.utilisation', 'allocation', 'Utilisations',
-        help='The allocated utilisations')
-
-    @classmethod
-    def __setup__(cls):
-        super(Allocation, cls).__setup__()
-        cls._order.insert(1, ('distribution', 'ASC'))
-        cls._order.insert(2, ('party', 'ASC'))
-
-    @staticmethod
-    def default_type():
-        return 'pocket2hats'
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
-
-
-class Utilisation(ModelSQL, ModelView):
-    'Utilisation'
-    __name__ = 'creation.utilisation'
-    timestamp = fields.DateTime(
-        'Timestamp', required=True, select=True,
-        help='Point in time of utilisation')
-    code = fields.Char(
-        'Code', required=True, select=True, states={
-            'readonly': True,
-        }, help='Sequential code number of the utilisation')
-    party = fields.Many2One(
-        'party.party', 'Utiliser Party',
-        help='The party who uses the creation')
-    creation = fields.Many2One(
-        'creation', 'Creation', required=True,
-        help='The work which is used by the utilizer')
-    allocation = fields.Many2One(
-        'distribution.allocation', 'Allocation',
-        help='The allocation of the utilisation')
-    state = fields.Selection(
-        [
-            ('not_distributed', 'Not Distributed'),
-            ('processing', 'Distribution in Process'),
-            ('distributed', 'Distributed'),
-        ], 'State', required=True, sort=False,
-        help='The distribution state of the utilisation.\n\n'
-        '*Not Distributed*: The default state for newly created '
-        'utilisations.\n'
-        '*Distribution in Process*: A distribution is in process.\n'
-        '*Distributed*: The distribution is finished and an allocation is '
-        'created')
-    # origin = fields.Reference(
-    #     'Origin', [
-    #         ('creation.utilisation.imp', 'IMP')
-    #     ],
-    #     help='The originating data of the use')
-
-    @classmethod
-    def __setup__(cls):
-        super(Utilisation, cls).__setup__()
-        cls._sql_constraints = [
-            ('code_uniq', 'UNIQUE(code)',
-             'The code of the utilisation must be unique.')
-        ]
-        cls._order.insert(1, ('timestamp', 'ASC'))
-
-    @staticmethod
-    def default_state():
-        return 'not_distributed'
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    def get_rec_name(self, name):
-        return '%s: %s' % (self.creation.title, self.creation.artist)
-
-    @classmethod
-    def create(cls, vlist):
-        Sequence = Pool().get('ir.sequence')
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = Sequence.get_id(
-                    config.utilisation_sequence.id)
-        return super(Utilisation, cls).create(vlist)
-
-    @classmethod
-    def copy(cls, utilisations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super(Utilisation, cls).copy(utilisations, default=default)
-
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('timestamp',) + tuple(clause[1:]),
-        ]
-
-
-class DistributeStart(ModelView):
-    'Distribute Start'
-    __name__ = 'distribution.distribute.start'
-
-    date = fields.Date(
-        'Distribution Date', required=True,
-        help='The date of the distribution')
-    from_date = fields.Date(
-        'From Date', required=True,
-        help='The earliest date to distribute utilisations')
-    thru_date = fields.Date(
-        'Thru Date', required=True,
-        help='The latest date to distribute utilisations')
-
-    @staticmethod
-    def default_date():
-        Date = Pool().get('ir.date')
-        return Date.today()
-
-    @staticmethod
-    def default_from_date():
-        Date = Pool().get('ir.date')
-        t = Date.today()
-        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
-
-    @staticmethod
-    def default_thru_date():
-        Date = Pool().get('ir.date')
-        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
-
-
-class Distribute(Wizard):
-    "Distribute"
-    __name__ = 'distribution.distribute'
-
-    start = StateView(
-        'distribution.distribute.start',
-        'collecting_society.distribution_distribute_start_view_form',
-        [
-            Button('Cancel', 'end', 'tryton-cancel'),
-            Button(
-                'Start', 'distribute', 'tryton-ok', default=True),
-        ])
-    distribute = StateTransition()
-
-    def transition_distribute(self):
-        pool = Pool()
-        Company = pool.get('company.company')
-        Distribution = pool.get('distribution')
-        Allocation = pool.get('distribution.allocation')
-        Utilisation = pool.get('creation.utilisation')
-        Account = pool.get('account.account')
-        AccountMove = pool.get('account.move')
-        AccountJournal = pool.get('account.journal')
-        Party = pool.get('party.party')
-        Period = pool.get('account.period')
-
-        company = Company(Transaction().context['company'])
-        currency = company.currency
-        # TODO:
-        # * Redistribution
-        # * Check if distribution period overlaps with existing distribution
-
-        # Collect utilisations
-        utilisations = Utilisation.search([
-            (
-                'timestamp', '>=', datetime.datetime.combine(
-                    self.start.from_date, datetime.time.min)
-            ), (
-                'timestamp', '<=', datetime.datetime.combine(
-                    self.start.thru_date, datetime.time.max)
-            ), ('state', '=', 'not_distributed'),
-        ])
-        if not utilisations:
-            return 'end'
-        # Create always a new distribution
-        distribution, = Distribution.create(
-            [
-                {
-                    'date': self.start.date,
-                    'from_date': self.start.thru_date,
-                    'thru_date': self.start.thru_date,
-                }
-            ]
-        )
-
-        party_utilisations = defaultdict(list)
-        for utilisation in utilisations:
-            party_utilisations[utilisation.party.id].append(utilisation)
-
-        account_moves = []
-        for party_id, utilisations in party_utilisations.iteritems():
-            if not utilisations:
-                continue
-            party = Party(party_id)
-            amount = party.pocket_balance
-            if not amount:
-                continue
-
-            if party.pocket_budget < party.pocket_balance:
-                amount = party.pocket_budget
-            amount = currency.round(amount)
-            fee_amount = currency.round(amount * Decimal(10) / Decimal(100))
-            share_amount = currency.round(
-                (amount - fee_amount) / len(utilisations))
-            allocation = {
-                'party': party_id,
-                'distribution': distribution.id,
-                'type': 'pocket2hats',
-                'amount': amount,
-                'share_amount': share_amount,
-            }
-            # create allocation
-            allocation, = Allocation.create([allocation])
-
-            Utilisation.write(
-                utilisations,
-                {
-                    'state': 'processing',
-                    'allocation': allocation.id,
-                })
-            account_move_lines = [{
-                # Company fees move line
-                'party': company.party.id,
-                'artist': None,
-                'account': Account.search([('kind', '=', 'revenue')])[0],
-                'debit': Decimal(0),
-                'credit': fee_amount,
-                'state': 'draft',
-            }, {
-                # Pocket move line
-                'party': party.id,
-                'artist': None,
-                'account': party.pocket_account.id,
-                'debit': amount,
-                'credit': Decimal(0),
-                'state': 'draft',
-            }]
-            for utilisation in utilisations:
-                breakdown = self._allocate(
-                    utilisation.creation,
-                    share_amount)
-                for artist, amount in breakdown.iteritems():
-                    account_move_lines += [{
-                        # Hat move lines
-                        'party': None,
-                        'artist': artist.id,
-                        'account': artist.hat_account.id,
-                        'debit': Decimal(0),
-                        'credit': currency.round(amount),
-                        'state': 'draft',
-                    }]
-            period_id = Period.find(company.id, date=self.start.date)
-            journal, = AccountJournal.search([('code', '=', 'TRANS')])
-            origin = 'distribution.allocation,%s' % (allocation.id)
-            account_moves.append({
-                'journal': journal.id,
-                'origin': origin,
-                'date': self.start.date,
-                'period': period_id,
-                'state': 'draft',
-                'lines': [('create', account_move_lines)],
-            })
-        AccountMove.create(account_moves)
-        Utilisation.write(utilisations, {'state': 'distributed'})
-        return 'end'
-
-    def _allocate(self, creation, amount, result=None):
-        '''
-        Allocates an amount to all involved artists of a creation.
-        The tree of original creations is traversed and every node creation is
-        allocated by the appropriate derivative types.
-
-        Returns a dictionary with artist as key and the sum of amounts
-        as value.
-        '''
-        amount = Decimal(amount)
-
-        if result is None:
-            result = Counter()
-
-        if not creation.contributions:
-            # Handle creations from unclaimed fingerprinting identification:
-            # allocate complete amount to creation artist
-            result[creation.artist] = amount
-            return result
-
-        composer = [
-            c.artist for c in creation.contributions
-            if c.type == 'composition']
-        texter = [
-            c.artist for c in creation.contributions if c.type == 'text']
-        performers = [
-            c.artist for c in creation.contributions
-            if c.type == 'performance']
-        creators = composer or texter
-
-        performer_amount = Decimal(0)
-        composer_amount = Decimal(0)
-        texter_amount = Decimal(0)
-
-        if performers and creators:
-            amount = amount / Decimal(2)
-
-        if composer and texter:
-            composer_amount = (
-                amount * Decimal(65) / Decimal(100) / Decimal(len(composer)))
-            texter_amount = (
-                amount * Decimal(35) / Decimal(100) / Decimal(len(texter)))
-        elif texter:
-            texter_amount = amount / Decimal(len(texter))
-        elif composer:
-            composer_amount = amount / Decimal(len(composer))
-
-        if performers:
-            performer_amount = amount / Decimal(len(performers))
-
-        for c in composer:
-            result[c] += composer_amount
-        for t in texter:
-            result[t] += texter_amount
-        for p in performers:
-            result[p] += performer_amount
-
-#    # Traverse Originators
-#    for original in creation.original_creations:
-#        if not original.derivative_type:
-#            result = allocate(
-#                creation=original.original_creation,
-#                amount=amount / Decimal(len(creation.original_creations)),
-#                result=result)
-        return result

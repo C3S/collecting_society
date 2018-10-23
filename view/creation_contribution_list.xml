@@ -2,8 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Contribution">
-    <field name="creation"/>
-    <field name="artist"/>
+    <field name="creation" expand="1"/>
+    <field name="artist" expand="1"/>
     <field name="type"/>
     <field name="performance"/>
     <field name="roles_list"/>

@@ -2,7 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Access">
-    <field name="web_user"/>
-    <field name="entity"/>
-    <field name="permissions_list"/>
+    <field name="web_user" expand="1"/>
+    <field name="party" expand="1"/>
+    <field name="entity" expand="1"/>
+    <field name="roles_list" expand="1"/>
 </tree>

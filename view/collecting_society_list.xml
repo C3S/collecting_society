@@ -2,9 +2,9 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Collecting Society">
-    <field name="name"/>
-    <field name="party"/>
-    <field name="represents_copyright"/>
-    <field name="represents_ancillary_copyright"/>
+    <field name="name" expand="1"/>
+    <field name="party" expand="1"/>
+    <field name="represents_copyright" string="Copyright"/>
+    <field name="represents_ancillary_copyright" string="Ancillary Copyright"/>
     <field name="active"/>
 </tree>
