@@ -303,7 +303,7 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
 
 
 class TariffCategory(ModelSQL, ModelView, CurrentState):
-    'Tariff Catefory'
+    'Tariff Category'
     __name__ = 'tariff_system.category'
     _history = True
 
