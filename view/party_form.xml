@@ -23,6 +23,8 @@
             <field name="birthdate"/>
             <label name="repertoire_terms_accepted"/>
             <field name="repertoire_terms_accepted"/>
+            <label name="web_user"/>
+            <field name="web_user"/>
         </page>
     </xpath>
 </data>

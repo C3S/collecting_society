@@ -16,6 +16,9 @@ class Party:
     __name__ = 'party.party'
     _history = True
 
+    web_user = fields.One2One(
+        'web.user-party.party', 'party', 'user', 'Web User',
+        help='The web user of the party')
     member_c3s = fields.Boolean('Member of C3S')
     member_c3s_token = fields.Char('C3S Membership Token')
     artists = fields.One2Many('artist', 'party', 'Artists')

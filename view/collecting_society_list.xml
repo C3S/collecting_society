@@ -4,7 +4,7 @@
 <tree string="Collecting Society">
     <field name="name" expand="1"/>
     <field name="party" expand="1"/>
-    <field name="represents_copyright" string="Copyright"/>
-    <field name="represents_ancillary_copyright" string="Ancillary Copyright"/>
+    <field name="represents_copyright"/>
+    <field name="represents_ancillary_copyright"/>
     <field name="active"/>
 </tree>

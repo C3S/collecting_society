@@ -84,6 +84,7 @@ STATES = {
 }
 DEPENDS = ['active']
 SEPARATOR = u' /25B6 '
+DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 
 
 ##############################################################################
@@ -204,8 +205,8 @@ class AccessControlList(object):
                 for role in ace.roles
                 for permission in role.permissions])
         if valid_codes:
-            return permissions.intersection(valid_codes)
-        return permissions
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
 
 
 ##############################################################################
@@ -1012,13 +1013,51 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
         Configuration = Pool().get('collecting_society.configuration')
+        default_roles = [('add', [
+            r.id for r in
+            AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
+            # autocreate sequence
             if not values.get('code'):
                 config = Configuration(1)
                 values['code'] = Sequence.get_id(config.artist_sequence.id)
-        return super(Artist, cls).create(vlist)
+
+        acls = {}
+        elist = super(Artist, cls).create(vlist)
+        for entry in elist:
+            if entry.acl:
+                continue
+            # only normally created artists
+            if entry.entity_origin != 'direct':
+                continue
+            # solo
+            if entry.party and entry.party.web_user:
+                acls[entry.party.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': entry.party.web_user.id,
+                    'roles': default_roles
+                }
+            # group
+            for member in entry.solo_artists:
+                if not member.party or not member.party.web_user:
+                    continue
+                acls[member.party.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': member.party.web_user.id,
+                    'roles': default_roles
+                }
+            # always autocreate creator acl
+            if entry.entity_creator and entry.entity_creator.web_user:
+                acls[entry.entity_creator.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': entry.entity_creator.web_user.id,
+                    'roles': default_roles
+                }
+        AccessControlEntry.create(list(acls.values()))
+
+        return elist
 
     @classmethod
     def copy(cls, artists, default=None):
@@ -1027,6 +1066,57 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         default = default.copy()
         default['code'] = None
         return super(Artist, cls).copy(artists, default=default)
+
+    @classmethod
+    def write(cls, *args):
+        default_roles = [('add', [
+            r.id for r in
+            AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
+        actions = iter(args)
+        args = []
+        for artists, values in zip(actions, actions):
+            for artist in artists:
+                remaining = []
+                for action, member_ids in values.get('solo_artists', []):
+                    # add aces if not present
+                    if action == 'add':
+                        for member_id in member_ids:
+                            member = cls.search([('id', '=', member_id)])
+                            if not member:
+                                continue
+                            member = member[0]
+                            if not member.party or not member.party.web_user:
+                                continue
+                            remaining.append(member.party.web_user.id)
+                            ace = AccessControlEntry.search([
+                                ('entity', '=', str(artist)),
+                                ('web_user', '=', member.party.web_user)])
+                            if ace:  # keep existing ace
+                                continue
+                            AccessControlEntry.create([{
+                                'entity': str(artist),
+                                'web_user': member.party.web_user.id,
+                                'roles': default_roles}])
+                    # remove existing aces
+                    if action == 'remove':
+                        for member_id in member_ids:
+                            member = cls.search([('id', '=', member_id)])
+                            if not member:
+                                continue
+                            member = member[0]
+                            if not member.party or not member.party.web_user:
+                                continue
+                            # prevent deletion for members with same web_user
+                            if member.party.web_user.id in remaining:
+                                continue
+                            ace = AccessControlEntry.search([
+                                ('entity', '=', str(artist)),
+                                ('web_user', '=', member.party.web_user)])
+                            if not ace:
+                                continue
+                            AccessControlEntry.delete(ace)
+            args.extend((artists, values))
+        super(Artist, cls).write(*args)
 
     @classmethod
     def delete(cls, records):
@@ -1061,9 +1151,9 @@ class ArtistRelease(ModelSQL, ModelView):
     _history = True
 
     artist = fields.Many2One(
-        'artist', 'Artist', required=True)
+        'artist', 'Artist', required=True, ondelete='CASCADE')
     release = fields.Many2One(
-        'release', 'Release', required=True)
+        'release', 'Release', required=True, ondelete='CASCADE')
 
 
 class ArtistPayeeAcceptance(ModelSQL):
@@ -1235,13 +1325,31 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
         Configuration = Pool().get('collecting_society.configuration')
+        default_roles = [('add', [
+            r.id for r in
+            AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
             if not values.get('code'):
                 config = Configuration(1)
                 values['code'] = Sequence.get_id(config.creation_sequence.id)
-        return super(Creation, cls).create(vlist)
+
+        acls = {}
+        elist = super(Creation, cls).create(vlist)
+        for entry in elist:
+            if entry.acl:
+                continue
+            # always autocreate creator acl
+            if entry.entity_creator and entry.entity_creator.web_user:
+                acls[entry.entity_creator.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': entry.entity_creator.web_user.id,
+                    'roles': default_roles
+                }
+        AccessControlEntry.create(list(acls.values()))
+
+        return elist
 
     @classmethod
     def copy(cls, creations, default=None):
@@ -1526,13 +1634,31 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
         Configuration = Pool().get('collecting_society.configuration')
+        default_roles = [('add', [
+            r.id for r in
+            AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
             if not values.get('code'):
                 config = Configuration(1)
                 values['code'] = Sequence.get_id(config.release_sequence.id)
-        return super(Release, cls).create(vlist)
+
+        acls = {}
+        elist = super(Release, cls).create(vlist)
+        for entry in elist:
+            if entry.acl:
+                continue
+            # always autocreate creator acl
+            if entry.entity_creator and entry.entity_creator.web_user:
+                acls[entry.entity_creator.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': entry.entity_creator.web_user.id,
+                    'roles': default_roles
+                }
+        AccessControlEntry.create(list(acls.values()))
+
+        return elist
 
     @classmethod
     def copy(cls, releases, default=None):
@@ -1565,7 +1691,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def on_change_with_artists_list(self, name=None):
         artists = []
         for artistrelease in self.artists:
-            artists.append(artistrelease.artist.name)
+            if artistrelease.artist:
+                artists.append(artistrelease.artist.name)
         return ", ".join(artists)
 
     def get_producers(self, name):
@@ -1595,7 +1722,7 @@ class ReleaseTrack(ModelSQL, ModelView):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True)
+        'release', 'Release', required=True, ondelete='CASCADE')
     creation = fields.Many2One(
         'creation', 'Creation', required=True)
 
@@ -2412,13 +2539,31 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def create(cls, vlist):
         Sequence = Pool().get('ir.sequence')
         Configuration = Pool().get('collecting_society.configuration')
+        default_roles = [('add', [
+            r.id for r in
+            AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
             if not values.get('code'):
                 config = Configuration(1)
                 values['code'] = Sequence.get_id(config.content_sequence.id)
-        return super(Content, cls).create(vlist)
+
+        acls = {}
+        elist = super(Content, cls).create(vlist)
+        for entry in elist:
+            if entry.acl:
+                continue
+            # always autocreate creator acl
+            if entry.entity_creator and entry.entity_creator.web_user:
+                acls[entry.entity_creator.web_user.id] = {
+                    'entity': str(entry),
+                    'web_user': entry.entity_creator.web_user.id,
+                    'roles': default_roles
+                }
+        AccessControlEntry.create(list(acls.values()))
+
+        return elist
 
     @classmethod
     def copy(cls, contents, default=None):
@@ -2528,6 +2673,15 @@ class AccessControlEntry(ModelSQL, ModelView):
     @fields.depends('web_user')
     def get_party(self, name):
         return self.web_user.party.id
+
+    @classmethod
+    def __setup__(cls):
+        super(AccessControlEntry, cls).__setup__()
+        cls._sql_constraints += [
+            ('web_user_entity_uniq', 'UNIQUE("web_user", "entity")',
+                'Error!\n'
+                'An ACE for the web user and entity already exists.'),
+        ]
 
 
 class AccessControlEntryRole(ModelSQL, ModelView):

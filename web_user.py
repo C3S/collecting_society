@@ -118,22 +118,20 @@ class WebUser:
         Party = pool.get('party.party')
         Artist = pool.get('artist')
         WebUserRole = pool.get('web.user.role')
-
         licenser = WebUserRole.search([('code', '=', 'licenser')])
         if licenser:
-            licenser = licenser[0].id
+            licenser = licenser[0]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
             nickname = values.get('nickname')
-            roles = values.get('roles')
             email = values.get('email')
             user_email = email + ':::' + ''.join(
                 random.sample(string.lowercase, 10))
 
             # autocreate party
             if not values.get('party'):
-                party, = Party.create(
+                values['party'] = Party.create(
                     [
                         {
                             'name': nickname or email,
@@ -143,23 +141,7 @@ class WebUser:
                                     'value': email
                                 }]
                             )]
-                        }])
-
-                # autocreate first artist
-                if licenser and roles and licenser in roles[0][1] and nickname:
-                    artist, = Artist.create(
-                        [
-
-                            {
-                                'name': nickname,
-                                'party': party.id,
-                                'entity_creator': party.id,
-                                'claim_state': 'claimed'
-                            }])
-                    party.artists = [artist]
-                    party.default_solo_artist = artist.id
-                    party.save()
-                values['party'] = party.id
+                        }])[0].id
 
             # autocreate user
             if not values.get('user'):
@@ -172,7 +154,25 @@ class WebUser:
                             'active': False,
                         }])[0].id
 
-        return super(WebUser, cls).create(vlist)
+        elist = super(WebUser, cls).create(vlist)
+        for entry in elist:
+            # autocreate first artist
+            if licenser in entry.roles and entry.nickname:
+                artist, = Artist.create(
+                    [
+
+                        {
+                            'name': nickname,
+                            'party': entry.party.id,
+                            'entity_origin': 'direct',
+                            'entity_creator': entry.party.id,
+                            'claim_state': 'claimed'
+                        }])
+                entry.party.artists = [artist]
+                entry.party.default_solo_artist = artist.id
+                entry.party.save()
+
+        return elist
 
 
 class WebUserResUser(ModelSQL):

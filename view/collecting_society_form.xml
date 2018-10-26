@@ -11,7 +11,7 @@
     <label name="party"/>
     <field name="party" colspan="3"/>
     <newline/>
-    <group col="2" colspan="4" id="checkboxes">
+    <group col="2" colspan="4" id="represents">
         <label name="represents_copyright"/>
         <field name="represents_copyright"/>
         <label name="represents_ancillary_copyright"/>
