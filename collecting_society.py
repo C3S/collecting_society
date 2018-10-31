@@ -1565,8 +1565,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     styles = fields.Many2Many(
         'release-style', 'release', 'style', 'Styles',
         help='The styles of the release.')
-    number_mediums = fields.Integer(
-        'Number of Mediums', help='The number of mediums.')
     warning = fields.Char(
         'Warning', help='A warning note for this release.')
 
