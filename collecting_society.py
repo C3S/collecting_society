@@ -1368,7 +1368,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         ]
 
 
-class CreationDerivative(ModelSQL, ModelView):
+class CreationDerivative(ModelSQL, ModelView, PublicApi):
     'Creation - Original - Derivative'
     __name__ = 'creation.original.derivative'
     _history = True
@@ -1716,7 +1716,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         return societies
 
 
-class ReleaseTrack(ModelSQL, ModelView):
+class ReleaseTrack(ModelSQL, ModelView, PublicApi):
     'Release Track'
     __name__ = 'release.track'
     _history = True
