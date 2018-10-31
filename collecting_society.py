@@ -1524,6 +1524,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     type = fields.Selection(
         [
             ('artist', 'Artist Release'),
+            ('split', 'Split Release'),
             ('compilation', 'Compilation'),
         ], 'Release Type', required=True, help='The release type:\n\n'
         '*Artist Release*: The release belongs to one or more artists '
