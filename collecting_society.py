@@ -1187,6 +1187,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         depends=DEPENDS, help='All individual contributions to the creation '
         'like composition and lyric creators, band members and singer/solo '
         'artists and their role.')
+    lyrics = fields.Text(
+        'Lyrics', help='The lyrics of the creation.')
     licenses = fields.Function(
         fields.Many2Many(
             'release.track', 'creation', 'license', 'Licenses'),
@@ -2292,7 +2294,6 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         [
             ('audio', 'Audio'),
             ('sheet', 'Sheet Music'),
-            ('lyrics', 'Lyrics'),
         ], 'Category', required=True, help='The category of content.')
     creation = fields.Many2One(
         'creation', 'Creation', states=STATES, depends=DEPENDS,
@@ -2302,49 +2303,30 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     # file metadata
     name = fields.Char(
-        'File Name', help='The name of the file.',
-        states={'invisible': Eval('category') == 'lyrics'},
-        depends=['category'])
+        'File Name', help='The name of the file.')
     extension = fields.Function(
-        fields.Char(
-            'Extension', states={
-                'invisible': Eval('category') == 'lyrics'},
-            depends=['category']),
-        'on_change_with_extension')
+        fields.Char('Extension'), 'on_change_with_extension')
     size = fields.BigInteger(
-        'Size', help='The size of the content in Bytes.',
-        states={'invisible': Eval('category') == 'lyrics'},
-        depends=['category'])
+        'Size', help='The size of the content in Bytes.')
     mime_type = fields.Char(
-        'Mime Type', help='The media or content type.',
-        states={'invisible': Eval('category') == 'lyrics'},
-        depends=['category'])
+        'Mime Type', help='The media or content type.')
     checksums = fields.One2Many(
         'checksum', 'origin', 'Checksums',
-        help='The checksums of the content.',
-        states={'invisible': Eval('category') == 'lyrics'},
-        depends=['category'])
+        help='The checksums of the content.')
 
     # file processing
-    path = fields.Char('Path', states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                Eval('processing_state') == 'deleted',
-            )
-        }, depends=['processing_state', 'category'])
-    preview_path = fields.Char('Preview Path', states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                Eval('processing_state') == 'deleted'
-            )
-        }, depends=['processing_state', 'category'])
+    path = fields.Char(
+        'Path', states={
+            'invisible': Eval('processing_state') == 'deleted'
+        }, depends=['processing_state'])
+    preview_path = fields.Char(
+        'Preview Path', states={
+            'invisible': Eval('processing_state') == 'deleted'
+        }, depends=['processing_state'])
     filesystem_label = fields.Many2One(
         'harddisk.filesystem.label', 'Filesystem Label', states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                Eval('processing_state') != 'archived'
-            )
-        }, depends=['processing_state', 'category'],
+            'invisible': Eval('processing_state') != 'archived'
+        }, depends=['processing_state'],
         help='The Filesystem Label of the Content.')
     processing_state = fields.Selection(
         [
@@ -2358,29 +2340,23 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             ('deleted', 'Deleted'),
             ('rejected', 'Rejected'),
             ('unknown', 'Unknown'),
-        ], 'State',
-        states={
-            'invisible': Eval('category') == 'lyrics',
-            'required': Eval('category') != 'lyrics'
-        }, depends=['category'],
+        ], 'State', states={'required': True},
         help='The processing state of the content.')
     processing_hostname = fields.Char(
         'Processor', states={
             'invisible': Or(
-                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted',
                 Eval('processing_state') == 'archived'
             )
-        }, depends=['processing_state', 'category'],
+        }, depends=['processing_state'],
         help='The hostname of the processing machine.')
     storage_hostname = fields.Char(
         'Storage', states={
             'invisible': Or(
-                Eval('category') == 'lyrics',
                 Eval('processing_state') == 'deleted',
                 Eval('processing_state') == 'archived'
             )
-        }, depends=['processing_state', 'category'],
+        }, depends=['processing_state'],
         help='The hostname of the storage machine.')
     rejection_reason = fields.Selection(
         [
@@ -2392,37 +2368,27 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             ('lossy_compression', 'Lossy Compression'),
             ('missing_database_record', 'Missing Database Record'),
         ], 'Reason', states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                Eval('processing_state') != 'rejected'
-            ),
+            'invisible': Eval('processing_state') != 'rejected',
             'required': Eval('processing_state') == 'rejected'
-        }, depends=['processing_state', 'category'],
+        }, depends=['processing_state'],
         help='The reason of the rejection.')
     rejection_reason_details = fields.Text(
         'Details', help='Rejection Explanation',
-        states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                Eval('processing_state') != 'rejected'
-            )
-        }, depends=['category'])
+        states={'invisible': Eval('processing_state') != 'rejected'},
+        depends=['processing_state'])
     duplicate_of = fields.Many2One(
         'content', 'Duplicate of',
         domain=[('duplicate_of', '=', None)],
         states={
-            'invisible': Or(
-                Eval('category') == 'lyrics',
-                And(
-                    Eval('rejection_reason') != 'checksum_collision',
-                    Eval('rejection_reason') != 'fingerprint_collision'
-                )
+            'invisible': And(
+                Eval('rejection_reason') != 'checksum_collision',
+                Eval('rejection_reason') != 'fingerprint_collision'
             ),
             'required': Or(
                 Eval('rejection_reason') == 'checksum_collision',
                 Eval('rejection_reason') == 'fingerprint_collision',
             )
-        }, depends=['processing_state', 'rejection_reason', 'category'],
+        }, depends=['rejection_reason'],
         help='The original duplicated Content.')
     duplicates = fields.One2Many(
         'content', 'duplicate_of', 'Duplicates',
@@ -2431,22 +2397,8 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 'rejection_reason', 'in',
                 ['checksum_collision', 'fingerprint_collision']
             ),
-        ], states={
-            'invisible': Eval('category') == 'lyrics',
-        }, depends=['rejection_reason', 'category'],
-        help='The original duplicated Content.')
-    mediation = fields.Boolean(
-        'Mediation', depends=['category'],
-        states={'invisible': Eval('category') == 'lyrics'})
-
-    # --- LYRICS --------------------------------------------------------------
-
-    lyrics = fields.Char(
-        'Lyrics', help='The Lyrics of a creation.', depends=['category'],
-        states={
-            'invisible': Eval('category') != 'lyrics',
-            'required': Eval('category') == 'lyrics'
-        })
+        ], help='The original duplicated Content.')
+    mediation = fields.Boolean('Mediation')
 
     # --- SHEET ---------------------------------------------------------------
 

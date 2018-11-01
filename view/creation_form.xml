@@ -42,6 +42,9 @@
             <field name="genres"/>
             <field name="styles"/>
         </page>
+        <page string="Lyrics" id="lyrics">
+            <field name="lyrics" colspan="8"/>
+        </page>
         <page string="Access" id="access" col="6">
             <field name="acl" colspan="6"/>
             <label name="entity_origin"/>
