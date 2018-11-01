@@ -185,7 +185,7 @@ class AccessControlList(object):
         states=STATES, depends=DEPENDS,
         help='A list of acces control entries with object permissions.')
 
-    def permits(self, web_user, code):
+    def permits(self, web_user, code, derive=True):
         for ace in self.acl:
             if ace.web_user != web_user:
                 continue
@@ -1367,6 +1367,26 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             ('title',) + tuple(clause[1:]),
         ]
 
+    def permits(self, web_user, code, derive=True):
+        if super(Creation, self).permits(web_user, code, derive):
+            return True
+        if not derive:
+            return False
+        derivation = {
+            'view_creation':   'view_artist_creations',
+            'edit_creation':   'edit_artist_creations',
+            'delete_creation': 'delete_artist_creations',
+        }
+        if self.artist:
+            for ace in self.artist.acl:
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code == derivation[code]:
+                            return True
+        return False
+
 
 class CreationDerivative(ModelSQL, ModelView, PublicApi):
     'Creation - Original - Derivative'
@@ -1713,6 +1733,26 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 if performance and society:
                     societies.append(society.id)
         return societies
+
+    def permits(self, web_user, code, derive=True):
+        if super(Release, self).permits(web_user, code, derive):
+            return True
+        if not derive:
+            return False
+        derivation = {
+            'view_release':   'view_artist_releases',
+            'edit_release':   'edit_artist_releases',
+            'delete_release': 'delete_artist_releases',
+        }
+        for artist in self.artists:
+            for ace in artist.acl:
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code == derivation[code]:
+                            return True
+        return False
 
 
 class ReleaseTrack(ModelSQL, ModelView, PublicApi):
@@ -2600,6 +2640,26 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             ('uuid',) + tuple(clause[1:]),
             ('name',) + tuple(clause[1:]),
         ]
+
+    def permits(self, web_user, code, derive=True):
+        if super(Content, self).permits(web_user, code, derive):
+            return True
+        if not derive:
+            return False
+        derivation = {
+            'view_content':   'view_artist_content',
+            'edit_content':   'edit_artist_content',
+            'delete_content': 'delete_artist_content',
+        }
+        if self.creation and self.creation.artist:
+            for ace in self.creation.artist.acl:
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code == derivation[code]:
+                            return True
+        return False
 
 
 class Checksum(ModelSQL, ModelView):
