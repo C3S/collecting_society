@@ -33,8 +33,6 @@
                 <field name="picture_data" xexpand="0"/>
             </group>
             <group id="medium" colspan="3" col="2">
-                <label name="number_mediums"/>
-                <field name="number_mediums"/>
                 <label name="warning"/>
                 <field name="warning"/>
             </group>

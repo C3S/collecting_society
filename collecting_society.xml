@@ -855,7 +855,7 @@
         -->
 
         <!-- Views: Artist Releases -->
-        <record model="ir.ui.view" id="artist_release_form">
+        <!-- <record model="ir.ui.view" id="artist_release_form">
             <field name="model">artist-release</field>
             <field name="type">form</field>
             <field name="name">artist_release_form</field>
@@ -887,7 +887,7 @@
             <field name="sequence" eval="20"/>
             <field name="view" ref="artist_release_form"/>
             <field name="act_window" ref="act_artist_release"/>
-        </record>
+        </record> -->
 
 
         <!-- Menue: Releases -->

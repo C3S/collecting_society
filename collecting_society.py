@@ -1145,15 +1145,14 @@ class ArtistArtist(ModelSQL):
         'artist', 'Solo Artist', required=True, select=True)
 
 
-class ArtistRelease(ModelSQL, ModelView):
+class ArtistRelease(ModelSQL):
     'ArtistRelease'
     __name__ = 'artist-release'
     _history = True
-
     artist = fields.Many2One(
-        'artist', 'Artist', required=True, ondelete='CASCADE')
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
     release = fields.Many2One(
-        'release', 'Release', required=True, ondelete='CASCADE')
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
 class ArtistPayeeAcceptance(ModelSQL):
@@ -1555,8 +1554,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'compilation and usually contains various artists.')
 
     # artists
-    artists = fields.One2Many(
-        'artist-release', 'release', 'Artists',
+    artists = fields.Many2Many(
+        'artist-release', 'release', 'artist', 'Artists',
         help='The artists, to which the release belongs.',
         states={
             'required': Eval('type') == 'artist',
@@ -1711,9 +1710,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     @fields.depends('artists')
     def on_change_with_artists_list(self, name=None):
         artists = []
-        for artistrelease in self.artists:
-            if artistrelease.artist:
-                artists.append(artistrelease.artist.name)
+        for artist in self.artists:
+            artists.append(artist.name)
         return ", ".join(artists)
 
     def get_producers(self, name):
@@ -1763,9 +1761,9 @@ class ReleaseTrack(ModelSQL, ModelView, PublicApi):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, ondelete='CASCADE')
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One(
-        'creation', 'Creation', required=True)
+        'creation', 'Creation', required=True, select=True, ondelete='CASCADE')
 
     title = fields.Char(
         'Title', select=True, states={'required': True},
