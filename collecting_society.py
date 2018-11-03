@@ -1591,6 +1591,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'Warning', help='A warning note for this release.')
 
     # production
+    isrc_code = fields.Char(
+        'ISRC Code',
+        help='The International Standard Recording Code of the release')
     copyright_date = fields.Date(
         'Copyright Date', help='Date of the copyright.')
     # copyright_owners = fields.Many2One(
@@ -1605,9 +1608,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     # distribution
     ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
-    isrc_code = fields.Char(
-        'ISRC Code',
-        help='The International Standard Recording Code of the release')
     release_date = fields.Date('Release Date', help='Date of (first) release.')
     release_cancellation_date = fields.Date(
         'Release Cancellation Date', help='Date of release cancellation')
@@ -1722,7 +1722,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 producing = (contribution.performance == 'producing')
                 if performance and producing:
                     producers.append(contribution.artist.id)
-        return producers
+        return list(set(producers))
 
     def get_neighbouring_rights_societies(self, name):
         societies = []
@@ -1732,7 +1732,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 society = contribution.neighbouring_rights_society
                 if performance and society:
                     societies.append(society.id)
-        return societies
+        return list(set(societies))
 
     def permits(self, web_user, code, derive=True):
         if super(Release, self).permits(web_user, code, derive):
