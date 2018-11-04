@@ -195,7 +195,7 @@ class AccessControlList(object):
                         return True
         return False
 
-    def permissions(self, web_user, valid_codes=False):
+    def permissions(self, web_user, valid_codes=False, derive=True):
         permissions = set()
         for ace in self.acl:
             if ace.web_user != web_user:
@@ -1388,6 +1388,34 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
+    def permissions(self, web_user, valid_codes=False, derive=True):
+        direct_permissions = super(Creation, self).permissions(
+            web_user, valid_codes, derive)
+        if not derive:
+            return direct_permissions
+        derivation = {
+            'view_artist_creations':   'view_creation',
+            'edit_artist_creations':   'edit_creation',
+            'delete_artist_creations': 'delete_creation',
+        }
+        if not set(valid_codes).intersection(set(derivation.values())):
+            return direct_permissions
+        permissions = set(direct_permissions)
+        if self.artist:
+            for ace in self.artist.acl:
+                if not derivation:
+                    continue
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code in derivation:
+                            permissions.add(derivation[permission.code])
+                            del derivation[permission.code]
+            if valid_codes:
+                permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
+
 
 class CreationDerivative(ModelSQL, ModelView, PublicApi):
     'Creation - Original - Derivative'
@@ -1751,6 +1779,34 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                         if permission.code == derivation[code]:
                             return True
         return False
+
+    def permissions(self, web_user, valid_codes=False, derive=True):
+        direct_permissions = super(Release, self).permissions(
+            web_user, valid_codes, derive)
+        if not derive:
+            return direct_permissions
+        derivation = {
+            'view_artist_releases':   'view_release',
+            'edit_artist_releases':   'edit_release',
+            'delete_artist_releases': 'delete_release',
+        }
+        if not set(valid_codes).intersection(set(derivation.values())):
+            return direct_permissions
+        permissions = set(direct_permissions)
+        for artist in self.artists:
+            for ace in artist.acl:
+                if not derivation:
+                    continue
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code in derivation:
+                            permissions.add(derivation[permission.code])
+                            del derivation[permission.code]
+            if valid_codes:
+                permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
 
 
 class ReleaseTrack(ModelSQL, ModelView, PublicApi):
@@ -2608,6 +2664,34 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                         if permission.code == derivation[code]:
                             return True
         return False
+
+    def permissions(self, web_user, valid_codes=False, derive=True):
+        direct_permissions = super(Content, self).permissions(
+            web_user, valid_codes, derive)
+        if not derive:
+            return direct_permissions
+        derivation = {
+            'view_artist_content':   'view_content',
+            'edit_artist_content':   'edit_content',
+            'delete_artist_content': 'delete_content',
+        }
+        if not set(valid_codes).intersection(set(derivation.values())):
+            return direct_permissions
+        permissions = set(direct_permissions)
+        if self.creation and self.creation.artist:
+            for ace in self.creation.artist.acl:
+                if not derivation:
+                    continue
+                if ace.web_user != web_user:
+                    continue
+                for role in ace.roles:
+                    for permission in role.permissions:
+                        if permission.code in derivation:
+                            permissions.add(derivation[permission.code])
+                            del derivation[permission.code]
+            if valid_codes:
+                permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
 
 
 class Checksum(ModelSQL, ModelView):
