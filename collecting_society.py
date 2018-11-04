@@ -302,7 +302,7 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
         ]
 
 
-class TariffCategory(ModelSQL, ModelView, CurrentState):
+class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff Category'
     __name__ = 'tariff_system.category'
     _history = True
@@ -1547,7 +1547,7 @@ class CreationRole(ModelSQL, ModelView, EntityOrigin):
         'Description', translate=True, help='The description of the role')
 
 
-class CreationTariffCategory(ModelSQL, ModelView):
+class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
     'Creation - Tariff Category'
     __name__ = 'creation-tariff_category'
     _history = True
