@@ -1048,6 +1048,39 @@
                   action="act_creation"
                   id="menu_creation"/>
 
+        <!-- Menue: Creations / Tariff Category -->
+        <record model="ir.ui.view" id="creation_tariff_category_form">
+            <field name="model">creation-tariff_category</field>
+            <field name="type">form</field>
+            <field name="name">creation_tariff_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_tariff_category_list">
+            <field name="model">creation-tariff_category</field>
+            <field name="type">tree</field>
+            <field name="name">creation_tariff_category_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_tariff_category">
+            <field name="name">Tariff Category</field>
+            <field name="res_model">creation-tariff_category</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_tariff_category_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_tariff_category_list"/>
+            <field name="act_window" ref="act_creation_tariff_category"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_tariff_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_tariff_category_form"/>
+            <field name="act_window" ref="act_creation_tariff_category"/>
+        </record>
+        <menuitem parent="menu_creation" sequence="10"
+                  action="act_creation_tariff_category"
+                  id="menu_creation_tariff_category"/>
+
         <!-- Menue: Creations / Derivatives -->
         <record model="ir.ui.view" id="creation_derivative_form">
             <field name="model">creation.original.derivative</field>
@@ -1077,7 +1110,7 @@
             <field name="view" ref="creation_derivative_form"/>
             <field name="act_window" ref="act_creation_derivative"/>
         </record>
-        <menuitem parent="menu_creation" sequence="10"
+        <menuitem parent="menu_creation" sequence="20"
                   action="act_creation_derivative"
                   id="menu_creation_derivative"/>
 
@@ -1110,7 +1143,7 @@
             <field name="view" ref="creation_contribution_form"/>
             <field name="act_window" ref="act_creation_contribution"/>
         </record>
-        <menuitem parent="menu_creation" sequence="20"
+        <menuitem parent="menu_creation" sequence="30"
                   action="act_creation_contribution"
                   id="menu_creation_contribution"/>
 
@@ -1144,7 +1177,7 @@
             <field name="view" ref="creation_contribution_role_form"/>
             <field name="act_window" ref="act_creation_contribution_role"/>
         </record>
-        <menuitem parent="menu_creation" sequence="30"
+        <menuitem parent="menu_creation" sequence="40"
                   action="act_creation_contribution_role"
                   id="menu_creation_contribution_role"/>
 

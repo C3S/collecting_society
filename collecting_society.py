@@ -1225,8 +1225,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     content = fields.One2Many(
         'content', 'creation', 'Content',
         help='Content associated with the creation.')
-    tariff_categories = fields.Many2Many(
-        'creation-tariff_category', 'creation', 'category', 'Tariff Category',
+    tariff_categories = fields.One2Many(
+        'creation-tariff_category', 'creation', 'Tariff Category',
         help='Tariff categories of the creation.')
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
@@ -1236,7 +1236,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def on_change_with_tariff_categories_list(self, name=None):
         tariff_categories = ''
         for tariff_category in self.tariff_categories:
-            tariff_categories += '%s, ' % tariff_category.code
+            tariff_categories += '%s, ' % tariff_category.category.code
         return tariff_categories.rstrip(', ')
 
     @classmethod
@@ -1557,6 +1557,7 @@ class CreationTariffCategory(ModelSQL, ModelView):
     category = fields.Many2One(
         'tariff_system.category', 'Category', required=True,
         ondelete='CASCADE')
+
     collecting_society = fields.Many2One(
         'collecting_society', 'Collecting Society', ondelete='CASCADE')
 
