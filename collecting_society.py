@@ -1264,7 +1264,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         for releasecreation in self.releases:
             if releasecreation.license:
                 licenses.append(releasecreation.license.id)
-        return licenses
+        return list(set(licenses))
 
     def get_license(self, name):
         license = None
@@ -1525,14 +1525,12 @@ class CreationTariffCategory(ModelSQL, ModelView):
     _history = True
 
     creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True,
-        ondelete='CASCADE')
+        'creation', 'Creation', required=True, ondelete='CASCADE')
     category = fields.Many2One(
-        'tariff_system.category', 'Category', required=True, select=True,
+        'tariff_system.category', 'Category', required=True,
         ondelete='CASCADE')
     collecting_society = fields.Many2One(
-        'collecting_society', 'Collecting Society', select=True,
-        ondelete='CASCADE')
+        'collecting_society', 'Collecting Society', ondelete='CASCADE')
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
