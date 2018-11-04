@@ -1536,7 +1536,7 @@ class CreationContributionRole(ModelSQL, ModelView):
     role = fields.Many2One('creation.role', 'Role', required=True, select=True)
 
 
-class CreationRole(ModelSQL, ModelView, EntityOrigin):
+class CreationRole(ModelSQL, ModelView, EntityOrigin, PublicApi):
     'Creation Role'
     __name__ = 'creation.role'
     _history = True
