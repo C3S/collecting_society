@@ -1140,9 +1140,11 @@ class ArtistArtist(ModelSQL):
     __name__ = 'artist-artist'
     _history = True
     group_artist = fields.Many2One(
-        'artist', 'Group Artist', required=True, select=True)
+        'artist', 'Group Artist', required=True, select=True,
+        ondelete='CASCADE')
     solo_artist = fields.Many2One(
-        'artist', 'Solo Artist', required=True, select=True)
+        'artist', 'Solo Artist', required=True, select=True,
+        ondelete='CASCADE')
 
 
 class ArtistRelease(ModelSQL):
@@ -1423,9 +1425,11 @@ class CreationDerivative(ModelSQL, ModelView, PublicApi):
     _history = True
 
     original_creation = fields.Many2One(
-        'creation', 'Original Creation', select=True, required=True)
+        'creation', 'Original Creation', select=True, required=True,
+        ondelete='CASCADE')
     derivative_creation = fields.Many2One(
-        'creation', 'Derivative Creation', select=True, required=True)
+        'creation', 'Derivative Creation', select=True, required=True,
+        ondelete='CASCADE')
     allocation_type = fields.Selection(
         [
             (None, ''),
@@ -1446,10 +1450,11 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
     _history = True
 
     creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True)
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
     artist = fields.Many2One(
         'artist', 'Artist', help='The involved artist contributing to the '
-        'creation')
+        'creation', ondelete='CASCADE')
     type = fields.Selection(
         [
             ('performance', 'Performance'),
@@ -1532,8 +1537,11 @@ class CreationContributionRole(ModelSQL, ModelView):
     _history = True
 
     contribution = fields.Many2One(
-        'creation.contribution', 'Contribution', required=True, select=True)
-    role = fields.Many2One('creation.role', 'Role', required=True, select=True)
+        'creation.contribution', 'Contribution', required=True, select=True,
+        ondelete='CASCADE')
+    role = fields.Many2One(
+        'creation.role', 'Role', required=True, select=True,
+        ondelete='CASCADE')
 
 
 class CreationRole(ModelSQL, ModelView, EntityOrigin, PublicApi):
@@ -1720,9 +1728,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         for record in records:
             if record.genres:
                 record.genres = []
-                record.save()
-            if record.tracks:
-                record.tracks = []
                 record.save()
         return super(Release, cls).delete(records)
 
