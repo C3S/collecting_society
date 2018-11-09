@@ -3,6 +3,7 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tryton>
     <data>
+        <!--
         <record model="ir.ui.view" id="oauth_provider_client_form">
             <field name="model">oauth2.provider.client</field>
             <field name="type">form</field>
@@ -130,5 +131,6 @@
         <menuitem parent="menu_oauth_provider_client"
             action="act_oauth_provider_token"
             id="menu_oauth_provider_token"/>
+        -->
     </data>
 </tryton>

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Filesystem">
+    <label name="label"/>
+    <field name="label"/>
+    <label name="closed"/>
+    <field name="closed"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
+    <newline/>
+    <label name="harddisk"/>
+    <field name="harddisk"/>
+    <label name="partition_number"/>
+    <field name="partition_number"/>
+    <newline/>
+    <label name="uuid_partition"/>
+    <field name="uuid_partition"/>
+    <label name="checksum_partition"/>
+    <field name="checksum_partition"/>
+    <newline/>
+    <label name="uuid_raid"/>
+    <field name="uuid_raid"/>
+    <label name="checksum_raid"/>
+    <field name="checksum_raid"/>
+    <newline/>
+    <label name="uuid_raid_sub"/>
+    <field name="uuid_raid_sub"/>
+    <label name="checksum_raid_sub"/>
+    <field name="checksum_raid_sub"/>
+    <newline/>
+    <label name="uuid_crypto"/>
+    <field name="uuid_crypto"/>
+    <label name="checksum_crypto"/>
+    <field name="checksum_crypto"/>
+    <newline/>
+    <label name="uuid_lvm"/>
+    <field name="uuid_lvm"/>
+    <label name="checksum_lvm"/>
+    <field name="checksum_lvm"/>
+    <newline/>
+    <label name="uuid_filesystem"/>
+    <field name="uuid_filesystem"/>
+    <label name="checksum_filesystem"/>
+    <field name="checksum_filesystem"/>
+</form>

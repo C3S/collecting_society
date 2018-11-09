@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Harddisktests">
+    <label name="harddisk"/>
+    <field name="harddisk"/>
+    <label name="user"/>
+    <field name="user"/>
+    <newline/>
+    <label name="timestamp"/>
+    <field name="timestamp"/>
+    <label name="status"/>
+    <field name="status"/>
+</form>

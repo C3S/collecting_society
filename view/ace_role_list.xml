@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Creation - Original - Derivative">
-    <field name="original_creation"/>
-    <field name="derivative_creation"/>
-    <field name="allocation_type"/>
+<tree string="Roles">
+    <field name="name" expand="1"/>
+    <field name="description" expand="1"/>
+    <field name="permissions_list" expand="1"/>
 </tree>

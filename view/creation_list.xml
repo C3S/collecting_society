@@ -5,7 +5,10 @@
     <field name="code"/>
     <field name="title"/>
     <field name="artist"/>
-    <field name="contributions"/>
-    <field name="licenses"/>
+    <field name="releases"/>
+    <field name="content"/>
+    <field name="tariff_categories_list"/>
+    <field name="commit_state"/>
+    <field name="claim_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

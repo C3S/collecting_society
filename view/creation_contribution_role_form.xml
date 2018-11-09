@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Role" col="8">
+    <label name="name"/>
+    <field name="name" colspan="7"/>
+    <separator name="description" colspan="8"/>
+    <field name="description" colspan="8"/>
+    <notebook colspan="8">    
+        <page string="Owner" id="owner" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+        </page>
+    </notebook>
+</form>

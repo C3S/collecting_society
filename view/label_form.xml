@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Label" col="8">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="party"/>
+    <field name="party"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
+    <notebook colspan="8">
+        <page string="Codes" id="codes" col="6">
+            <label name="gvl_code"/>
+            <field name="gvl_code"/>
+        </page>    
+        <page string="Owner" id="owner" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+        </page>
+    </notebook>
+
+</form>

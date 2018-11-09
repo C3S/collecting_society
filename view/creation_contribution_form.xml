@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creation Contribution">
+<form string="Contribution">
     <label name="creation"/>
     <field name="creation"/>
     <newline/>
@@ -9,6 +9,13 @@
     <field name="artist"/>
     <label name="type"/>
     <field name="type"/>
-    <label name="roles_list"/>
+    <newline/>
+    <label name="performance"/>
+    <field name="performance"/>
+    <label name="collecting_society"/>
+    <field name="collecting_society"/>
+    <label name="neighbouring_rights_society"/>
+    <field name="neighbouring_rights_society"/>
+    <newline/>
     <field name="roles" colspan="4"/>
 </form>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Tariffs">
+    <field name="code" expand="1"/>
+    <field name="version"/>
+    <field name="valid_from"/>
+    <field name="valid_through"/>
+    <field name="transitional_through"/>
+    <field name="active" tree_invisible="1"/>
+</tree>

@@ -22,7 +22,6 @@ __all__ = [
     'WebUserWebUserRole',
     'WebUserParty',
 ]
-__metaclass__ = PoolMeta
 _OPT_IN_STATES = [
     ('new', 'New'),
     ('mail-sent', 'Mail Sent'),
@@ -34,6 +33,7 @@ _OPT_IN_STATES = [
 class WebUserRole(ModelSQL, ModelView):
     "Web User Role"
     __name__ = 'web.user.role'
+    _history = True
 
     name = fields.Char(
         'Name', required=True, select=True, translate=True,
@@ -44,7 +44,9 @@ class WebUserRole(ModelSQL, ModelView):
 
 
 class WebUser:
+    __metaclass__ = PoolMeta
     __name__ = 'web.user'
+    _history = True
     _rec_name = 'email'
     nickname = fields.Char(
         'Nickname', help='The name shown to other users')
@@ -56,14 +58,13 @@ class WebUser:
         'web.user-party.party', 'user', 'party', 'Party',
         states={'required': Greater(Eval('active_id', -1), 0)},
         help='The party of the web user')
-    pocket_account = fields.Many2One(
-        'account.account', 'Account')
     clients = fields.One2Many('client', 'web_user', 'Clients')
     roles = fields.Many2Many(
         'web.user-web.user.role', 'user', 'role', 'Roles')
     default_role = fields.Selection('get_roles', 'Default Role')
-    show_creative_info = fields.Boolean(
-        'Show Creative Info', help='Check, if the infobox is shown')
+    acl = fields.One2Many(
+        'ace', 'web_user', 'Access Control List',
+        help="The permissions for a web user.")
     picture_data = fields.Binary(
         'Picture Data', help='Picture Data')
     picture_data_mime_type = fields.Char(
@@ -80,6 +81,11 @@ class WebUser:
         help='The universally unique identifier of the opt-in of a web user')
     opt_in_timestamp = fields.DateTime('Date of Opt-in')
     opt_out_timestamp = fields.DateTime('Date of Opt-out')
+    abuse_rank = fields.Integer(
+        'Abuse Rank', help='Times of potential abuse.')
+    new_email = fields.Char(
+        'New Email', help='On profile change, the new email '
+        'stays here till the user clicks the activation link')
 
     @classmethod
     def __setup__(cls):
@@ -90,10 +96,6 @@ class WebUser:
             ('opt_in_uuid_uniq', 'UNIQUE(opt_in_uuid)',
                 'The opt-in UUID of the Webuser must be unique.'),
         ]
-
-    @staticmethod
-    def default_show_creative_info():
-        return True
 
     @staticmethod
     def default_opt_in_state():
@@ -114,148 +116,63 @@ class WebUser:
         pool = Pool()
         User = pool.get('res.user')
         Party = pool.get('party.party')
+        Artist = pool.get('artist')
+        WebUserRole = pool.get('web.user.role')
+        licenser = WebUserRole.search([('code', '=', 'licenser')])
+        if licenser:
+            licenser = licenser[0]
 
         vlist = [x.copy() for x in vlist]
         for values in vlist:
+            nickname = values.get('nickname')
             email = values.get('email')
             user_email = email + ':::' + ''.join(
                 random.sample(string.lowercase, 10))
+
+            # autocreate party
             if not values.get('party'):
                 values['party'] = Party.create(
-                    [{'name': email}])[0].id
+                    [
+                        {
+                            'name': nickname or email,
+                            'contact_mechanisms': [(
+                                'create', [{
+                                    'type': 'email',
+                                    'value': email
+                                }]
+                            )]
+                        }])[0].id
+
+            # autocreate user
             if not values.get('user'):
                 values['user'] = User.create(
                     [
                         {
-                            'name': user_email,
+                            'name': nickname or user_email,
                             'login': user_email,
                             'email': email,
                             'active': False,
                         }])[0].id
 
-        return super(WebUser, cls).create(vlist)
+        elist = super(WebUser, cls).create(vlist)
+        for entry in elist:
+            # autocreate first artist
+            if licenser in entry.roles and entry.nickname:
+                artist, = Artist.create(
+                    [
 
-    @classmethod
-    def get_balance(cls, items, names):
-        '''
-        Function to compute hat balance for artist
-        or pocket balance party items.
-        '''
-        res = {}
-        pool = Pool()
-        MoveLine = pool.get('account.move.line')
-        Account = pool.get('account.account')
-        User = pool.get('res.user')
-        cursor = Transaction().cursor
+                        {
+                            'name': nickname,
+                            'party': entry.party.id,
+                            'entity_origin': 'direct',
+                            'entity_creator': entry.party.id,
+                            'claim_state': 'claimed'
+                        }])
+                entry.party.artists = [artist]
+                entry.party.default_solo_artist = artist.id
+                entry.party.save()
 
-        line = MoveLine.__table__()
-        account = Account.__table__()
-
-        for name in names:
-            if name not in ('hat_balance', 'pocket_balance'):
-                raise Exception('Bad argument')
-            res[name] = dict((i.id, Decimal('0.0')) for i in items)
-
-        user_id = Transaction().user
-        if user_id == 0 and 'user' in Transaction().context:
-            user_id = Transaction().context['user']
-        user = User(user_id)
-        if not user.company:
-            return res
-        company_id = user.company.id
-
-        with Transaction().set_context(posted=False):
-            line_query, _ = MoveLine.query_get(line)
-        clause = ()
-        if name == 'hat_balance':
-            field = line.artist
-            clause = line.artist.in_([i.id for i in items])
-        if name == 'pocket_balance':
-            field = line.party
-            clause = line.party.in_([i.id for i in items])
-        for name in names:
-            query = line.join(
-                account, condition=account.id == line.account).select(
-                    field,
-                    Sum(Coalesce(line.debit, 0) - Coalesce(line.credit, 0)),
-                    where=account.active
-                    & (account.kind == name[:-8])
-                    & clause
-                    & (line.reconciliation == None)
-                    & (account.company == company_id)
-                    & line_query,
-                    group_by=field)
-            cursor.execute(*query)
-            for id_, sum in cursor.fetchall():
-                # SQLite uses float for SUM
-                if not isinstance(sum, Decimal):
-                    sum = Decimal(str(sum))
-                res[name][id_] = - sum
-        return res
-
-    @classmethod
-    def search_balance(cls, name, clause):
-        pool = Pool()
-        MoveLine = pool.get('account.move.line')
-        Account = pool.get('account.account')
-        Company = pool.get('company.company')
-        User = pool.get('res.user')
-
-        line = MoveLine.__table__()
-        account = Account.__table__()
-
-        if name not in ('hat_balance', 'pocket_balance'):
-            raise Exception('Bad argument')
-
-        company_id = None
-        user_id = Transaction().user
-        if user_id == 0 and 'user' in Transaction().context:
-            user_id = Transaction().context['user']
-        user = User(user_id)
-        if Transaction().context.get('company'):
-            child_companies = Company.search(
-                [
-                    ('parent', 'child_of', [user.main_company.id]),
-                ])
-            if Transaction().context['company'] in child_companies:
-                company_id = Transaction().context['company']
-
-        if not company_id:
-            if user.company:
-                company_id = user.company.id
-            elif user.main_company:
-                company_id = user.main_company.id
-
-        if not company_id:
-            return []
-
-        line_query, _ = MoveLine.query_get(line)
-        Operator = fields.SQL_OPERATORS[clause[1]]
-        if name == 'hat_balance':
-            field = line.artist
-            where_clause = (line.artist != None)
-            sign = -1
-        if name == 'pocket_balance':
-            field = line.party
-            where_clause = (line.party != None)
-            sign = 1
-        query = line.join(
-            account, condition=account.id == line.account).select(
-                field,
-                where=account.active
-                & (account.kind == 'hat')
-                & where_clause
-                & (line.reconciliation == None)
-                & (account.company == company_id)
-                & line_query,
-                group_by=field,
-                having=Operator(
-                    Mul(
-                        sign, Sum(
-                            Coalesce(line.debit, 0)
-                            - Coalesce(line.credit, 0))),
-                    Decimal(clause[2] or 0)))
-        return [('id', 'in', query)]
+        return elist
 
 
 class WebUserResUser(ModelSQL):
@@ -275,7 +192,7 @@ class WebUserResUser(ModelSQL):
                 'Error!\n'
                 'A web user can only be linked to one Tryton user.\n'
                 'The used web user is already linked to another Tryton user.'),
-            ('party_uniq', 'UNIQUE("res_user")',
+            ('res_user_uniq', 'UNIQUE("res_user")',
                 'Error!\n'
                 'A Tryton user can only be linked to one web user.\n'
                 'The used Tryton user is already linked to another web user.'),
@@ -285,6 +202,7 @@ class WebUserResUser(ModelSQL):
 class WebUserWebUserRole(ModelSQL, ModelView):
     "Web User - Web User Role"
     __name__ = 'web.user-web.user.role'
+    _history = True
 
     user = fields.Many2One(
         'web.user', 'User', ondelete='CASCADE', select=True, required=True)
@@ -294,7 +212,9 @@ class WebUserWebUserRole(ModelSQL, ModelView):
 
 
 class WebUserParty:
+    __metaclass__ = PoolMeta
     __name__ = 'web.user-party.party'
+    _history = True
 
     @classmethod
     def __setup__(cls):

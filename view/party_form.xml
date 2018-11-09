@@ -3,18 +3,28 @@
      Repository: https://github.com/C3S/collecting_society -->
 <data>
     <xpath expr="/form/notebook" position="inside">
+        <page string="Collecting Societies" id="cs">
+            <label name="member_c3s"/>
+            <field name="member_c3s"/>
+            <label name="member_c3s_token"/>
+            <field name="member_c3s_token"/>
+        </page>
         <page string="Artists" id="artists">
             <label name="default_solo_artist"/>
             <field name="default_solo_artist" colspan="3"/>
             <field name="artists" colspan="4"/>
         </page>
-        <page string="IMP" id="imp">
-            <label name="pocket_account"/>
-            <field name="pocket_account"/>
-            <label name="pocket_balance"/>
-            <field name="pocket_balance"/>
-            <label name="pocket_budget"/>
-            <field name="pocket_budget"/>
+        <page string="Registration Information" id="reginfo">
+            <label name="firstname"/>
+            <field name="firstname"/>
+            <label name="lastname"/>
+            <field name="lastname"/>
+            <label name="birthdate"/>
+            <field name="birthdate"/>
+            <label name="repertoire_terms_accepted"/>
+            <field name="repertoire_terms_accepted"/>
+            <label name="web_user"/>
+            <field name="web_user"/>
         </page>
     </xpath>
 </data>

@@ -5,7 +5,10 @@
     <field name="code"/>
     <field name="name"/>
     <field name="party"/>
-    <field name="payee"/>
-    <field name="valid_payee"/>
+    <field name="group"/>
+    <field name="creations"/>
+    <field name="releases"/>
+    <field name="commit_state"/>
+    <field name="claim_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

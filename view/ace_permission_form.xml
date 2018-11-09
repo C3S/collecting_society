@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creator">
+<form string="Permission" col="2">
     <label name="name"/>
-    <field name="name" xexpand="1"/>
+    <field name="name"/>
     <label name="code"/>
     <field name="code"/>
-    <label name="party"/>
-    <field name="party"/>
+    <label name="entity"/>
+    <field name="entity"/>
+    <label name="description"/>
+    <field name="description"/>
 </form>

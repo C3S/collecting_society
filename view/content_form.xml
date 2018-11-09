@@ -1,0 +1,102 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Content" col="6">
+    <label name="code"/>
+    <field name="code"/>
+    <label name="commit_state"/>
+    <field name="commit_state"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="mediation"/>
+        <field name="mediation" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+    <label name="uuid"/>
+    <field name="uuid"/>
+    <label name="category"/>
+    <field name="category"/>
+    <label name="creation"/>
+    <field name="creation"/>
+    <label name="name"/>
+    <field name="name"/>
+    <label name="extension"/>
+    <field name="extension"/>
+    <label name="size"/>
+    <field name="size"/>
+    <label name="mime_type"/>
+    <field name="mime_type"/>
+    <newline/>
+    <label name="processing_state"/>
+    <field name="processing_state"/>
+    <label name="filesystem_label"/>
+    <field name="filesystem_label"/>
+    <newline/>
+    <label name="processing_hostname"/>
+    <field name="processing_hostname"/>
+    <label name="storage_hostname"/>
+    <field name="storage_hostname"/>
+    <newline/>
+    <label name="path"/>
+    <field name="path"/>
+    <label name="preview_path"/>
+    <field name="preview_path"/>
+    <newline/>
+    <label name="rejection_reason"/>
+    <field name="rejection_reason"/>
+    <label name="duplicate_of"/>
+    <field name="duplicate_of"/>
+    <newline/>
+    <label name="rejection_reason_details"/>
+    <field name="rejection_reason_details" colspan="3"/>
+
+    <notebook colspan="8">
+        <page string="Metadata" id="metadata">
+            <label name="length"/>
+            <field name="length"/>
+            <label name="sample_rate"/>
+            <field name="sample_rate"/>
+            <label name="channels"/>
+            <field name="channels"/>
+            <label name="sample_width"/>
+            <field name="sample_width"/>
+            <newline/><newline/>
+            <label name="metadata_artist"/>
+            <field name="metadata_artist"/>
+            <label name="metadata_title"/>
+            <field name="metadata_title"/>
+            <label name="metadata_release"/>
+            <field name="metadata_release"/>
+            <label name="metadata_release_date"/>
+            <field name="metadata_release_date"/>
+            <label name="metadata_track_number"/>
+            <field name="metadata_track_number"/>
+            <newline/><newline/>
+            <label name="pre_ingest_excerpt_score"/>
+            <field name="pre_ingest_excerpt_score"/>
+            <label name="post_ingest_excerpt_score"/>
+            <field name="post_ingest_excerpt_score"/>
+            <newline/>
+            <label name="most_similiar_content"/>
+            <field name="most_similiar_content"/>
+            <label name="most_similiar_artist"/>
+            <field name="most_similiar_artist"/>
+            <label name="most_similiar_track"/>
+            <field name="most_similiar_track"/>
+            <label name="uniqueness"/>
+            <field name="uniqueness"/>
+        </page>
+        <page string="Identification" id="identification">
+            <field name="checksums"/>
+            <field name="fingerprintlogs"/>
+            <field name="duplicates" colspan="8"/>
+        </page>
+        <page string="Access" id="access" col="6">
+            <field name="acl" colspan="6"/>
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+        </page>
+    </notebook>
+</form>

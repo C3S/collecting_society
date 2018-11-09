@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Tariffs" col="6">
+    <label name="code"/>
+    <field name="code"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+        <!-- Add here some checkboxes ! -->
+    </group>
+    <newline/>
+    <label name="version"/>
+    <field name="version"/>
+    <newline/>
+    <label name="valid_from"/>
+    <field name="valid_from"/>
+    <newline/>
+    <label name="valid_through"/>
+    <field name="valid_through"/>
+    <newline/>
+    <label name="transitional_through"/>
+    <field name="transitional_through"/>
+
+    <field name="tariffs" colspan="6"/>    
+</form>

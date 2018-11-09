@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Release">
+    <field name="code" expand="1"/>
+    <field name="title" expand="1"/>
+    <field name="artists_list" expand="1"/>
+    <field name="label" expand="1"/>
+    <field name="publisher" expand="1"/>
+    <field name="isrc_code" expand="1"/>
+    <field name="ean_upc_code" expand="1"/>
+    <field name="commit_state"/>
+    <field name="claim_state"/>
+    <field name="active" tree_invisible="1"/>
+</tree>

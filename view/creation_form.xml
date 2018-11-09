@@ -1,34 +1,58 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creation" col="6">
+<form string="Creation" col="8">
     <label name="title"/>
     <field name="title" xexpand="1"/>
     <label name="code"/>
     <field name="code"/>
+    <label name="commit_state"/>
+    <field name="commit_state"/>
     <group col="20" colspan="2" id="checkboxes">
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
-        <!-- Add here some checkboxes ! -->
     </group>
-    <newline/>
     <label name="artist"/>
     <field name="artist"/>
-    <notebook colspan="6">
+    <label name="release"/>
+    <field name="release"/>
+    <label name="license"/>
+    <field name="license"/>
+
+    <notebook colspan="8">
         <page string="Contributions" id="contributions">
-            <field name="contributions" colspan="6"/>
+            <field name="contributions"/>
         </page>
-        <page string="Licenses" id="licenses">
-            <field name="licenses" colspan="6"/>
+        <page string="Derivatives" id="derivatives" col="1">
+            <field name="original_relations" string="Originals"/>
+            <field name="derivative_relations" string="Derivatives"/>
         </page>
-        <page string="Originals/Derivatives" id="originals-derivatives">
-            <field name="original_relations" colspan="6"/>
-            <field name="derivative_relations" colspan="6"/>
+        <page string="Content" id="content" col="1">
+            <field name="content"/>
+            <field name="identifiers"/>
         </page>
-        <page string="Identifiers" id="identifiers">
-            <field name="identifiers" colspan="4"/>
+        <page string="Releases" id="releases" col="1">
+            <field name="releases"/>
+            <field name="licenses"/>
+        </page>
+        <page string="Tariff" id="tariff" col="6">
+            <field name="tariff_categories"/>
+        </page>
+        <page string="Metadata" id="tags">
+            <field name="genres"/>
+            <field name="styles"/>
+        </page>
+        <page string="Lyrics" id="lyrics">
+            <field name="lyrics" colspan="8"/>
+        </page>
+        <page string="Access" id="access" col="6">
+            <field name="acl" colspan="6"/>
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+            <label name="claim_state"/>
+            <field name="claim_state" colspan="5"/>
         </page>
     </notebook>
-    <label name="state"/>
-    <field name="state" colspan="5"/>
 </form>

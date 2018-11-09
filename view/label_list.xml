@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="License">
-    <label name="name"/>
-    <field name="name" xexpand="1"/>
-    <label name="code"/>
-    <field name="code"/>
-</form>
+<tree string="Label">
+    <field name="name" expand="1"/>
+    <field name="party" expand="1"/>
+    <field name="gvl_code" expand="1"/>
+</tree>

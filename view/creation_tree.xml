@@ -2,10 +2,13 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Creation">
-    <field name="code"/>
-    <field name="title"/>
-    <field name="artist"/>
-    <field name="contributions"/>
-    <field name="licenses"/>
+    <field name="code" expand="1"/>
+    <field name="title" expand="1"/>
+    <field name="artist" expand="1"/>
+    <field name="releases"/>
+    <field name="content"/>
+    <field name="tariff_categories_list" expand="1"/>
+    <field name="commit_state"/>
+    <field name="claim_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>

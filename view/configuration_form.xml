@@ -4,16 +4,22 @@
 <form string="Collecting Society Configuration">
     <label name="artist_sequence"/>
     <field name="artist_sequence"/>
-    <label name="contribution_sequence"/>
-    <field name="contribution_sequence"/>
+    <label name="release_sequence"/>
+    <field name="release_sequence"/>
     <label name="creation_sequence"/>
     <field name="creation_sequence"/>
+    <label name="content_sequence"/>
+    <field name="content_sequence"/>
+
+    <label name="tariff_system_sequence"/>
+    <field name="tariff_system_sequence"/>
+
+    <label name="harddisk_label_sequence"/>
+    <field name="harddisk_label_sequence"/>
+    <label name="filesystem_label_sequence"/>
+    <field name="filesystem_label_sequence"/>
     <label name="utilisation_sequence"/>
     <field name="utilisation_sequence"/>
     <label name="distribution_sequence"/>
     <field name="distribution_sequence"/>
-    <label name="default_pocket_account"/>
-    <field name="default_pocket_account"/>
-    <label name="default_hat_account"/>
-    <field name="default_hat_account"/>
 </form>

@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="License">
+    <label name="name"/>
+    <field name="name" xexpand="1"/>
+    <label name="code"/>
+    <field name="code"/>
+    <label name="freedom_rank"/>
+    <field name="freedom_rank"/>
+    <label name="version"/>
+    <field name="version"/>
+    <label name="country"/>
+    <field name="country"/>
+    <label name="link"/>
+    <field name="link"/>
+    <label name="entity_origin"/>
+    <field name="entity_origin"/>
+    <label name="entity_creator"/>
+    <field name="entity_creator"/>
+    <label name="active"/>
+    <field name="active" xexpand="0" width="25"/>
+</form>
