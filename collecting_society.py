@@ -1619,6 +1619,12 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     picture_data = fields.Binary(
         'Picture Data', states=STATES, depends=DEPENDS,
         help='Picture data of a photograph or logo')
+    picture_data_md5 = fields.Char(
+        'Picture Data Hash', states=STATES, depends=DEPENDS,
+        help='The md5 hash of the picture data, also acting as ressouce name.')
+    picture_thumbnail_data = fields.Binary(
+        'Thumbnail Data', states=STATES, depends=DEPENDS,
+        help='Thumbnail data of the picture')
     picture_data_mime_type = fields.Char(
         'Picture Data Mime Type', states=STATES, depends=DEPENDS,
         help='The mime type of picture data.')
