@@ -22,7 +22,7 @@ info = dict(config.items('tryton'))
 for key in ('depends', 'extras_depend', 'xml'):
     if key in info:
         info[key] = info[key].strip().splitlines()
-version_info = info.get('version', '0.0.1')
+version_info = info.get('version', '0.2')
 branch, _ = version_info.rsplit('.', 1)
 dev_branch = float(branch) * 10
 # Warning: Check, after version 3.9 must follow 4.0. This calculation only
