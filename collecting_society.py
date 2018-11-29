@@ -1179,8 +1179,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     __name__ = 'creation'
     _history = True
     title = fields.Char(
-        'Working Title', required=True, states=STATES, depends=DEPENDS,
-        help='The working title of the creation, needed to identify '
+        'Title', required=True, states=STATES, depends=DEPENDS,
+        help='The abstract title of the creation, needed to identify '
         'it later as a track within a release, for example.')
     code = fields.Char(
         'Code', required=True, select=True, states={
