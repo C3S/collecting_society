@@ -1609,6 +1609,11 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tracks = fields.One2Many(
         'release.track', 'release', 'Creations',
         help='The tracks of the release')
+    # medium_numbers = fields.Function(
+    #     fields.Many2Many(
+    #         'release.track', 'creation', 'release', 'Media Numbers',
+    #         help='Media numbers of the Release.'),
+    #     'get_medium_numbers')
 
     # metadata
     title = fields.Char('Title')
@@ -1757,6 +1762,14 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         for artist in self.artists:
             artists.append(artist.name)
         return ", ".join(artists)
+
+    # tried to get a nice ordered list of media
+    # (see function field above)
+    # def get_medium_numbers(self, name):
+    #     medium_numbers = []
+    #     for track in self.tracks:
+    #             medium_numbers.append(track)
+    #     return list(set(medium_numbers))
 
     def get_producers(self, name):
         producers = []
