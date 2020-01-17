@@ -2066,6 +2066,13 @@ class Identifier(ModelSQL, ModelView):
         help='The identification of a creation for this identifier')
     identifier = fields.Text('Identifier')
 
+class Identifier3rdParty(ModelSQL, ModelView):
+    __name__ = 'creation.identifier3rdparty'
+    _history = True
+    id_official_name = fields.Char('official name')
+    id_version = fields.Char('version')
+    valid_from = fields.Date('valid from date')
+    valid_to = fields.Date('valid to date')
 
 class Identification(ModelSQL, ModelView):
     'Identification'

@@ -52,6 +52,15 @@ class Party:
         return Decimal('0')
 
 
+class PartyIdentifier3rdParty():
+    __name__ = 'party.identifier3rdparty'
+    _history = True
+    id_official_name = fields.Char('official name')
+    id_version = fields.Char('version')
+    valid_from = fields.Date('valid from date')
+    valid_to = fields.Date('valid to date')
+
+
 class PartyCategory():
     __name__ = 'party.party-party.category'
     _history = True
