@@ -559,6 +559,39 @@
                   icon="tryton-preferences"/>
 
 
+        <!-- Menue: TestModel -->
+        <record model="ir.ui.view" id="test_model_form">
+            <field name="model">test_model</field>
+            <field name="type">form</field>
+            <field name="name">test_model_form</field>
+        </record>
+        <record model="ir.ui.view" id="test_model_list">
+            <field name="model">test_model</field>
+            <field name="type">tree</field>
+            <field name="name">test_model_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_test_model">
+            <field name="name">TestModel</field>
+            <field name="res_model">test_model</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_test_model_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="test_model_list"/>
+            <field name="act_window" ref="act_test_model"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_test_model_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="test_model_form"/>
+            <field name="act_window" ref="act_test_model"/>
+        </record>
+        <menuitem parent="menu_collecting_society" sequence="9"
+                  action="act_test_model"
+                  id="menu_collecting_society_test_model"/>
+
         <!-- Menue: Society -->
         <record model="ir.ui.view" id="collecting_society_form">
             <field name="model">collecting_society</field>

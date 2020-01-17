@@ -75,6 +75,7 @@ def register():
         ContactMechanism,
         Category,
         Address,
+        TestModel,
         module='collecting_society', type_='model')
     Pool.register(
         Distribute,

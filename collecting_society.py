@@ -20,6 +20,7 @@ from trytond.pyson import Eval, Bool, Or, And
 __all__ = [
 
     # Collecting Society
+    'TestModel',
     'CollectingSociety',
     'TariffSystem',
     'TariffCategory',
@@ -213,6 +214,13 @@ class AccessControlList(object):
 # Collecting Society
 ##############################################################################
 
+
+class TestModel(ModelSQL, ModelView):
+    'Test Model'
+    __name__ = 'test_model'
+    _history = True
+
+    name = fields.Char('Name')
 
 class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
     'Collecting Society'
