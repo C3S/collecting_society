@@ -83,7 +83,7 @@ STATES = {
     'readonly': ~Eval('active'),
 }
 DEPENDS = ['active']
-SEPARATOR = u' /25B6 '
+SEPARATOR = ' /25B6 '
 DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 
 
@@ -589,7 +589,7 @@ class Distribute(Wizard):
             party_utilisations[utilisation.party.id].append(utilisation)
 
         account_moves = []
-        for party_id, utilisations in party_utilisations.iteritems():
+        for party_id, utilisations in party_utilisations.items():
             if not utilisations:
                 continue
             party = Party(party_id)
@@ -640,7 +640,7 @@ class Distribute(Wizard):
                 breakdown = self._allocate(
                     utilisation.creation,
                     share_amount)
-                for artist, amount in breakdown.iteritems():
+                for artist, amount in breakdown.items():
                     account_move_lines += [{
                         # Hat move lines
                         'party': None,
@@ -1854,7 +1854,7 @@ class ReleaseTrack(ModelSQL, ModelView, PublicApi):
         'Title', select=True, states={'required': True},
         help='The title or name of the creation on the release')
     medium_number = fields.Integer(
-        'Medium Number', help=u'The number of the medium on CD, LP, ...')
+        'Medium Number', help='The number of the medium on CD, LP, ...')
     track_number = fields.Integer(
         'Track Number', help='Track number on the medium')
     license = fields.Many2One(
