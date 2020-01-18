@@ -35,21 +35,23 @@ __all__ = [
     'ArtistArtist',
     'ArtistRelease',
     'ArtistPayeeAcceptance',
-    'ArtistIdentifier3rdParty',
+    'ArtistIdentifier',
+    'ArtistIdentifierName',
     'Creation',
     'CreationDerivative',
     'CreationContribution',
     'CreationContributionRole',
     'CreationRole',
     'CreationTariffCategory',
-    'CreationIdentifier3rdParty',
+    'CreationIdentifier',
+    'CreationIdentifierName',
     'Release',
     'ReleaseTrack',
     'ReleaseGenre',
     'ReleaseStyle',
-    'ReleaseIdentifier3rdParty',
-    'BaseIdentifier3rdParty',
-    'Identifier3rdParty',
+    'ReleaseIdentifier',
+    'MixinIdentifier',
+    'ReleaseIdentifierName',
     'Genre',
     'Style',
     'Label',
@@ -58,8 +60,8 @@ __all__ = [
     # Licensee
     'Utilisation',
     'Device',
-    'Identifier',
-    'Identification',
+    'UtilisationIdentifier',
+    'UtilisationIdentification',
     'Fingerprintlog',
 
     # Archiving
@@ -97,8 +99,7 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 
 
-class BaseIdentifier3rdParty(object):
-    identifier = fields.Many2One('identifier3rdparty', 'Identifier3rdParty', required=True, select=True, ondelete='CASCADE')
+class MixinIdentifier(object):
     valid_from = fields.Date('valid from date')
     valid_to = fields.Date('valid to date')
     id_number = fields.Char('the ID itself')
@@ -919,7 +920,7 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    identifier_3rd_party = fields.Many2Many('artist.identifier3rdparty',
+    identifier = fields.One2Many('artist.identifier',
             None, None, '3rd-party identifier', help='')
 
     @classmethod
@@ -1187,10 +1188,19 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
-class ArtistIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
-    __name__ = 'artist.identifier3rdparty'
+class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    __name__ = 'artist.identifier'
     _history = True
+    identifier = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+
+
+class ArtistIdentifierName(ModelSQL, ModelView):
+    __name__ = 'artist.identifier.name'
+    _history = True
+    official_name = fields.Char('official name')
+    version = fields.Char('version')
+
 
 class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                CurrentState, ClaimState, CommitState):
@@ -1258,7 +1268,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
-    identifier_3rd_party = fields.Many2Many('creation.identifier3rdparty',
+    identifier = fields.One2Many('creation.identifier',
             None, None, '3rd-party identifier', help='')
 
     @fields.depends('tariff_categories')
@@ -1597,10 +1607,18 @@ class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
         'collecting_society', 'Collecting Society', ondelete='CASCADE')
 
 
-class CreationIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
-    __name__ = 'creation.identifier3rdparty'
+class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    __name__ = 'creation.identifier'
     _history = True
+    identifier = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+
+
+class CreationIdentifierName(ModelSQL, ModelView):
+    __name__ = 'creation.identifier.name'
+    _history = True
+    official_name = fields.Char('official name')
+    version = fields.Char('version')
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -1710,7 +1728,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Neighbouring Rights Societies involved in the creations of '
             'the release.'),
         'get_neighbouring_rights_societies')
-    identifier_3rd_party = fields.Many2Many('release.identifier3rdparty',
+    identifier = fields.One2Many('release.identifier',
             None, None, '3rd-party identifier', help='')
 
     @classmethod
@@ -1912,24 +1930,19 @@ class ReleaseStyle(ModelSQL, ModelView):
         'style', 'Style', required=True, select=True, ondelete='CASCADE')
 
 
-class ReleaseIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
-    __name__ = 'release.identifier3rdparty'
+class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    __name__ = 'release.identifier'
     _history = True
+    identifier = fields.Many2One('release.identifier.name', 'ReleaseIdentifierName', required=True, select=True, ondelete='CASCADE')
     release = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
-class Identifier3rdParty(ModelSQL, ModelView):
-    __name__ = 'identifier3rdparty'
+class ReleaseIdentifierName(ModelSQL, ModelView):
+    __name__ = 'release.identifier.name'
     _history = True
     official_name = fields.Char('official name')
     version = fields.Char('version')
-    category = fields.Selection(
-        [
-            ('artist', 'Artist'),
-            ('creation', 'Creation'),
-            ('release', 'Release'),
-            ('party', 'Party'),
-        ], 'State', required=True, sort=False, help="")
+
 
 class Genre(ModelSQL, ModelView, PublicApi):
     'Genre'
