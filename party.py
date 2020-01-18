@@ -3,12 +3,18 @@
 
 import uuid
 from decimal import Decimal
-from trytond.model import fields
+from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import PoolMeta
 from collecting_society import MixinIdentifier
 
 __all__ = [
-    'Party', 'PartyCategory', 'ContactMechanism', 'Category', 'Address'
+    'Party',
+    'PartyIdentifier',
+    'PartyIdentifierName',
+    'PartyCategory',
+    'ContactMechanism',
+    'Category',
+    'Address'
 ]
 __metaclass__ = PoolMeta
 

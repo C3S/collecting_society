@@ -50,8 +50,8 @@ __all__ = [
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier',
-    'MixinIdentifier',
     'ReleaseIdentifierName',
+    'MixinIdentifier',
     'Genre',
     'Style',
     'Label',
@@ -60,8 +60,8 @@ __all__ = [
     # Licensee
     'Utilisation',
     'Device',
-    'UtilisationIdentifier',
-    'UtilisationIdentification',
+    'Identifier',
+    'Identification',
     'Fingerprintlog',
 
     # Archiving
@@ -921,7 +921,8 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
     identifier = fields.One2Many('artist.identifier',
-            None, None, '3rd-party identifier', help='')
+        'artist', '3rd-party identifier',
+        states=STATES, depends=DEPENDS)
 
     @classmethod
     def __setup__(cls):
@@ -1191,7 +1192,7 @@ class ArtistPayeeAcceptance(ModelSQL):
 class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     __name__ = 'artist.identifier'
     _history = True
-    identifier = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1269,7 +1270,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
     identifier = fields.One2Many('creation.identifier',
-            None, None, '3rd-party identifier', help='')
+        'creation', '3rd-party identifier',
+        states=STATES, depends=DEPENDS)
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1610,7 +1612,7 @@ class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
 class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     __name__ = 'creation.identifier'
     _history = True
-    identifier = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1729,7 +1731,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'the release.'),
         'get_neighbouring_rights_societies')
     identifier = fields.One2Many('release.identifier',
-            None, None, '3rd-party identifier', help='')
+        'release', '3rd-party identifier',
+        states=STATES, depends=DEPENDS)
 
     @classmethod
     def __setup__(cls):
@@ -1933,7 +1936,7 @@ class ReleaseStyle(ModelSQL, ModelView):
 class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     __name__ = 'release.identifier'
     _history = True
-    identifier = fields.Many2One('release.identifier.name', 'ReleaseIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('release.identifier.name', 'ReleaseIdentifierName', required=True, select=True, ondelete='CASCADE')
     release = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
