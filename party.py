@@ -61,7 +61,7 @@ class Party:
         return Decimal('0')
 
 
-class PartyIdentifier(MixinIdentifier):
+class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
     __name__ = 'party.identifier'
     _history = True
     identifier = fields.Many2One('party.identifier.name', 'PartyIdentifierName', required=True, select=True, ondelete='CASCADE')
