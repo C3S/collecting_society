@@ -62,13 +62,15 @@ class Party:
 
 
 class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Party Identifier'
     __name__ = 'party.identifier'
     _history = True
     identifier = fields.Many2One('party.identifier.name', 'PartyIdentifierName', required=True, select=True, ondelete='CASCADE')
-    party = fields.Many2One('party', 'Party', required=True, select=True, ondelete='CASCADE')
+    party = fields.Many2One('party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
 class PartyIdentifierName(ModelSQL, ModelView):
+    'Party Identifier Name'
     __name__ = 'party.identifier.name'
     _history = True
     official_name = fields.Char('official name')

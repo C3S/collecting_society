@@ -1190,6 +1190,7 @@ class ArtistPayeeAcceptance(ModelSQL):
 
 
 class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
     identifier_name = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
@@ -1197,6 +1198,7 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
 
 
 class ArtistIdentifierName(ModelSQL, ModelView):
+    'Artist Identifier Name'
     __name__ = 'artist.identifier.name'
     _history = True
     official_name = fields.Char('official name')
@@ -1610,6 +1612,7 @@ class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
 
 
 class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
     identifier_name = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
@@ -1617,6 +1620,7 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
 
 
 class CreationIdentifierName(ModelSQL, ModelView):
+    'Creation Identifier Name'
     __name__ = 'creation.identifier.name'
     _history = True
     official_name = fields.Char('official name')
@@ -1934,6 +1938,7 @@ class ReleaseStyle(ModelSQL, ModelView):
 
 
 class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
     identifier_name = fields.Many2One('release.identifier.name', 'ReleaseIdentifierName', required=True, select=True, ondelete='CASCADE')
@@ -1941,6 +1946,7 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
 
 
 class ReleaseIdentifierName(ModelSQL, ModelView):
+    'Release Identifier Name'
     __name__ = 'release.identifier.name'
     _history = True
     official_name = fields.Char('official name')
