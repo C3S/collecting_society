@@ -919,6 +919,8 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
+    identifier_3rd_party = fields.Many2Many('artist.identifier3rdparty',
+            None, None, '3rd-party identifier', help='')
 
     @classmethod
     def __setup__(cls):
@@ -1256,6 +1258,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
+    identifier_3rd_party = fields.Many2Many('creation.identifier3rdparty',
+            None, None, '3rd-party identifier', help='')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1706,6 +1710,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Neighbouring Rights Societies involved in the creations of '
             'the release.'),
         'get_neighbouring_rights_societies')
+    identifier_3rd_party = fields.Many2Many('release.identifier3rdparty',
+            None, None, '3rd-party identifier', help='')
 
     @classmethod
     def __setup__(cls):
