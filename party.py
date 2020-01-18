@@ -53,7 +53,7 @@ class Party:
         return Decimal('0')
 
 
-class PartyIdentifier3rdParty(ModelSQL, ModelView, Identifier3rdParty):
+class PartyIdentifier3rdParty(BaseIdentifier3rdParty):
     __name__ = 'party.identifier3rdparty'
     _history = True
     identifier = fields.Many2One('party', 'Party', required=True, select=True, ondelete='CASCADE')
