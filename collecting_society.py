@@ -98,7 +98,7 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 
 
 class BaseIdentifier3rdParty(object):
-    identifier = fields.Many2One('identifier', 'Identifier3rdParty', required=True, select=True, ondelete='CASCADE')
+    identifier = fields.Many2One('identifier3rdparty', 'Identifier3rdParty', required=True, select=True, ondelete='CASCADE')
     valid_from = fields.Date('valid from date')
     valid_to = fields.Date('valid to date')
     id_number = fields.Char('the ID itself')
