@@ -48,6 +48,7 @@ __all__ = [
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier3rdParty',
+    'BaseIdentifier3rdParty',
     'Identifier3rdParty',
     'Genre',
     'Style',
@@ -96,13 +97,11 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 
 
-class BaseIdentifier3rdParty(ModelSQL, ModelView):
-    __name__ = 'baseidentifier3rdparty'
-    _history = True
+class BaseIdentifier3rdParty(object):
     identifier = fields.Many2One('identifier', 'Identifier3rdParty', required=True, select=True, ondelete='CASCADE')
     valid_from = fields.Date('valid from date')
     valid_to = fields.Date('valid to date')
-    id_number = fields.char('the ID itself')
+    id_number = fields.Char('the ID itself')
 
 
 class CurrentState(object):
@@ -1924,7 +1923,7 @@ class Identifier3rdParty(ModelSQL, ModelView):
             ('creation', 'Creation'),
             ('release', 'Release'),
             ('party', 'Party'),
-        ], 'State', required=True, sort=False,
+        ], 'State', required=True, sort=False, help="")
 
 class Genre(ModelSQL, ModelView, PublicApi):
     'Genre'
