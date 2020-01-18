@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree string="Device">
+    <field name="web_user"/>    
+    <field name="uuid"/>
+    <field name="name"/>
+    <field name="os_name"/>
+    <field name="os_version"/>
+    <field name="software_name"/>
+    <field name="software_version"/>
+    <field name="software_vendor"/>
+</tree>

@@ -52,7 +52,7 @@ __all__ = [
 
     # Licensee
     'Utilisation',
-    'Client',
+    'Device',
     'Identifier',
     'Identification',
     'Fingerprintlog',
@@ -2019,36 +2019,37 @@ class Utilisation(ModelSQL, ModelView):
         ]
 
 
-class Client(ModelSQL, ModelView, CurrentState):
-    'Client'
-    __name__ = 'client'
+class Device(ModelSQL, ModelView):
+    'Device'
+    __name__ = 'device'
     _history = True
     _rec_name = 'uuid'
     web_user = fields.Many2One(
         'web.user', 'Web User', required=True)
     uuid = fields.Char(
         'UUID', required=True, help='The universally unique identifier '
-        'of the client used by a web user')
-    player_name = fields.Char(
-        'Player Name', required=True,
-        help='Name of the media player used by the client')
-    player_version = fields.Char(
-        'Player Version',
-        help='Version of the client media player used by the client')
-    plugin_name = fields.Char(
-        'Plugin Name', help='Name of the plugin used by the media player')
-    plugin_version = fields.Char(
-        'Plugin Version', help='The version of the plugin used '
-        'by the media player')
-    plugin_vendor = fields.Char(
-        'Plugin Vendor', help='Vendor of the plugin used by the media player')
+        'of the device used by a web user')
+    name = fields.Char(
+        'Device Name', required=True,
+        help='Name of the device, i.e. model name, operating system, etc.')
+    os_name = fields.Char(
+        'OS Name', help='Name of the operating system the tracker runs on')
+    os_version = fields.Char(
+        'OS Version',
+        help='Version of the operating system the tracker runs on')
+    software_name = fields.Char(
+        'Software Name', help='Name of the tracker software')
+    software_version = fields.Char(
+        'Software Version', help='The version of the tracker software')
+    software_vendor = fields.Char(
+        'Software Vendor', help='Vendor of the tracker software')
 
     @classmethod
     def __setup__(cls):
-        super(Client, cls).__setup__()
+        super(Device, cls).__setup__()
         cls._sql_constraints += [
             ('uuid_uniq', 'UNIQUE(uuid)',
-                'The UUID of the client must be unique.'),
+                'The UUID of the device must be unique.'),
         ]
 
     @staticmethod

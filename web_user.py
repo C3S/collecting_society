@@ -58,7 +58,7 @@ class WebUser:
         'web.user-party.party', 'user', 'party', 'Party',
         states={'required': Greater(Eval('active_id', -1), 0)},
         help='The party of the web user')
-    clients = fields.One2Many('client', 'web_user', 'Clients')
+    devices = fields.One2Many('device', 'web_user', 'Devices')
     roles = fields.Many2Many(
         'web.user-web.user.role', 'user', 'role', 'Roles')
     default_role = fields.Selection('get_roles', 'Default Role')

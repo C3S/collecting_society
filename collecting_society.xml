@@ -1396,36 +1396,36 @@
                   action="act_content_fingerprintlog"
                   id="menu_content_fingerprintlog"/>
 
-        <!-- Menue: Identifications / Clients -->
-        <record model="ir.ui.view" id="client_form">
-            <field name="model">client</field>
+        <!-- Menue: Identifications / Devices -->
+        <record model="ir.ui.view" id="device_form">
+            <field name="model">device</field>
             <field name="type">form</field>
-            <field name="name">client_form</field>
+            <field name="name">device_form</field>
         </record>
-        <record model="ir.ui.view" id="client_list">
-            <field name="model">client</field>
+        <record model="ir.ui.view" id="device_list">
+            <field name="model">device</field>
             <field name="type">tree</field>
-            <field name="name">client_list</field>
+            <field name="name">device_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_client">
-            <field name="name">Clients</field>
-            <field name="res_model">client</field>
+        <record model="ir.action.act_window" id="act_device">
+            <field name="name">Devices</field>
+            <field name="res_model">device</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_client_list">
+        <record model="ir.action.act_window.view" id="act_device_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="client_list"/>
-            <field name="act_window" ref="act_client"/>
+            <field name="view" ref="device_list"/>
+            <field name="act_window" ref="act_device"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_client_form">
+        <record model="ir.action.act_window.view" id="act_device_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="client_form"/>
-            <field name="act_window" ref="act_client"/>
+            <field name="view" ref="device_form"/>
+            <field name="act_window" ref="act_device"/>
         </record>
         <menuitem parent="menu_creation_identification" sequence="30"
-                  action="act_client"
-                  id="menu_client"/>
+                  action="act_device"
+                  id="menu_device"/>
 
         <!-- Menue: Utilisations -->
         <record model="ir.ui.view" id="utilisation_form">

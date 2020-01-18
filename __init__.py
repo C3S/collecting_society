@@ -30,7 +30,7 @@ def register():
         WebUserResUser,
         WebUserWebUserRole,
         WebUserParty,
-        Client,
+        Device,
         License,
         Creation,
         CreationDerivative,
