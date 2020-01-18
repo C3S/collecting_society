@@ -35,16 +35,20 @@ __all__ = [
     'ArtistArtist',
     'ArtistRelease',
     'ArtistPayeeAcceptance',
+    'ArtistIdentifier3rdParty',
     'Creation',
     'CreationDerivative',
     'CreationContribution',
     'CreationContributionRole',
     'CreationRole',
     'CreationTariffCategory',
+    'CreationIdentifier3rdParty',
     'Release',
     'ReleaseTrack',
     'ReleaseGenre',
     'ReleaseStyle',
+    'ReleaseIdentifier3rdParty',
+    'Identifier3rdParty',
     'Genre',
     'Style',
     'Label',
@@ -90,6 +94,15 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 # Mixins
 ##############################################################################
+
+
+class BaseIdentifier3rdParty(ModelSQL, ModelView):
+    __name__ = 'baseidentifier3rdparty'
+    _history = True
+    identifier = fields.Many2One('identifier', 'Identifier3rdParty', required=True, select=True, ondelete='CASCADE')
+    valid_from = fields.Date('valid from date')
+    valid_to = fields.Date('valid to date')
+    id_number = fields.char('the ID itself')
 
 
 class CurrentState(object):
@@ -1173,6 +1186,11 @@ class ArtistPayeeAcceptance(ModelSQL):
         'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
+class ArtistIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
+    __name__ = 'artist.identifier3rdparty'
+    _history = True
+    artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+
 class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                CurrentState, ClaimState, CommitState):
     'Creation'
@@ -1576,6 +1594,12 @@ class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
         'collecting_society', 'Collecting Society', ondelete='CASCADE')
 
 
+class CreationIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
+    __name__ = 'creation.identifier3rdparty'
+    _history = True
+    creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+
+
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
@@ -1882,6 +1906,25 @@ class ReleaseStyle(ModelSQL, ModelView):
     style = fields.Many2One(
         'style', 'Style', required=True, select=True, ondelete='CASCADE')
 
+
+class ReleaseIdentifier3rdParty(ModelSQL, ModelView, BaseIdentifier3rdParty):
+    __name__ = 'release.identifier3rdparty'
+    _history = True
+    release = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
+
+
+class Identifier3rdParty(ModelSQL, ModelView):
+    __name__ = 'identifier3rdparty'
+    _history = True
+    official_name = fields.Char('official name')
+    version = fields.Char('version')
+    category = fields.Selection(
+        [
+            ('artist', 'Artist'),
+            ('creation', 'Creation'),
+            ('release', 'Release'),
+            ('party', 'Party'),
+        ], 'State', required=True, sort=False,
 
 class Genre(ModelSQL, ModelView, PublicApi):
     'Genre'

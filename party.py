@@ -5,6 +5,7 @@ import uuid
 from decimal import Decimal
 from trytond.model import fields
 from trytond.pool import PoolMeta
+from collecting_society import BaseIdentifier3rdParty
 
 __all__ = [
     'Party', 'PartyCategory', 'ContactMechanism', 'Category', 'Address'
@@ -50,6 +51,12 @@ class Party:
     @staticmethod
     def default_pocket_budget():
         return Decimal('0')
+
+
+class PartyIdentifier3rdParty(ModelSQL, ModelView, Identifier3rdParty):
+    __name__ = 'party.identifier3rdparty'
+    _history = True
+    identifier = fields.Many2One('party', 'Party', required=True, select=True, ondelete='CASCADE')
 
 
 class PartyCategory():
