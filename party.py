@@ -73,7 +73,7 @@ class PartyIdentifierName(ModelSQL, ModelView):
     'Party Identifier Name'
     __name__ = 'party.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
+    name = fields.Char('official name')
     version = fields.Char('version')
 
 

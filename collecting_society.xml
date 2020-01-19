@@ -164,6 +164,43 @@
             <field name="path">icons/c3s-flame-small.svg</field>
         </record>
 
+        <!-- Data: Identifier Names -->
+	<record model="release.identifier.name"
+		id="release_identifier_name_grid">
+	    <field name="name">GRid</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="release.identifier.name"
+		id="release_identifier_name_ean_upc">
+	    <field name="name">EAN/UPC</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="artist.identifier.name"
+		id="artist_identifier_name_ipn">
+	    <field name="name">IPN</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="creation.identifier.name"
+		id="creation_identifier_name_hfa">
+	    <field name="name">HFA Song Code</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="creation.identifier.name"
+		id="creation_identifier_name_isrc">
+	    <field name="name">ISRC</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="creation.identifier.name"
+		id="creation_identifier_name_iswc">
+	    <field name="name">ISWC</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="creation.identifier.name"
+		id="creation_identifier_name_cwr">
+	    <field name="name">CWR</field>
+	    <field name="version">1</field>
+        </record>
+
         <!-- Data: Artist Permissions -->
         <record model="ace.permission"
                 id="ace_permission_view_artist">

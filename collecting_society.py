@@ -1201,7 +1201,7 @@ class ArtistIdentifierName(ModelSQL, ModelView):
     'Artist Identifier Name'
     __name__ = 'artist.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
+    name = fields.Char('official name')
     version = fields.Char('version')
 
 
@@ -1623,7 +1623,7 @@ class CreationIdentifierName(ModelSQL, ModelView):
     'Creation Identifier Name'
     __name__ = 'creation.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
+    name = fields.Char('official name')
     version = fields.Char('version')
 
 
