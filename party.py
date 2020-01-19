@@ -3,12 +3,18 @@
 
 import uuid
 from decimal import Decimal
-from trytond.model import fields
+from trytond.model import ModelView, ModelSQL, fields
 from trytond.pool import PoolMeta
-from collecting_society import BaseIdentifier3rdParty
+from collecting_society import MixinIdentifier
 
 __all__ = [
-    'Party', 'PartyCategory', 'ContactMechanism', 'Category', 'Address'
+    'Party',
+    'PartyIdentifier',
+    'PartyIdentifierName',
+    'PartyCategory',
+    'ContactMechanism',
+    'Category',
+    'Address'
 ]
 __metaclass__ = PoolMeta
 
@@ -55,10 +61,20 @@ class Party:
         return Decimal('0')
 
 
-class PartyIdentifier3rdParty(BaseIdentifier3rdParty):
-    __name__ = 'party.identifier3rdparty'
+class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Party Identifier'
+    __name__ = 'party.identifier'
     _history = True
-    identifier = fields.Many2One('party', 'Party', required=True, select=True, ondelete='CASCADE')
+    identifier = fields.Many2One('party.identifier.name', 'PartyIdentifierName', required=True, select=True, ondelete='CASCADE')
+    party = fields.Many2One('party.party', 'Party', required=True, select=True, ondelete='CASCADE')
+
+
+class PartyIdentifierName(ModelSQL, ModelView):
+    'Party Identifier Name'
+    __name__ = 'party.identifier.name'
+    _history = True
+    official_name = fields.Char('official name')
+    version = fields.Char('version')
 
 
 class PartyCategory():
