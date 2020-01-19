@@ -2121,7 +2121,7 @@ class Device(ModelSQL, ModelView):
     def __setup__(cls):
         super(Device, cls).__setup__()
         cls._sql_constraints += [
-            ('uuid_uniq', 'UNIQUE(uuid)',
+            ('uuid', 'UNIQUE(uuid)',
                 'The UUID of the device must be unique.'),
         ]
 
