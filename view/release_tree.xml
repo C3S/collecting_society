@@ -7,8 +7,6 @@
     <field name="artists_list" expand="1"/>
     <field name="label" expand="1"/>
     <field name="publisher" expand="1"/>
-    <field name="isrc_code" expand="1"/>
-    <field name="ean_upc_code" expand="1"/>
     <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
 </tree>
