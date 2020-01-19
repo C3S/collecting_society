@@ -2,12 +2,12 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Device">
-    <field name="web_user"/>    
-    <field name="uuid"/>
-    <field name="name"/>
-    <field name="os_name"/>
-    <field name="os_version"/>
-    <field name="software_name"/>
-    <field name="software_version"/>
-    <field name="software_vendor"/>
+    <field name="web_user" expand="1"/>    
+    <field name="uuid" expand="1"/>
+    <field name="name" expand="1"/>
+    <field name="os_name" expand="1"/>
+    <field name="os_version" expand="1"/>
+    <field name="software_name" expand="1"/>
+    <field name="software_version" expand="1"/>
+    <field name="software_vendor" expand="1"/>
 </tree>
