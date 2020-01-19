@@ -100,9 +100,9 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 
 
 class MixinIdentifier(object):
-    valid_from = fields.Date('valid from date')
-    valid_to = fields.Date('valid to date')
-    id_number = fields.Char('the ID itself')
+    valid_from = fields.Date('Valid From Date')
+    valid_to = fields.Date('Valid To Date')
+    id_code = fields.Char('ID Code')
 
 
 class CurrentState(object):
@@ -1941,16 +1941,19 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
-    identifier_name = fields.Many2One('release.identifier.name', 'ReleaseIdentifierName', required=True, select=True, ondelete='CASCADE')
-    release = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
+    release_identifier_name = fields.Many2One(
+        'release.identifier.name', 'Release Identifier Name', required=True, 
+        select=True, ondelete='CASCADE')
+    release = fields.Many2One(
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
 class ReleaseIdentifierName(ModelSQL, ModelView):
     'Release Identifier Name'
     __name__ = 'release.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
-    version = fields.Char('version')
+    name = fields.Char('Name')
+    version = fields.Char('Version')
 
 
 class Genre(ModelSQL, ModelView, PublicApi):

@@ -558,8 +558,6 @@
                   parent="menu_collecting_society" sequence="0" 
                   icon="tryton-preferences"/>
 
-
-        <!-- Menue: Society -->
         <record model="ir.ui.view" id="collecting_society_form">
             <field name="model">collecting_society</field>
             <field name="type">form</field>
@@ -570,6 +568,45 @@
             <field name="type">tree</field>
             <field name="name">collecting_society_list</field>
         </record>
+
+
+	<!-- Menue: Identifier -->
+        <menuitem name="Identifiers" id="menu_identifiers"
+                  parent="menu_collecting_society" sequence="0" 
+                  icon="tryton-preferences"/>
+
+	<record model="ir.ui.view" id="release_identifier_name_form">
+            <field name="model">release.identifier.name</field>
+            <field name="type">form</field>
+            <field name="name">release_identifier_name_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_identifier_name_list">
+            <field name="model">release.identifier.name</field>
+            <field name="type">tree</field>
+            <field name="name">release_identifier_name_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_identifier_name">
+            <field name="name">Release Identifier Name</field>
+            <field name="res_model">release.identifier.name</field>
+        </record>
+	<record model="ir.action.act_window.view"
+                id="act_release_identifier_name_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_identifier_name_list"/>
+            <field name="act_window" ref="act_release_identifier_name"/>
+	</record>
+        <record model="ir.action.act_window.view"
+                id="act_release_identifier_name_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_identifier_name_form"/>
+            <field name="act_window" ref="act_release_identifier_name"/>
+        </record>
+        <menuitem parent="menu_identifiers"
+                  action="act_release_identifier_name"
+                  id="menu_identifiers_release_identifier_name"/>
+
+
+        <!-- Menue: Society -->
         <record model="ir.action.act_window" id="act_collecting_society">
             <field name="name">Society</field>
             <field name="res_model">collecting_society</field>
