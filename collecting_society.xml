@@ -954,6 +954,33 @@
             <field name="view" ref="release_form"/>
             <field name="act_window" ref="act_release"/>
         </record>
+	<record model="ir.ui.view" id="release_identifier_form">
+            <field name="model">release.identifier</field>
+            <field name="type">form</field>
+            <field name="name">release_identifier_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_identifier_list">
+            <field name="model">release.identifier</field>
+            <field name="type">tree</field>
+            <field name="name">release_identifier_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_identifier">
+            <field name="name">Release Identifier Name</field>
+            <field name="res_model">release.identifier</field>
+        </record>
+	<record model="ir.action.act_window.view"
+                id="act_release_identifier_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_identifier_list"/>
+            <field name="act_window" ref="act_release_identifier"/>
+	</record>
+        <record model="ir.action.act_window.view"
+                id="act_release_identifier_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_identifier_form"/>
+            <field name="act_window" ref="act_release_identifier"/>
+        </record>
+
         <menuitem parent="menu_licenser" sequence="20"
                   action="act_release"
                   id="menu_release"/>
