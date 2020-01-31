@@ -78,8 +78,6 @@ def register():
         Oauth2Token,
         Party,
         PartyCategory,
-        PartyIdentifierName,
-        PartyIdentifier,
         ContactMechanism,
         Category,
         Address,

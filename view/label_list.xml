@@ -5,4 +5,6 @@
     <field name="name" expand="1"/>
     <field name="party" expand="1"/>
     <field name="gvl_code" expand="1"/>
+    <field name="entity_origin" tree_invisible="1"/>
+    <field name="entity_creator" tree_invisible="1"/>
 </tree>

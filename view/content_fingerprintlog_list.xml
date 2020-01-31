@@ -6,4 +6,6 @@
     <field name="timestamp"/>
     <field name="fingerprinting_algorithm"/>
     <field name="fingerprinting_version"/>
+    <field name="entity_origin" tree_invisible="1"/>
+    <field name="entity_creator" tree_invisible="1"/>
 </tree>
