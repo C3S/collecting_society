@@ -13,5 +13,21 @@
             <field name="inherit" ref="party.party_view_form"/>
             <field name="name">party_form</field>
         </record>
+	<!-- Identifiers -->
+	<record model="party.identifier.name"
+		id="party_identifier_name_ipi">
+	    <field name="name">IPI</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="party.identifier.name"
+		id="party_identifier_name_isni">
+	    <field name="name">ISNI</field>
+	    <field name="version">1</field>
+        </record>
+	<record model="party.identifier.name"
+		id="party_identifier_name_dpid">
+	    <field name="name">DDEX Party Identifier</field>
+	    <field name="version">1</field>
+        </record>
     </data>
 </tryton>

@@ -39,6 +39,8 @@ class Party:
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
+    identifier = fields.Many2Many('party.identifier',
+            None, None, '3rd-party identifier', help='')
 
     @classmethod
     def __setup__(cls):
@@ -55,6 +57,22 @@ class Party:
     @staticmethod
     def default_pocket_budget():
         return Decimal('0')
+
+
+class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
+    'Party Identifier'
+    __name__ = 'party.identifier'
+    _history = True
+    identifier = fields.Many2One('party.identifier.name', 'PartyIdentifierName', required=True, select=True, ondelete='CASCADE')
+    party = fields.Many2One('party.party', 'Party', required=True, select=True, ondelete='CASCADE')
+
+
+class PartyIdentifierName(ModelSQL, ModelView):
+    'Party Identifier Name'
+    __name__ = 'party.identifier.name'
+    _history = True
+    name = fields.Char('official name')
+    version = fields.Char('version')
 
 
 class PartyCategory():
