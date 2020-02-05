@@ -752,7 +752,7 @@ class Distribute(Wizard):
 ##############################################################################
 
 
-class License(ModelSQL, ModelView, CurrentState, PublicApi, EntityOrigin):
+class License(ModelSQL, ModelView, CurrentState, PublicApi):
     'License'
     __name__ = 'license'
     _history = True
@@ -1572,7 +1572,7 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
         return result
 
 
-class CreationContributionRole(ModelSQL, ModelView, EntityOrigin):
+class CreationContributionRole(ModelSQL, ModelView):
     'Creation Contribution - Creation Role'
     __name__ = 'creation.contribution-creation.role'
     _history = True
