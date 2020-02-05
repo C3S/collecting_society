@@ -1201,7 +1201,7 @@ class ArtistIdentifierName(ModelSQL, ModelView):
     'Artist Identifier Name'
     __name__ = 'artist.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
+    name = fields.Char('official name')
     version = fields.Char('version')
 
 
@@ -1623,7 +1623,7 @@ class CreationIdentifierName(ModelSQL, ModelView):
     'Creation Identifier Name'
     __name__ = 'creation.identifier.name'
     _history = True
-    official_name = fields.Char('official name')
+    name = fields.Char('official name')
     version = fields.Char('version')
 
 
@@ -1694,9 +1694,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'Warning', help='A warning note for this release.')
 
     # production
-    isrc_code = fields.Char(
-        'ISRC Code',
-        help='The International Standard Recording Code of the release')
     copyright_date = fields.Date(
         'Copyright Date', help='Date of the copyright.')
     # copyright_owners = fields.Many2One(
@@ -1710,7 +1707,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'get_producers')
 
     # distribution
-    ean_upc_code = fields.Char('EAN/UPC Code', help='The EAN/UPC Code')
     release_date = fields.Date('Release Date', help='Date of (first) release.')
     release_cancellation_date = fields.Date(
         'Release Cancellation Date', help='Date of release cancellation')
