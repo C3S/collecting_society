@@ -76,6 +76,8 @@ def register():
         Oauth2RedirectUri,
         Oauth2Code,
         Oauth2Token,
+        PartyIdentifierName,
+        PartyIdentifier,
         Party,
         PartyCategory,
         ContactMechanism,
