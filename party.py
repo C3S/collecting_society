@@ -9,8 +9,6 @@ from collecting_society import MixinIdentifier
 
 __all__ = [
     'Party',
-    'PartyIdentifier',
-    'PartyIdentifierName',
     'PartyCategory',
     'ContactMechanism',
     'Category',

@@ -10,5 +10,7 @@
     <field name="releases"/>
     <field name="commit_state"/>
     <field name="claim_state"/>
+    <field name="entity_origin" tree_invisible="1"/>
+    <field name="entity_creator" tree_invisible="1"/>
     <field name="active" tree_invisible="1"/>
 </tree>

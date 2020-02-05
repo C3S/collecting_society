@@ -6,6 +6,8 @@
     <field name="content"/>
     <label name="entity_creator"/>
     <field name="entity_creator"/>
+    <label name="entity_origin"/>
+    <field name="entity_origin"/>
     <newline/>
     <label name="timestamp"/>
     <field name="timestamp"/>

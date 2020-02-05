@@ -8,4 +8,6 @@
     <field name="version"/>
     <field name="country"/>
     <field name="link" expand="1"/>
+    <field name="entity_origin" tree_invisible="1"/>
+    <field name="entity_creator" tree_invisible="1"/>
 </tree>

@@ -8,5 +8,4 @@
     <field name="creation"/>
     <field name="allocation"/>
     <field name="state"/>
-    <field name="origin"/>
 </tree>

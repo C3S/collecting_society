@@ -752,7 +752,7 @@ class Distribute(Wizard):
 ##############################################################################
 
 
-class License(ModelSQL, ModelView, CurrentState, PublicApi):
+class License(ModelSQL, ModelView, CurrentState, PublicApi, EntityOrigin):
     'License'
     __name__ = 'license'
     _history = True
@@ -1572,7 +1572,7 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
         return result
 
 
-class CreationContributionRole(ModelSQL, ModelView):
+class CreationContributionRole(ModelSQL, ModelView, EntityOrigin):
     'Creation Contribution - Creation Role'
     __name__ = 'creation.contribution-creation.role'
     _history = True
@@ -1938,7 +1938,7 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     __name__ = 'release.identifier'
     _history = True
     release_identifier_name = fields.Many2One(
-        'release.identifier.name', 'Release Identifier Name', required=True, 
+        'release.identifier.name', 'Release Identifier Name', required=True,
         select=True, ondelete='CASCADE')
     release = fields.Many2One(
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
@@ -2153,7 +2153,7 @@ class Identification(ModelSQL, ModelView):
         return (self.creation.title if self.creation else 'unknown')
 
 
-class Fingerprintlog(ModelSQL, ModelView):
+class Fingerprintlog(ModelSQL, ModelView, EntityOrigin):
     'Fingerprintlog'
     __name__ = 'content.fingerprintlog'
     _history = True
