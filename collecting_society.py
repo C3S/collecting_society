@@ -16,6 +16,8 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
+from country import Country
+
 
 __all__ = [
 
@@ -28,6 +30,7 @@ __all__ = [
     'Distribution',
     'DistributeStart',
     'Distribute',
+    'MixinRightsholder',
 
     # Licenser
     'License',
@@ -45,12 +48,14 @@ __all__ = [
     'CreationTariffCategory',
     'CreationIdentifier',
     'CreationIdentifierName',
+    'CreationRightsholder',
     'Release',
     'ReleaseTrack',
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier',
     'ReleaseIdentifierName',
+    'ReleaseRightsholder',
     'MixinIdentifier',
     'Genre',
     'Style',
@@ -97,6 +102,33 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 # Mixins
 ##############################################################################
+
+
+class MixinRightsholder(object):
+    'Mixin for the Rightsholders'
+    right = fields.Selection(
+        [
+            ('copyright', 'Copyright'),
+            ('ancillary', 'Ancillary Copyright'),
+        ], 'Right', required=True, help='Which kind of right')
+    valid_from = fields.Date('Valid From Date')
+    valid_to = fields.Date('Valid To Date')
+    country = fields.Many2One(
+        'country.country', 'Territory or Country', states={'required': True})
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society', states={'required': True})
+    @property
+    def subject(self):
+        raise NotImplementedError("Subclasses should implement this")
+    @property
+    def object(self):
+        raise NotImplementedError("Subclasses should implement this")
+    @property
+    def contribution(self):
+        raise NotImplementedError("Subclasses should implement this")
+    @property
+    def successor(self):
+        raise NotImplementedError("Subclasses should implement this")
 
 
 class MixinIdentifier(object):
@@ -1274,6 +1306,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     identifier = fields.One2Many('creation.identifier',
         'creation', '3rd-party identifier',
         states=STATES, depends=DEPENDS)
+    rightsholders = fields.One2Many('creation.rightsholder',
+        'CreationRightsholder', 'Creation Rightsholder',
+        help='Creation Rightsholder')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1627,6 +1662,28 @@ class CreationIdentifierName(ModelSQL, ModelView):
     version = fields.Char('version')
 
 
+class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
+    'Creation Rightsholder'
+    __name__= 'creation.rightsholder'
+    _history = True
+    subject = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    object = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+    contribution = fields.Function(
+        fields.Char('Contribution Right'),
+        'on_change_with_rights')
+    successor = fields.Many2One('self', 'Creation Rightsholder', required=True, select=True, ondelete='CASCADE')
+    instruments = fields.One2Many(
+        'instrument', 'Instrument', 'Instrument',
+        help='Instrument the rightsholder is the relevant authority for')
+
+    @fields.depends('right')
+    def on_change_with_rights(self, name=None):
+        if self.right == 'Copyright':
+            return ('Lyrics', 'Composition')
+        elif self.right == 'Ancillary Copyright':
+            return ('Instrument', 'Production', 'Mixing', 'Mastering')
+
+
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
@@ -1733,6 +1790,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     identifier = fields.One2Many('release.identifier',
         'release', '3rd-party identifier',
         states=STATES, depends=DEPENDS)
+    rightsholders = fields.One2Many('release.rightsholder',
+        'ReleaseRightsholder', 'Release Rightsholder',
+        help='Release Rightsholder')
 
     @classmethod
     def __setup__(cls):
@@ -1950,6 +2010,25 @@ class ReleaseIdentifierName(ModelSQL, ModelView):
     _history = True
     name = fields.Char('Name')
     version = fields.Char('Version')
+
+
+class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
+    'Release Rightsholder'
+    __name__= 'release.rightsholder'
+    _history = True
+    subject = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    object = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
+    contribution = fields.Function(
+        fields.Char('Contribution Right'),
+        'on_change_with_rights')
+    successor = fields.Many2One('self', 'Release Rightsholder', required=True, select=True, ondelete='CASCADE')
+
+    @fields.depends('right')
+    def on_change_with_rights(self, name=None):
+        if self.right == 'Copyright':
+            return ('Artwork', 'Text', 'Layout')
+        elif self.right == 'Ancillary Copyright':
+            return ('Production', 'Mixing', 'Mastering')
 
 
 class Genre(ModelSQL, ModelView, PublicApi):

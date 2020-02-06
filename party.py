@@ -41,7 +41,7 @@ class Party:
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
-    identifier_3rd_party = fields.Many2Many('party.identifier3rdparty',
+    identifier = fields.Many2Many('party.identifier',
             None, None, '3rd-party identifier', help='')
 
     @classmethod
