@@ -41,8 +41,8 @@ class Party:
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
-    identifier = fields.Many2Many('party.identifier',
-            None, None, '3rd-party identifier', help='')
+    identifiers = fields.One2Many('party.identifier',
+        'identifier', '3rd-party identifier', help='')
 
     @classmethod
     def __setup__(cls):

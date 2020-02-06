@@ -921,8 +921,7 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
     identifiers = fields.One2Many('artist.identifier',
-        'artist', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+        'artist', '3rd-party identifier',)
 
     @classmethod
     def __setup__(cls):
@@ -1235,9 +1234,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     license = fields.Function(
         fields.Many2One('license', 'Default License'),
         'get_license', searcher='search_license')
-    identifiers = fields.One2Many(
-        'creation.identification', 'creation', 'Identifiers',
-        states=STATES, depends=DEPENDS)
     derivative_relations = fields.One2Many(
         'creation.original.derivative', 'original_creation',
         'Derived Relations', states=STATES, depends=DEPENDS,
@@ -1272,8 +1268,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
     identifiers = fields.One2Many('creation.identifier',
-        'creation', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+        'creation', '3rd-party identifier',)
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1731,8 +1726,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'the release.'),
         'get_neighbouring_rights_societies')
     identifiers = fields.One2Many('release.identifier',
-        'release', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+        'release', '3rd-party identifier',)
 
     @classmethod
     def __setup__(cls):
