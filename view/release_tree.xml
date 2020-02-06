@@ -9,6 +9,4 @@
     <field name="publisher" expand="1"/>
     <field name="commit_state"/>
     <field name="active" tree_invisible="1"/>
-    <field name="entity_origin" tree_invisible="1"/>
-    <field name="entity_creator" tree_invisible="1"/>
 </tree>
