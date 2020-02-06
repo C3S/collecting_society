@@ -920,7 +920,7 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    identifier = fields.One2Many('artist.identifier',
+    identifiers = fields.One2Many('artist.identifier',
         'artist', '3rd-party identifier',
         states=STATES, depends=DEPENDS)
 
@@ -1271,7 +1271,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
-    identifier = fields.One2Many('creation.identifier',
+    identifiers = fields.One2Many('creation.identifier',
         'creation', '3rd-party identifier',
         states=STATES, depends=DEPENDS)
 
@@ -1730,7 +1730,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Neighbouring Rights Societies involved in the creations of '
             'the release.'),
         'get_neighbouring_rights_societies')
-    identifier = fields.One2Many('release.identifier',
+    identifiers = fields.One2Many('release.identifier',
         'release', '3rd-party identifier',
         states=STATES, depends=DEPENDS)
 
