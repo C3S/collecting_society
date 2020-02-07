@@ -1192,7 +1192,7 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
-    identifier_name = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('artist.identifier.name', 'Artist Identifier Name', required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1610,7 +1610,7 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-    identifier_name = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('creation.identifier.name', 'Creation Identifier Name', required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1931,7 +1931,7 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
-    release_identifier_name = fields.Many2One(
+    identifier_name = fields.Many2One(
         'release.identifier.name', 'Release Identifier Name', required=True,
         select=True, ondelete='CASCADE')
     release = fields.Many2One(
