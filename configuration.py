@@ -35,6 +35,23 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
             ('code', '=', 'tariff_system'),
         ]))
 
+    declaration_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Declaration Sequence', domain=[
+            ('code', '=', 'declaration'),
+        ]))
+    utilisation_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Utilisation Sequence', domain=[
+            ('code', '=', 'utilisation'),
+        ]))
+    distribution_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Distribution Sequence', domain=[
+            ('code', '=', 'distribution'),
+        ]))
+    distribution_plan_sequence = fields.Property(
+        fields.Many2One('ir.sequence', 'Distribution Plan Sequence', domain=[
+            ('code', '=', 'distribution.plan'),
+        ]))
+
     harddisk_label_sequence = fields.Property(
         fields.Many2One('ir.sequence', 'Harddisk Label Sequence', domain=[
             ('code', '=', 'harddisk.label'),
@@ -42,12 +59,4 @@ class Configuration(ModelSingleton, ModelSQL, ModelView):
     filesystem_label_sequence = fields.Property(
         fields.Many2One('ir.sequence', 'Filesystem Label Sequence', domain=[
             ('code', '=', 'harddisk.filesystem.label'),
-        ]))
-    utilisation_sequence = fields.Property(
-        fields.Many2One('ir.sequence', 'Utilisation Sequence', domain=[
-            ('code', '=', 'creation.utilisation'),
-        ]))
-    distribution_sequence = fields.Property(
-        fields.Many2One('ir.sequence', 'Distribution Sequence', domain=[
-            ('code', '=', 'distribution'),
         ]))

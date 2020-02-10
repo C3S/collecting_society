@@ -70,24 +70,15 @@
                 ref('sequence_tariff_system'))"/>
         </record>
 
-        <!-- Sequence Property: Harddisk Label -->
-        <record model="ir.property" id="property_harddisk_label_sequence">
+        <!-- Sequence Property: Declaration -->
+        <record model="ir.property" id="property_declaration_sequence">
             <field name="field" search="[
                 ('model.model', '=', 'collecting_society.configuration'),
-                ('name', '=', 'harddisk_label_sequence')]"/>
+                ('name', '=', 'declaration_sequence')]"/>
             <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_harddisk_label'))"/>
+                ref('sequence_declaration'))"/>
         </record>
-
-        <!-- Sequence Property: Filesystem Label -->
-        <record model="ir.property" id="property_filesystem_label_sequence">
-            <field name="field" search="[
-                ('model.model', '=', 'collecting_society.configuration'),
-                ('name', '=', 'filesystem_label_sequence')]"/>
-            <field name="value" eval="'ir.sequence,' + str(
-                ref('sequence_filesystem_label'))"/>
-        </record>
-
+        
         <!-- Sequence Property: Utilisation -->
         <record model="ir.property" id="property_utilisation_sequence">
             <field name="field" search="[
@@ -104,6 +95,33 @@
                 ('name', '=', 'distribution_sequence')]"/>
             <field name="value" eval="'ir.sequence,' + str(
                 ref('sequence_distribution'))"/>
+        </record>
+
+        <!-- Sequence Property: Distribution Plan -->
+        <record model="ir.property" id="property_distribution_plan_sequence">
+            <field name="field" search="[
+                ('model.model', '=', 'collecting_society.configuration'),
+                ('name', '=', 'distribution_plan_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_distribution_plan'))"/>
+        </record>
+
+        <!-- Sequence Property: Harddisk Label -->
+        <record model="ir.property" id="property_harddisk_label_sequence">
+            <field name="field" search="[
+                ('model.model', '=', 'collecting_society.configuration'),
+                ('name', '=', 'harddisk_label_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_harddisk_label'))"/>
+        </record>
+
+        <!-- Sequence Property: Filesystem Label -->
+        <record model="ir.property" id="property_filesystem_label_sequence">
+            <field name="field" search="[
+                ('model.model', '=', 'collecting_society.configuration'),
+                ('name', '=', 'filesystem_label_sequence')]"/>
+            <field name="value" eval="'ir.sequence,' + str(
+                ref('sequence_filesystem_label'))"/>
         </record>
 
     </data>
