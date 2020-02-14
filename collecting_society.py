@@ -16,8 +16,6 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
-from country import Country
-
 
 __all__ = [
 
@@ -117,15 +115,19 @@ class MixinRightsholder(object):
         'country.country', 'Territory or Country', states={'required': True})
     collecting_society = fields.Many2One(
         'collecting_society', 'Collecting Society', states={'required': True})
+
     @property
-    def subject(self):
+    def rightsholder_subject(self):
         raise NotImplementedError("Subclasses should implement this")
+
     @property
-    def object(self):
+    def rightsholder_object(self):
         raise NotImplementedError("Subclasses should implement this")
+
     @property
     def contribution(self):
         raise NotImplementedError("Subclasses should implement this")
+
     @property
     def successor(self):
         raise NotImplementedError("Subclasses should implement this")
@@ -952,8 +954,8 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    identifiers = fields.One2Many('artist.identifier',
-        'artist', '3rd-party identifier',)
+    identifiers = fields.One2Many(
+        'artist.identifier', 'artist', '3rd-party identifier',)
 
     @classmethod
     def __setup__(cls):
@@ -1224,8 +1226,11 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
-    identifier_name = fields.Many2One('artist.identifier.name', 'Artist Identifier Name', required=True, select=True, ondelete='CASCADE')
-    artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One(
+        'artist.identifier.name', 'Artist Identifier Name', required=True,
+        select=True, ondelete='CASCADE')
+    artist = fields.Many2One(
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
 
 
 class ArtistIdentifierName(ModelSQL, ModelView):
@@ -1299,11 +1304,11 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
-    identifiers = fields.One2Many('creation.identifier',
-        'creation', '3rd-party identifier',)
-    rightsholders = fields.One2Many('creation.rightsholder',
-        'CreationRightsholder', 'Creation Rightsholder',
-        help='Creation Rightsholder')
+    identifiers = fields.One2Many(
+        'creation.identifier', 'creation', '3rd-party identifier',)
+    rightsholders = fields.One2Many(
+        'creation.rightsholder', 'rightsholder_object',
+        'Creation Rightsholder', help='Creation Rightsholder')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1645,8 +1650,12 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-    identifier_name = fields.Many2One('creation.identifier.name', 'Creation Identifier Name', required=True, select=True, ondelete='CASCADE')
-    creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One(
+        'creation.identifier.name', 'Creation Identifier Name', required=True,
+        select=True, ondelete='CASCADE')
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
 
 
 class CreationIdentifierName(ModelSQL, ModelView):
@@ -1659,14 +1668,19 @@ class CreationIdentifierName(ModelSQL, ModelView):
 
 class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
     'Creation Rightsholder'
-    __name__= 'creation.rightsholder'
+    __name__ = 'creation.rightsholder'
     _history = True
-    subject = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
-    object = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+    rightsholder_subject = fields.Many2One(
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    rightsholder_object = fields.Many2One(
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
     contribution = fields.Function(
         fields.Char('Contribution Right'),
         'on_change_with_rights')
-    successor = fields.Many2One('self', 'Creation Rightsholder', required=True, select=True, ondelete='CASCADE')
+    successor = fields.Many2Many(
+        'creation.rightsholder-creation.rightsholder', 'rightsholder_left',
+        'rightsholder_right', 'Successor', help='successor')
     instruments = fields.One2Many(
         'instrument', 'Instrument', 'Instrument',
         help='Instrument the rightsholder is the relevant authority for')
@@ -1677,6 +1691,18 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
             return ('Lyrics', 'Composition')
         elif self.right == 'Ancillary Copyright':
             return ('Instrument', 'Production', 'Mixing', 'Mastering')
+
+
+class CreationRightsholderCreationRightsholder(ModelSQL):
+    'CreationRightsholder - CreationRightsholder'
+    __name__ = 'creation.rightsholder-creation.rightsholder'
+    _history = True
+    rightsholder_left = fields.Many2One(
+        'creation.rightsholder', 'Creation Rightsholder', required=True,
+        select=True, ondelete='CASCADE')
+    rightsholder_right = fields.Many2One(
+        'creation.rightsholder', 'Creation Rightsholder', required=True,
+        select=True, ondelete='CASCADE')
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -1782,10 +1808,10 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Neighbouring Rights Societies involved in the creations of '
             'the release.'),
         'get_neighbouring_rights_societies')
-    identifiers = fields.One2Many('release.identifier',
-        'release', '3rd-party identifier',)
-    rightsholders = fields.One2Many('release.rightsholder',
-        'ReleaseRightsholder', 'Release Rightsholder',
+    identifiers = fields.One2Many(
+        'release.identifier', 'release', '3rd-party identifier',)
+    rightsholders = fields.One2Many(
+        'release.rightsholder', 'rightsholder_object', 'Release Rightsholder',
         help='Release Rightsholder')
 
     @classmethod
@@ -2008,14 +2034,18 @@ class ReleaseIdentifierName(ModelSQL, ModelView):
 
 class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
     'Release Rightsholder'
-    __name__= 'release.rightsholder'
+    __name__ = 'release.rightsholder'
     _history = True
-    subject = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
-    object = fields.Many2One('release', 'Release', required=True, select=True, ondelete='CASCADE')
+    rightsholder_subject = fields.Many2One(
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    rightsholder_object = fields.Many2One(
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
     contribution = fields.Function(
         fields.Char('Contribution Right'),
         'on_change_with_rights')
-    successor = fields.Many2One('self', 'Release Rightsholder', required=True, select=True, ondelete='CASCADE')
+    successor = fields.Many2Many(
+        'release.rightsholder-release.rightsholder', 'rightsholder_left',
+        'rightsholder_right', 'Successor', help='successor')
 
     @fields.depends('right')
     def on_change_with_rights(self, name=None):
@@ -2023,6 +2053,18 @@ class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
             return ('Artwork', 'Text', 'Layout')
         elif self.right == 'Ancillary Copyright':
             return ('Production', 'Mixing', 'Mastering')
+
+
+class ReleaseRightsholderReleaseRightsholder(ModelSQL):
+    'ReleaseRightsholder - ReleaseRightsholder'
+    __name__ = 'release.rightsholder-release.rightsholder'
+    _history = True
+    rightsholder_left = fields.Many2One(
+        'release.rightsholder', 'Release Rightsholder', required=True,
+        select=True, ondelete='CASCADE')
+    rightsholder_right = fields.Many2One(
+        'release.rightsholder', 'Release Rightsholder', required=True,
+        select=True, ondelete='CASCADE')
 
 
 class Genre(ModelSQL, ModelView, PublicApi):
