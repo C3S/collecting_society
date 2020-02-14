@@ -23,6 +23,10 @@ __all__ = [
     'CollectingSociety',
     'TariffSystem',
     'TariffCategory',
+    'TariffAdjustmentCategory',
+    'TariffAdjustment',
+    'TariffRelevanceCategory',
+    'TariffRelevance',
     'Tariff',
     'Allocation',
     'Distribution',
@@ -38,6 +42,8 @@ __all__ = [
     'ArtistPayeeAcceptance',
     'ArtistIdentifier',
     'ArtistIdentifierName',
+    'ArtistPlaylist',
+    'ArtistPlaylistItem',
     'Creation',
     'CreationDerivative',
     'CreationContribution',
@@ -59,16 +65,29 @@ __all__ = [
     'Publisher',
 
     # Licensee
+    'Event',
+    'EventPerformance',
     'Location',
     'LocationCategory',
     'LocationSpace',
     'LocationSpaceCategory',
+    'Website',
+    'WebsiteCategory',
+    'WebsiteResource',
+    'WebsiteResourceCreation',
+    'WebsiteResourceCategory',
+    'WebsiteCategoryWebsiteResourceCategory',
     'Indicators',
     'IndicatorsIndicators',
+    'IndicatorsEvent',
     'IndicatorsLocation',
     'IndicatorsLocationSpace',
+    'IndicatorsWebsiteResource',
+    'IndicatorsRelease',
+    'IndicatorsUtilisation',
     'Device',
     'DeviceMessage',
+    'DeviceMessageDeviceMessage',
     'DeviceAssignment',
     'Fingerprint',
     'FingerprintCreationlist',
@@ -76,6 +95,7 @@ __all__ = [
     'Usagereport',
     'Declaration',
     'DeclarationGroup',
+    'DeclarationCollection',
     'Utilisation',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
@@ -114,7 +134,6 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 # Mixins
 ##############################################################################
-
 
 class MixinIdentifier(object):
     valid_from = fields.Date('Valid From Date')
@@ -254,7 +273,7 @@ weekdays = [
 ]
 
 
-class WeekdayPeriod(ModelSQL, ModelView):
+class WeekdayPeriod(ModelSQL, ModelView, PublicApi):
     'Weekday Period'
     __name__ = 'weekday_period'
     _history = True
@@ -285,7 +304,6 @@ class WeekdayPeriod(ModelSQL, ModelView):
 ##############################################################################
 # Collecting Society
 ##############################################################################
-
 
 class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
     'Collecting Society'
@@ -326,7 +344,7 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
     tariffs = fields.One2Many(
         'tariff_system.tariff', 'system', 'Tariffs',
         help='The tariffs of the tariff system.')
-    # TODO: attachement
+    # Todo: attachement
 
     @classmethod
     def __setup__(cls):
@@ -387,7 +405,18 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         help='A description of the tariff category.')
     tariffs = fields.One2Many(
         'tariff_system.tariff', 'category', 'Tariffs',
+        states=STATES, depends=DEPENDS,
         help='The tariffs in this tariff category.')
+
+    adjustment_categories = fields.Many2One(
+        'tariff_system.tariff.adjustment.category', 'Adjustment Categories',
+        states=STATES, depends=DEPENDS,
+        help='The adjustment categories applicable for the tariff category')
+    relevance_categories = fields.Many2One(
+        'tariff_system.tariff.relevance.category', 'Relevance Categories',
+        states=STATES, depends=DEPENDS,
+        help='The relevance categories applicable for the tariff category')
+
     # creations = fields.Many2Many(
     #     'creation-tariff_category', 'category', 'Creations',
     #     help='The creations in this tariff category.')
@@ -422,7 +451,137 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class Tariff(ModelSQL, ModelView, CurrentState):
+class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
+    'Tariff Adjustment Category'
+    __name__ = 'tariff_system.tariff.adjustment.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', states={'required': True}, depends=DEPENDS,
+        help='The name of the category')
+    value_min = fields.Float(
+        'Minimum', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS, help='The minimum value')
+    value_max = fields.Float(
+        'Maximum', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS, help='The maximum value')
+    value_default = fields.Float(
+        'Default', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS, help='The default value')
+    priority = fields.Integer(
+        'Priority', required=True,
+        states=STATES, depends=DEPENDS,
+        help='The calculation priority (higher values have higher priority)')
+    operation = fields.Selection(
+        [
+            ('addition', 'Addition'),
+            ('multiplication', 'Multiplication'),
+            ('percentage', 'Percentage'),
+        ], 'Operation', required=True, sort=False,
+        help='The mathematical operation of the category')
+    tariff_categories = fields.One2Many(
+        'tariff_system.category', 'adjustment_categories', 'Tariff Categories',
+        states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The tariff categories, for which the adjustment category can '
+             'be applied')
+
+
+class TariffAdjustment(ModelSQL, ModelView, PublicApi):
+    'Tariff Adjustment'
+    __name__ = 'tariff_system.tariff.adjustment'
+    _history = True
+
+    category = fields.Many2One(
+        'tariff_system.tariff.adjustment.category', 'Category',
+        states={'required': True}, help='The category of the adjustment')
+    status = fields.Selection(
+        [
+            ('on_approval', 'On Approval'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected'),
+        ], 'Status', required=True, sort=False,
+        help='The approval status of the adjustment')
+    value = fields.Float(
+        'Value', required=True, help='The value of the adjustment')
+    deviation = fields.Boolean(
+        'Deviation', help='Does the value deviate from the category standard?')
+    deviation_reason = fields.Text(
+        'Deviation Reason', states={
+            'required': Bool(Eval('deviation')),
+            'invisible': Bool(~Eval('deviation')),
+        }, depends=['deviation'],
+        help='Reason for deviation')
+
+    indicators_utilisation = fields.Many2One(
+        'indicators.utilisation', 'Indicators Utilisation',
+        help='The set of utilisation indicators of the tariff adjustment')
+
+
+class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
+    'Tariff Relevance Category'
+    __name__ = 'tariff_system.tariff.relevance.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', states=STATES, depends=DEPENDS,
+        help='The name of the category')
+    value_min = fields.Float(
+        'Minimum', help='The minimum value', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS)
+    value_max = fields.Float(
+        'Maximum', help='The maximum value', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS)
+    value_default = fields.Float(
+        'Default', help='The default value', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS)
+    tariff_categories = fields.One2Many(
+        'tariff_system.category', 'relevance_categories', 'Tariff Categories',
+        states=STATES, depends=DEPENDS,
+        help='The tariff categories, for which the relevance category can '
+             'be applied')
+
+
+class TariffRelevance(ModelSQL, ModelView, PublicApi):
+    'Tariff Relevance'
+    __name__ = 'tariff_system.tariff.relevance'
+    _history = True
+
+    category = fields.Many2One(
+        'tariff_system.tariff.relevance.category', 'Category',
+        states={'required': True},
+        help='The category of the relevance')
+    value = fields.Float(
+        'Value', help='The value of the relevance', required=True)
+    deviation = fields.Boolean(
+        'Deviation', help='Does the value deviate from the category standard?')
+    deviation_reason = fields.Text(
+        'Deviation Reason', states={
+            'required': Bool(Eval('deviation')),
+            'invisible': Bool(~Eval('deviation')),
+        }, depends=['deviation'],
+        help='Reason for deviation')
+
+    indicators_utilisation = fields.One2Many(
+        'indicators.utilisation', 'relevance', 'Indicators Utilisation',
+        help='The set of utilisation indicators of the tariff relevance')
+
+
+class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff'
     __name__ = 'tariff_system.tariff'
     _history = True
@@ -435,7 +594,6 @@ class Tariff(ModelSQL, ModelView, CurrentState):
         'tariff_system', 'System', required=True, select=True)
     category = fields.Many2One(
         'tariff_system.category', 'Category', required=True, select=True)
-    # TODO: Variables
 
     def get_name(self, name):
         return self.category.name
@@ -872,7 +1030,6 @@ class Distribute(Wizard):
 ##############################################################################
 # Licenser
 ##############################################################################
-
 
 class License(ModelSQL, ModelView, CurrentState, PublicApi):
     'License'
@@ -1328,6 +1485,33 @@ class ArtistIdentifierName(ModelSQL, ModelView):
     _history = True
     name = fields.Char('official name')
     version = fields.Char('version')
+
+
+class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
+    'Artist Playlist'
+    __name__ = 'artist.playlist'
+    artist = fields.Many2One(
+        'artist', 'Artist', states={'required': True},
+        help='The artist of the playlist')
+    public = fields.Boolean(
+        'Public', help='Is the playlist accessible to other web users?')
+    items = fields.One2Many(
+        'artist.playlist.item', 'playlist', 'Items',
+        help='The items in the playlist')
+
+
+class ArtistPlaylistItem(ModelSQL, ModelView, PublicApi, EntityOrigin):
+    'Artist Playlist Item'
+    __name__ = 'artist.playlist.item'
+    playlist = fields.One2Many(
+        'artist.playlist', 'items', 'Playlist', required=True,
+        help='The playlist of the item')
+    creation = fields.Many2One(
+        'creation', 'Creation', required=True,
+        help='The creation of the item')
+    position = fields.Integer(
+        'Position', required=True,
+        help='The sequence number of the item')
 
 
 class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -1858,6 +2042,12 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     identifiers = fields.One2Many(
         'release.identifier', 'release', '3rd-party identifier',)
 
+    published = fields.Boolean(
+        'Published', help='Is the release published and publicly accessible?')
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', domain=[('category', '=', 'release')],
+        help='The indicators for the release')
+
     @classmethod
     def __setup__(cls):
         super(Release, cls).__setup__()
@@ -2125,39 +2315,110 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
 
 # --- Real World Objects -----------------------------------------------------
 
-class Location(ModelSQL, ModelView):
+class Event(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Event'
+    __name__ = 'event'
+    _history = True
+
+    name = fields.Char(
+        'Name', select=True, states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The name of the event')
+    description = fields.Text(
+        'Description', states=STATES, depends=DEPENDS,
+        help='A description of the event.')
+
+    location = fields.Many2One(
+        'location', 'Location', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The location of the event')
+    performances = fields.One2Many(
+        'event.performance', 'event', 'Performances',
+        states=STATES, depends=DEPENDS,
+        help='The performences of the event')
+
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        domain=[('category', '=', 'event')],
+        help='The indicators for the event')
+
+
+class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Event Performance'
+    __name__ = 'event.performance'
+    _history = True
+
+    start = fields.DateTime(
+        'Start', states=STATES, depends=DEPENDS,
+        help='Start of the performance')
+    end = fields.DateTime(
+        'End', states=STATES, depends=DEPENDS,
+        help='End of the performance')
+    event = fields.Many2One(
+        'event', 'Event', states=STATES, depends=DEPENDS,
+        help='The event of the performance')
+    playlist = fields.Many2One(
+        'artist.playlist', 'Playlist', states=STATES, depends=DEPENDS,
+        help='The playlist of the performance')
+
+
+class Location(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location'
     __name__ = 'location'
     _history = True
+
     name = fields.Char(
-        'Name', select=True, states={'required': True},
+        'Name', select=True, states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The name of the location')
     category = fields.Many2One(
-        'location.category', 'Category', states={'required': True},
+        'location.category', 'Category', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The category of the location')
     party = fields.Many2One(
-        'party.party', 'Party', states={'required': True},
+        'party.party', 'Party', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The party responsible for the location')
 
     public = fields.Boolean(
-        'Public', help='Visibility for other frontend users')
+        'Public', states=STATES, depends=DEPENDS,
+        help='Visibility for other frontend users')
     geolocation = fields.Char(
-        'Geolocation', help='The geographical location')
+        'Geolocation', states=STATES, depends=DEPENDS,
+        help='The geographical location')
 
     spaces = fields.One2Many(
         'location.space', 'location', 'Spaces',
+        states=STATES, depends=DEPENDS,
         help='The spaces associated with the location')
 
     indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
+        'indicators', 'Indicators', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         domain=[('category', '=', 'location')],
         help='The indicators for the location')
 
 
-class LocationCategory(ModelSQL, ModelView):
+class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Category'
     __name__ = 'location.category'
     _history = True
+
     name = fields.Char(
         'Name', required=True, select=True, states=STATES, depends=DEPENDS,
         help="The name of the location category")
@@ -2170,6 +2431,7 @@ class LocationCategory(ModelSQL, ModelView):
 
     locations = fields.One2Many(
         'location', 'category', 'Locations',
+        states=STATES, depends=DEPENDS,
         help='The locations within the category')
 
     @classmethod
@@ -2202,40 +2464,55 @@ class LocationCategory(ModelSQL, ModelView):
         ]
 
 
-class LocationSpace(ModelSQL, ModelView):
+class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Space'
     __name__ = 'location.space'
     _history = True
+
     location = fields.Many2One(
-        'location', 'Location', states={'required': True},
+        'location', 'Location', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The location of the location space')
     events = fields.One2Many(
-        'event', 'location', 'Events',
+        'event', 'location', 'Events', states=STATES, depends=DEPENDS,
         help='The events in the location')
     category = fields.Many2One(
-        'location.space.category', 'Category', states={'required': True},
+        'location.space.category', 'Category', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The category of the location space')
 
-    devices = fields.One2Many(
-        'device.assignment', 'assignment', 'Devices',
+    device_assignments = fields.One2Many(
+        'device.assignment', 'assignment', 'Device Assignments',
+        states=STATES, depends=DEPENDS,
         help='The assigned devices')
+    # Todo: devices: fields.Function() -> current devices
     messages = fields.One2Many(
         'device.message', 'context', 'Messages',
+        states=STATES, depends=DEPENDS,
         help='The device messages for the location space')
     playlists = fields.One2Many(
         'utilisation.creationlist', 'context', 'Utilisation Creationlists',
+        states=STATES, depends=DEPENDS,
         help='The utilisation creation lists of the location space')
 
     indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
+        'indicators', 'Indicators', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         domain=[('category', '=', 'location_space')],
         help='The indicators for the location space')
 
 
-class LocationSpaceCategory(ModelSQL, ModelView):
+class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Space Category'
     __name__ = 'location.space.category'
     _history = True
+
     name = fields.Char(
         'Name', required=True, select=True, states=STATES, depends=DEPENDS,
         help="The name of the location space category")
@@ -2247,7 +2524,7 @@ class LocationSpaceCategory(ModelSQL, ModelView):
         help='A description of the location space category.')
 
     spaces = fields.One2Many(
-        'location.space', 'category', 'Spaces',
+        'location.space', 'category', 'Spaces', states=STATES, depends=DEPENDS,
         help='The location spaces within the category')
 
     @classmethod
@@ -2280,15 +2557,250 @@ class LocationSpaceCategory(ModelSQL, ModelView):
         ]
 
 
+class Website(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Website'
+    __name__ = 'website'
+    _history = True
+
+    name = fields.Char(
+        'Name', select=True, states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The name of the location')
+    category = fields.Many2One(
+        'website.category', 'Category', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The category of the website')
+    party = fields.Many2One(
+        'party.party', 'Party', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The party responsible for the website')
+    url = fields.Char(
+        'URL', states=STATES, depends=DEPENDS, help='The url of the website')
+
+    resources = fields.One2Many(
+        'website.resource', 'website', 'Resources',
+        states=STATES, depends=DEPENDS,
+        help='The resources of the website')
+
+    device_assignments = fields.One2Many(
+        'device.assignment', 'assignment', 'Device Assignments',
+        states=STATES, depends=DEPENDS,
+        help='The resources of the website')
+    # Todo: devices: fields.Function() -> current devices
+
+
+class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Website Category'
+    __name__ = 'website.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        help='The name of the website category')
+    code = fields.Char(
+        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        help="The machine readable code for the website category")
+    description = fields.Text(
+        'Description', states=STATES, depends=DEPENDS,
+        help='A description of the website category.')
+
+    resource_categories = fields.Many2Many(
+        'website.category-website.resource.category',
+        'website_resource_category', 'website_category',
+        'Website Resource Categories',
+        states=STATES, depends=DEPENDS,
+        help='The website resource categories applicable for the website '
+             'category')
+
+    websites = fields.One2Many(
+        'website', 'category', 'Websites', states=STATES, depends=DEPENDS,
+        help='The websites within the category')
+
+    @classmethod
+    def __setup__(cls):
+        super(WebsiteCategory, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(WebsiteCategory, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('name',) + tuple(clause[1:]),
+            ('code',) + tuple(clause[1:]),
+        ]
+
+
+class WebsiteResource(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Website Resource'
+    __name__ = 'website.resource'
+    _history = True
+
+    name = fields.Char(
+        'Name', select=True, states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The name of the resource')
+    uuid = fields.Char(
+        'UUID', required=True, states=STATES, depends=DEPENDS,
+        help='The uuid of the resource')
+    website = fields.Many2One(
+        'website', 'Website', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The website of the resource')
+    category = fields.Many2One(
+        'website.resource.category', 'Category', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        domain=[('website.category', 'in', 'category.resource_categories')],
+        help='The category of the resource')
+
+    url = fields.Char(
+        'URL', states=STATES, depends=DEPENDS, help='The url of the website')
+    messages = fields.One2Many(
+        'device.message', 'context', 'Messages',
+        states=STATES, depends=DEPENDS,
+        help='The device messages for the website resource')
+
+    originals = fields.Many2Many(
+        'website.resource-creation', 'creation', 'resource', 'Originals',
+        states=STATES, depends=DEPENDS,
+        help='The originals used in the resource')
+    playlists = fields.One2Many(
+        'utilisation.creationlist', 'context', 'Utilisation Creationlists',
+        states=STATES, depends=DEPENDS,
+        help='The utilisation creation lists of the website resource')
+
+    @classmethod
+    def __setup__(cls):
+        super(WebsiteResource, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the resource must be unique.'),
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
+
+
+class WebsiteResourceCreation(ModelSQL):
+    'Website Resource'
+    __name__ = 'website.resource-creation'
+    _history = True
+
+    resource = fields.Many2One(
+        'website.resource', 'Resource', select=True, required=True,
+        ondelete='CASCADE')
+    creation = fields.Many2One(
+        'creation', 'Creation', select=True, required=True,
+        ondelete='CASCADE')
+
+
+class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+    'Website Resource Category'
+    __name__ = 'website.resource.category'
+    _history = True
+
+    name = fields.Char(
+        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        help='The name of the resource category')
+    code = fields.Char(
+        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        help="The machine readable code for the resource category")
+    description = fields.Text(
+        'Description', states=STATES, depends=DEPENDS,
+        help='A description of the resource category.')
+
+    webite_categories = fields.Many2Many(
+        'website.category-website.resource.category',
+        'website_category', 'website_resource_category',
+        'Website Categories', states=STATES, depends=DEPENDS,
+        help='The website categories for which the website resource category '
+             'is applicable')
+
+    resources = fields.One2Many(
+        'website.resource', 'category', 'Resources',
+        states=STATES, depends=DEPENDS,
+        help='The resources within the category')
+
+    @classmethod
+    def __setup__(cls):
+        super(WebsiteResourceCategory, cls).__setup__()
+        cls._sql_constraints = [
+            ('code_uniq', 'UNIQUE(code)',
+             'The code of the license must be unique.')
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super(WebsiteResourceCategory, cls).copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('name',) + tuple(clause[1:]),
+            ('code',) + tuple(clause[1:]),
+        ]
+
+
+class WebsiteCategoryWebsiteResourceCategory(ModelSQL):
+    'Website Resource Category'
+    __name__ = 'website.category-website.resource.category'
+    _history = True
+
+    website_category = fields.Many2One(
+        'website.category', 'Website Category',
+        required=True, select=True, ondelete='CASCADE')
+    website_resource_category = fields.Many2One(
+        'website.resource.category', 'Website Resource Category',
+        required=True, select=True, ondelete='CASCADE')
+
+
 # --- Indicators -------------------------------------------------------------
 
 indicators_list = [
-    # TODO: ('event', 'Event'),
+    ('event', 'Event'),
     ('location', 'Location'),
     ('location_space', 'Location Space'),
-    # TODO: ('website_resource', 'Website Resource'),
+    ('website_resource', 'Website Resource'),
     # TODO: ('relase', 'Relase'),
-    # TODO: ('utilisation', 'Utilisation'),
+    ('utilisation', 'Utilisation'),
 ]
 
 
@@ -2296,6 +2808,7 @@ class Indicators(ModelSQL, ModelView):
     'Indicators'
     __name__ = 'indicators'
     _history = True
+
     creation_time = fields.DateTime(
         'Creation Time', states={'required': True},
         help='The point in time the indicators were created')
@@ -2344,13 +2857,48 @@ class IndicatorsIndicators(ModelSQL):
         ondelete='CASCADE')
 
 
+class IndicatorsEvent(ModelSQL, ModelView):
+    'Indicators: Event'
+    __name__ = 'indicators.event'
+    _history = True
+
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', states={'required': True},
+        help='The main indicators object')
+
+    start = fields.DateTime(
+        'Start', help='Start of the event')
+    end = fields.DateTime(
+        'End', help='End of the event')
+    attendants = fields.Integer(
+        'Attendants', help='The number of attendants of the event')
+    turnover_tickets = fields.Numeric(
+        'Turnover Tickets', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The ticket related turnover')
+    turnover_benefit = fields.Numeric(
+        'Turnover Benefit', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The benefit related turnover')
+    expenses_musicians = fields.Numeric(
+        'Expenses Musicians', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The expenses for the musicians')
+    expenses_production = fields.Numeric(
+        'Expenses Production', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The expenses for the production')
+
+
 class IndicatorsLocation(ModelSQL, ModelView):
     'Indicators: Location'
     __name__ = 'indicators.location'
     _history = True
+
     indicators = fields.Many2One(
         'indicators', 'Indicators', states={'required': True},
         help='The main indicators object')
+
     opening_hours = fields.One2Many(
         'weekday_period', 'reference', 'Opening Hours',
         help='The opening hours of the location')
@@ -2364,9 +2912,11 @@ class IndicatorsLocationSpace(ModelSQL, ModelView):
     'Indicators: Location Space'
     __name__ = 'indicators.location_space'
     _history = True
+
     indicators = fields.Many2One(
         'indicators', 'Indicators', states={'required': True},
         help='The main indicators object')
+
     size = fields.Float(
         'Size', digits=(10, 14),
         help='The size of the location space [squaremeter]',
@@ -2374,39 +2924,109 @@ class IndicatorsLocationSpace(ModelSQL, ModelView):
         depends=['category'])
 
 
+class IndicatorsWebsiteResource(ModelSQL, ModelView):
+    'Indicators: Website Resource'
+    __name__ = 'indicators.website_resource'
+    _history = True
+
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', states={'required': True},
+        help='The main indicators object')
+
+    streams = fields.Integer(
+        'Streams', help='The number of streams')
+    downloads = fields.Integer(
+        'Downloads', help='The number of downloads')
+    turnover_ads = fields.Numeric(
+        'Turnover Tickets', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The ticket related turnover')
+    turnover_sale = fields.Numeric(
+        'Turnover Tickets', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The ticket related turnover')
+
+
+class IndicatorsRelease(ModelSQL, ModelView):
+    'Indicators: Release'
+    __name__ = 'indicators.release'
+    _history = True
+
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', states={'required': True},
+        help='The main indicators object')
+
+    copies = fields.Integer(
+        'Copies', help='The number of copies')
+
+
+class IndicatorsUtilisation(ModelSQL, ModelView):
+    'Indicators: Utilisation'
+    __name__ = 'indicators.utilisation'
+    _history = True
+
+    indicators = fields.Many2One(
+        'indicators', 'Indicators', states={'required': True},
+        help='The main indicators object')
+
+    base = fields.Numeric(
+        'Base', depends=['indicators'],
+        digits=(16, Eval('indicators.currency_digits', 2)),
+        help='The base value')
+    relevance = fields.Many2One(
+        'tariff_system.tariff.relevance', 'Relevance',
+        help='The relevance')
+    adjustments = fields.One2Many(
+        'tariff_system.tariff.adjustment', 'indicators_utilisation',
+        'Adjustments',
+        help='The adjustments')
+
+
 # --- Devices ----------------------------------------------------------------
 
-class Device(ModelSQL, ModelView):
+class Device(ModelSQL, ModelView, CurrentState, PublicApi):
     'Device'
     __name__ = 'device'
     _history = True
     _rec_name = 'uuid'
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the device')
 
+    uuid = fields.Char(
+        'UUID', required=True, states=STATES, depends=DEPENDS,
+        help='The uuid of the device')
+    web_user = fields.Many2One(
+        'web.user', 'Web User', required=True, states=STATES, depends=DEPENDS,
+        help='The web user of the device')
     blocked = fields.Boolean(
-        'Blocked', help='The blocked state of the device.')
+        'Blocked', states=STATES, depends=DEPENDS,
+        help='The blocked state of the device.')
+
     assignments = fields.One2Many(
         'device.assignment', 'device', 'Assignments',
+        states=STATES, depends=DEPENDS,
         help='The assigned objects of the device')
-    web_user = fields.Many2One(
-        'web.user', 'Web User', required=True)
     messages = fields.One2Many(
         'device.message', 'device', 'Messages',
+        states=STATES, depends=DEPENDS,
         help='The messages belonging to the device')
 
     name = fields.Char(
-        'Device Name', help='Name of the device, i.e. model name, etc.')
+        'Device Name', states=STATES, depends=DEPENDS,
+        help='Name of the device, i.e. model name, etc.')
     os_name = fields.Char(
-        'OS Name', help='Name of the OS the device runs on')
+        'OS Name', states=STATES, depends=DEPENDS,
+        help='Name of the OS the device runs on')
     os_version = fields.Char(
-        'OS Version', help='Version of the OS the device runs on')
+        'OS Version', states=STATES, depends=DEPENDS,
+        help='Version of the OS the device runs on')
     software_name = fields.Char(
-        'Software Name', help='Name of the software on the device')
+        'Software Name', states=STATES, depends=DEPENDS,
+        help='Name of the software on the device')
     software_version = fields.Char(
-        'Software Version', help='The version of the software on the device')
+        'Software Version', states=STATES, depends=DEPENDS,
+        help='The version of the software on the device')
     software_vendor = fields.Char(
-        'Software Vendor', help='Vendor of the software on the device')
+        'Software Vendor', states=STATES, depends=DEPENDS,
+        help='Vendor of the software on the device')
 
     @classmethod
     def __setup__(cls):
@@ -2430,7 +3050,7 @@ class DeviceAssignment(ModelSQL, ModelView):
     assignment = fields.Reference(
         'Assignment', [
             ('location.space', 'Location Space'),
-            # TODO: ('website.resource', 'Website Resource'),
+            ('website.resource', 'Website Resource'),
         ],
         help='The object the device is assigned to')
     start = fields.DateTime(
@@ -2444,9 +3064,11 @@ class DeviceMessage(ModelSQL, ModelView):
     'Device Message'
     __name__ = 'device.message'
     _history = True
+
     device = fields.Many2One(
         'device', 'Device', states={'required': True},
         help='The device of the message')
+
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
         help='The point in time, when the message arrived or was sent.')
@@ -2462,10 +3084,19 @@ class DeviceMessage(ModelSQL, ModelView):
             ('usagereport', 'Usage Report'),
         ], 'Category', sort=False, states={'required': True},
         help='The category of the message content: Incoming or Outgoing')
+    previous_message = fields.One2One(
+        'device.message-device.message', 'next_message', 'previous_message',
+        'Previous Message', domain=[('previous_message', '=', [])],
+        help='The previous message in a message sequence')
+    next_message = fields.One2One(
+        'device.message-device.message', 'previous_message', 'next_message',
+        'Next Message', domain=[('next_message', '=', [])],
+        help='The next message in a message sequence')
+
     context = fields.Reference(
         'Context', [
             ('location.space', 'Location Space'),
-            # TODO: ('website.resource', 'Website Resource'),
+            ('website.resource', 'Website Resource'),
         ],
         help='The object, which the message is referencing')
     content = fields.Reference(
@@ -2481,6 +3112,19 @@ class DeviceMessage(ModelSQL, ModelView):
         return []
 
 
+class DeviceMessageDeviceMessage(ModelSQL):
+    'Device Message'
+    __name__ = 'device.message-device.message'
+    _history = True
+
+    previous_message = fields.Many2One(
+        'device.message', 'Previous Message', required=True, select=True,
+        ondelete='CASCADE')
+    next_message = fields.Many2One(
+        'device.message', 'Next Message', required=True, select=True,
+        ondelete='CASCADE')
+
+
 class Fingerprint(ModelSQL, ModelView):
     'Device Message: Fingerprint'
     __name__ = 'device.message.fingerprint'
@@ -2493,11 +3137,13 @@ class Fingerprint(ModelSQL, ModelView):
             ('created', 'Creation'),
             ('matched', 'Matched'),
             ('merged', 'Merged'),
+            ('discarded', 'Discarded'),
         ], 'State', sort=False, states={'required': True},
         help='The state of the fingerprint:\n'
              '- created: the fingerprint was created\n'
              '- matched: a creation was tried to match\n'
-             '- merged: the matched creations were merged')
+             '- merged: the matched creations were merged\n'
+             '- discarded: the fingerprint was discarded')
     matched_creation = fields.Many2One(
         'creation', 'Creation',
         help='The creation, which matches the fingerprint')
@@ -2520,35 +3166,41 @@ class Fingerprint(ModelSQL, ModelView):
         help='The version of the fingerprinting algorithm')
 
 
-class FingerprintCreationlist(ModelSQL, ModelView):
+class FingerprintCreationlist(ModelSQL, ModelView, CurrentState, PublicApi):
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
     confirmed = fields.Boolean(
-        'Confirmed', help='The confirmation state by the licensee.')
+        'Confirmed', states=STATES, depends=DEPENDS,
+        help='The confirmation state by the licensee.')
     items = fields.One2Many(
         'device.message.fingerprint.creationlist.item', 'creation_list',
-        'Creation List Items',
+        'Creation List Items', states=STATES, depends=DEPENDS,
         help='The items within the creation list')
 
     utilisation_creationlist = fields.Many2One(
         'utilisation.creationlist', 'Utilisation Creation List',
+        states=STATES, depends=DEPENDS,
         help='The utilisation creation list resulting from the fingerprints')
 
 
-class FingerprintCreationlistItem(ModelSQL, ModelView):
+class FingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
     'Device Message: Fingerprint Creationlist Item'
     __name__ = 'device.message.fingerprint.creationlist.item'
     _history = True
     creation_list = fields.Many2One(
         'device.message.fingerprint.creationlist', 'Creation List',
+        states={'required': True},
         help='The creation list of the creation list item')
     creation = fields.Many2One(
-        'creation', 'Creation', help='The creation of the creation list item')
+        'creation', 'Creation', states={'required': True},
+        help='The creation of the creation list item')
     order = fields.Integer(
-        'Order', help='The order of the creation within the list of creations')
+        'Order', states={'required': True},
+        help='The order of the creation within the list of creations')
     timestamp = fields.DateTime(
-        'Timestamp', help='The point in time, when the creation was utlized')
+        'Timestamp', states={'required': True},
+        help='The point in time, when the creation was utlized')
     merged_fingerprints = fields.One2Many(
         'device.message.fingerprint', 'merged_creation', 'Fingerprints',
         help='The fingerprints merged into this creation list item')
@@ -2560,11 +3212,13 @@ class Usagereport(ModelSQL, ModelView):
     _history = True
     message = fields.Many2One(
         'device.message', 'Message', states={'required': True},
-        help='Device message')
-    # TODO: website_resource
-    #     [-n:1-> WEBSITE_RESOURCE]
+        help='The device message')
+
+    website_resource = fields.Many2One(
+        'website.resource', 'Website Resource', help='The website resorce')
     creation = fields.Many2One(
         'creation', 'Creation', help='The creation of the creation list item')
+
     indicators = fields.Many2One(
         'indicators', 'Indicators', states={'required': True},
         domain=[('category', '=', 'website_resource')],
@@ -2578,30 +3232,38 @@ class Usagereport(ModelSQL, ModelView):
 # --- Declaration ------------------------------------------------------------
 
 context_list = [
-    # Todo: ('event', 'Event'),
+    ('event', 'Event'),
     ('location', 'Location'),
-    # Todo: ('website', 'Website'),
+    ('website', 'Website'),
     ('release', 'Release'),
 ]
 
 
-class Declaration(ModelSQL, ModelView):
+class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
     'Declaration'
     __name__ = 'declaration'
     _history = True
 
     licensee = fields.Many2One(
-        'party.party', 'Licensee', states={'required': True})
+        'party.party', 'Licensee', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help="The licencee of the declaration")
     state = fields.Selection(
         [
             ('created', 'Created'),
             ('rejected', 'Rejected'),
             ('deleted', 'Deleted'),
-        ], 'State', states={'required': True}, sort=False,
+        ], 'State', required=True, sort=False,
+        states=STATES, depends=DEPENDS,
         help='The state of the declaration')
 
     creation_time = fields.DateTime(
-        'Creation Time', states={'required': True},
+        'Creation Time', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The point in time, when the declaration was created')
     template = fields.Boolean(
         'Template', help='Is this declaration a template?')
@@ -2611,103 +3273,167 @@ class Declaration(ModelSQL, ModelView):
             ('monthly', 'Monthly'),
             ('quarterly', 'Quarterly'),
             ('yearly', 'Yearly'),
-        ], 'State', states={'required': True}, sort=False,
+        ], 'State', required=True, sort=False,
+        states=STATES, depends=DEPENDS,
         help='The period of a recurring declaration.')
     group = fields.Many2One(
-        'declaration.group', 'Group',
+        'declaration.group', 'Group', states=STATES, depends=DEPENDS,
         help='The group of the declaration')
 
     tariff = fields.Many2One(
-        'tariff_system.tariff', 'Tariff', states={'required': True},
+        'tariff_system.tariff', 'Tariff', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The chosen main tariff for the planned utilisation')
     context = fields.Reference(
-        'Context', context_list,
+        'Context', context_list, states=STATES, depends=DEPENDS,
         help='The context object of the planned utilisation')
 
-    # TODO: collections = fields.One2Many(
-    #     'declaration.collection', 'declaration', 'Collections',
-    #     help='The processes, in which utilisations were created for the '
-    #          'declaration')
+    collections = fields.One2Many(
+        'declaration.collection', 'declaration', 'Collections',
+        states=STATES, depends=DEPENDS,
+        help='The processes, in which utilisations were created for the '
+             'declaration')
     utilisations = fields.One2Many(
         'utilisation', 'declaration', 'Utilisations',
+        states=STATES, depends=DEPENDS,
         help='The utilisations created for the declaration')
 
 
-class DeclarationGroup(ModelSQL, ModelView):
+class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
     'Declaration Group'
     __name__ = 'declaration.group'
+    _history = True
+
     name = fields.Char(
-        'Name', help='The name of the declaration group')
+        'Name', states=STATES, depends=DEPENDS,
+        help='The name of the declaration group')
     declarations = fields.One2Many(
-        'declaration', 'group', 'Declarations', states={'required': True},
+        'declaration', 'group', 'Declarations', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The declarations in this group')
+
+
+class DeclarationCollection(ModelSQL, ModelView):
+    'Declaration Collection'
+    __name__ = 'declaration.collection'
+    _history = True
+
+    trigger = fields.Selection(
+        [
+            ('declaration_creation', 'Declaration Creation'),
+            ('start_of_period', 'Start of Period'),
+            ('after_event', 'After Event'),
+            ('manually', 'Manually'),
+        ], 'Trigger', states={'required': True}, sort=False,
+        help='The trigger, which created the utilisations')
+    timestamp = fields.DateTime(
+        'Timestamp', help='The timestamp of the declaration collection')
+    declaration = fields.Many2One(
+        'declaration', 'Declaration',
+        help='The declaration, which created the utilisations')
+    utilisations = fields.One2Many(
+        'utilisation', 'declaration_collection', 'Utilisatons',
+        help='The utilisations created from the declaration')
 
 
 # --- Utilisation ------------------------------------------------------------
 
-class Utilisation(ModelSQL, ModelView):
+class Utilisation(ModelSQL, ModelView, CurrentState, PublicApi):
     'Utilisation'
     __name__ = 'utilisation'
     _history = True
+
     code = fields.Char(
         'Code', required=True, select=True, states={
-            'readonly': True,
-        }, help='Sequential code number of the utilisation')
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='Sequential code number of the utilisation')
     start = fields.DateTime(
-        'Start', states={'required': True},
+        'Start', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='Start of the period of utilisation')
     end = fields.DateTime(
-        'End', help='End of the period of utilisation')
+        'End', states=STATES, depends=DEPENDS,
+        help='End of the period of utilisation')
 
     declaration = fields.Many2One(
-        'declaration', 'Declaration', states={'required': True},
+        'declaration', 'Declaration', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The declaration, which created this utilisation')
-    licensee = fields.Many2One(
-        'party.party', 'Licensee', help='The licensee party')
+    declaration_collection = fields.Many2One(
+        'declaration.collection', 'Declaration Collection',
+        states=STATES, depends=DEPENDS,
+        help='The declaration collection, which created the utilisation')
 
+    licensee = fields.Many2One(
+        'party.party', 'Licensee', states=STATES, depends=DEPENDS,
+        help='The licensee party')
     context = fields.Reference(
-        'Context', context_list,
+        'Context', context_list, states=STATES, depends=DEPENDS,
         help='The context object of the planned utilisation')
     tariff = fields.Many2One(
-        'tariff_system.tariff', 'Tariff', states={'required': True},
+        'tariff_system.tariff', 'Tariff', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The resulting tariff for the utilisation')
 
     indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
+        'indicators', 'Indicators', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         domain=[('category', '=', 'utilisation')],
         help='The main indicators object')
     location_indicators = fields.Many2One(
-        'indicators', 'Indicators',
+        'indicators', 'Indicators', states=STATES, depends=DEPENDS,
         # Todo: required for context Location
         domain=[('category', '=', 'location')],
         help='The main indicators object')
     location_space_indicators = fields.Many2One(
-        'indicators', 'Indicators',
+        'indicators', 'Indicators', states=STATES, depends=DEPENDS,
         # Todo: required for context Location
         domain=[('category', '=', 'location_space')],
         help='The main indicators object')
 
     creation_list = fields.Many2One(
         'utilisation.creationlist', 'Creationlist',
+        states=STATES, depends=DEPENDS,
         help='The creation list for the distribution process')
     distribution_plan = fields.Many2One(
-        'distribution.plan', 'Distribution Plan', states={'required': True},
+        'distribution.plan', 'Distribution Plan', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The distribution plan for the utilisation')
     allocation = fields.Many2One(
         'distribution.allocation', 'Allocation',
+        states=STATES, depends=DEPENDS,
         help='The allocation of the utilisation')
 
     currency_digits = fields.Function(
         fields.Integer('Currency Digits'), 'get_currency_digits')
     invoice_amount = fields.Numeric(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount to invoice')
+        states=STATES, depends=['active', 'currency_digits'],
+        help='The amount to invoice')
     administration_amount = fields.Numeric(
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount for administration')
+        states=STATES, depends=['active', 'currency_digits'],
+        help='The amount for administration')
     distribution_amount = fields.Numeric(
         'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount to distribute')
+        states=STATES, depends=['active', 'currency_digits'],
+        help='The amount to distribute')
 
     state = fields.Selection(
         [
@@ -2718,6 +3444,7 @@ class Utilisation(ModelSQL, ModelView):
             ('payed', 'Payed'),
             ('distributed', 'Distributed'),
         ], 'State', required=True, sort=False,
+        states=STATES, depends=DEPENDS,
         help='The processing state of the utilisation:\n\n'
         '*Created*: Default state for new utilisations.\n'
         '*Estimated*: All indicators are present and the utilisation is '
@@ -2733,9 +3460,13 @@ class Utilisation(ModelSQL, ModelView):
             ('admin', 'Manually confimed by administrator'),
             ('auto', 'Automatically confimed'),
         ], 'Confirmation', sort=False,
+        states=STATES, depends=DEPENDS,
         help='The confirmation state of the utilisation')
     locked = fields.Boolean(
-        'Locked', states={'readonly': True},
+        'Locked', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='Locked state for processing purposes')
 
     @classmethod
@@ -3533,7 +4264,6 @@ class Fingerprintlog(ModelSQL, ModelView, EntityOrigin):
 ##############################################################################
 # Portal
 ##############################################################################
-
 
 acl_objects = [
     ('artist', 'Artist'),
