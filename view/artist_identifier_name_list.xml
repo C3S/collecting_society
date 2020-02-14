@@ -1,8 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Release Identfier">
-    <field name="id_code"/>
-    <field name="identifier_name"/>
-    <field name="release"/>
+<tree string="Artist Identfier Name">
+    <field name="name"/>
+    <field name="version"/>
 </tree>

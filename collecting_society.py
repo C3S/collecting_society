@@ -952,9 +952,8 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Shows the bank account owner for this artist',
             depends=['payee', 'bank_account_number']),
         'on_change_with_bank_account_owner')
-    identifier = fields.One2Many('artist.identifier',
-        'artist', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+    identifiers = fields.One2Many('artist.identifier',
+        'artist', '3rd-party identifier',)
 
     @classmethod
     def __setup__(cls):
@@ -1225,7 +1224,7 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
-    identifier_name = fields.Many2One('artist.identifier.name', 'ArtistIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('artist.identifier.name', 'Artist Identifier Name', required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One('artist', 'Artist', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1267,9 +1266,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     license = fields.Function(
         fields.Many2One('license', 'Default License'),
         'get_license', searcher='search_license')
-    identifiers = fields.One2Many(
-        'creation.identification', 'creation', 'Identifiers',
-        states=STATES, depends=DEPENDS)
     derivative_relations = fields.One2Many(
         'creation.original.derivative', 'original_creation',
         'Derived Relations', states=STATES, depends=DEPENDS,
@@ -1303,9 +1299,8 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     tariff_categories_list = fields.Function(
         fields.Char('Tariff Category List'),
         'on_change_with_tariff_categories_list')
-    identifier = fields.One2Many('creation.identifier',
-        'creation', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+    identifiers = fields.One2Many('creation.identifier',
+        'creation', '3rd-party identifier',)
     rightsholders = fields.One2Many('creation.rightsholder',
         'CreationRightsholder', 'Creation Rightsholder',
         help='Creation Rightsholder')
@@ -1650,7 +1645,7 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-    identifier_name = fields.Many2One('creation.identifier.name', 'CreationIdentifierName', required=True, select=True, ondelete='CASCADE')
+    identifier_name = fields.Many2One('creation.identifier.name', 'Creation Identifier Name', required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One('creation', 'Creation', required=True, select=True, ondelete='CASCADE')
 
 
@@ -1787,9 +1782,8 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             help='Neighbouring Rights Societies involved in the creations of '
             'the release.'),
         'get_neighbouring_rights_societies')
-    identifier = fields.One2Many('release.identifier',
-        'release', '3rd-party identifier',
-        states=STATES, depends=DEPENDS)
+    identifiers = fields.One2Many('release.identifier',
+        'release', '3rd-party identifier',)
     rightsholders = fields.One2Many('release.rightsholder',
         'ReleaseRightsholder', 'Release Rightsholder',
         help='Release Rightsholder')
@@ -1997,8 +1991,8 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
-    release_identifier_name = fields.Many2One(
-        'release.identifier.name', 'Release Identifier Name', required=True, 
+    identifier_name = fields.Many2One(
+        'release.identifier.name', 'Release Identifier Name', required=True,
         select=True, ondelete='CASCADE')
     release = fields.Many2One(
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
@@ -2232,7 +2226,7 @@ class Identification(ModelSQL, ModelView):
         return (self.creation.title if self.creation else 'unknown')
 
 
-class Fingerprintlog(ModelSQL, ModelView):
+class Fingerprintlog(ModelSQL, ModelView, EntityOrigin):
     'Fingerprintlog'
     __name__ = 'content.fingerprintlog'
     _history = True

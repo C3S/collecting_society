@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Utilisation">
-    <field name="code"/>
-    <field name="timestamp"/>
-    <field name="party"/>
+<tree string="Creation Identfier">
+    <field name="id_code"/>
+    <field name="identifier_name"/>
     <field name="creation"/>
-    <field name="allocation"/>
-    <field name="state"/>
 </tree>
