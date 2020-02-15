@@ -33,6 +33,7 @@ __all__ = [
     'DistributionPlan',
     'DistributeStart',
     'Distribute',
+    'MixinRightsholder',
 
     # Licenser
     'License',
@@ -52,12 +53,16 @@ __all__ = [
     'CreationTariffCategory',
     'CreationIdentifier',
     'CreationIdentifierName',
+    'CreationRightsholder',
+    'CreationRightsholderCreationRightsholder',
     'Release',
     'ReleaseTrack',
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier',
     'ReleaseIdentifierName',
+    'ReleaseRightsholder',
+    'ReleaseRightsholderReleaseRightsholder',
     'MixinIdentifier',
     'Genre',
     'Style',
@@ -134,6 +139,38 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 # Mixins
 ##############################################################################
+
+
+class MixinRightsholder(object):
+    'Mixin for the Rightsholders'
+    right = fields.Selection(
+        [
+            ('copyright', 'Copyright'),
+            ('ancillary', 'Ancillary Copyright'),
+        ], 'Right', required=True, help='Which kind of right')
+    valid_from = fields.Date('Valid From Date')
+    valid_to = fields.Date('Valid To Date')
+    country = fields.Many2One(
+        'country.country', 'Territory or Country', states={'required': True})
+    collecting_society = fields.Many2One(
+        'collecting_society', 'Collecting Society', states={'required': True})
+
+    @property
+    def rightsholder_subject(self):
+        raise NotImplementedError("Subclasses should implement this")
+
+    @property
+    def rightsholder_object(self):
+        raise NotImplementedError("Subclasses should implement this")
+
+    @property
+    def contribution(self):
+        raise NotImplementedError("Subclasses should implement this")
+
+    @property
+    def successor(self):
+        raise NotImplementedError("Subclasses should implement this")
+
 
 class MixinIdentifier(object):
     valid_from = fields.Date('Valid From Date')
@@ -225,6 +262,19 @@ class PublicApi(object):
     @staticmethod
     def default_oid():
         return str(uuid.uuid4())
+
+
+class CurrencyDigits(object):
+    'Mixin to provide the currency digit configuration'
+    currency_digits = fields.Function(
+        fields.Integer('Currency Digits'), 'get_currency_digits')
+
+    def get_currency_digits(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency.digits
+        return 2
 
 
 class AccessControlList(object):
@@ -608,7 +658,7 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
         return self.get_code(name)
 
 
-class Allocation(ModelSQL, ModelView):
+class Allocation(ModelSQL, ModelView, CurrencyDigits):
     'Allocation'
     __name__ = 'distribution.allocation'
     distribution = fields.Many2One(
@@ -624,8 +674,6 @@ class Allocation(ModelSQL, ModelView):
     party = fields.Many2One(
         'party.party', 'Party', required=True,
         help='The party which utilises creations')
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
     amount = fields.Numeric(
         'Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'], help='The amount to distribute')
@@ -649,13 +697,6 @@ class Allocation(ModelSQL, ModelView):
     @staticmethod
     def default_type():
         return 'pocket2hats'
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
 
 
 class Distribution(ModelSQL, ModelView):
@@ -735,7 +776,7 @@ class DistributionPlan(ModelSQL, ModelView):
     code = fields.Char(
         'Code', required=True, select=True, states={'readonly': True})
     version = fields.Char(
-        'Version', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Version', required=True, select=True)
     valid_from = fields.Date(
         'Valid from', help='Date from which the tariff is valid.')
     valid_through = fields.Date(
@@ -1579,6 +1620,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'on_change_with_tariff_categories_list')
     identifiers = fields.One2Many(
         'creation.identifier', 'creation', '3rd-Party Identifier',)
+    rightsholders = fields.One2Many(
+        'creation.rightsholder', 'rightsholder_object',
+        'Creation Rightsholder', help='Creation Rightsholder')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -1936,6 +1980,45 @@ class CreationIdentifierName(ModelSQL, ModelView):
     version = fields.Char('version')
 
 
+class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
+    'Creation Rightsholder'
+    __name__ = 'creation.rightsholder'
+    _history = True
+    rightsholder_subject = fields.Many2One(
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    rightsholder_object = fields.Many2One(
+        'creation', 'Creation', required=True, select=True,
+        ondelete='CASCADE')
+    contribution = fields.Function(
+        fields.Char('Contribution Right'),
+        'on_change_with_rights')
+    successor = fields.Many2Many(
+        'creation.rightsholder-creation.rightsholder', 'predecessor',
+        'successor', 'Successor', help='Successor')
+    # instruments = fields.One2Many(
+    #     'instrument', 'Instrument', 'Instrument',
+    #     help='Instrument the rightsholder is the relevant authority for')
+
+    @fields.depends('right')
+    def on_change_with_rights(self, name=None):
+        if self.right == 'Copyright':
+            return ('Lyrics', 'Composition')
+        elif self.right == 'Ancillary Copyright':
+            return ('Instrument', 'Production', 'Mixing', 'Mastering')
+
+
+class CreationRightsholderCreationRightsholder(ModelSQL):
+    'CreationRightsholder - CreationRightsholder'
+    __name__ = 'creation.rightsholder-creation.rightsholder'
+    _history = True
+    predecessor = fields.Many2One(
+        'creation.rightsholder', 'Predecessor', required=True,
+        select=True, ondelete='CASCADE')
+    successor = fields.Many2One(
+        'creation.rightsholder', 'Successor', required=True,
+        select=True, ondelete='CASCADE')
+
+
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
               CurrentState, ClaimState, CommitState):
     'Release'
@@ -2041,7 +2124,9 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'get_neighbouring_rights_societies')
     identifiers = fields.One2Many(
         'release.identifier', 'release', '3rd-party identifier',)
-
+    rightsholders = fields.One2Many(
+        'release.rightsholder', 'rightsholder_object', 'Release Rightsholder',
+        help='Release Rightsholder')
     published = fields.Boolean(
         'Published', help='Is the release published and publicly accessible?')
     indicators = fields.Many2One(
@@ -2264,6 +2349,41 @@ class ReleaseIdentifierName(ModelSQL, ModelView):
     _history = True
     name = fields.Char('Name')
     version = fields.Char('Version')
+
+
+class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
+    'Release Rightsholder'
+    __name__ = 'release.rightsholder'
+    _history = True
+    rightsholder_subject = fields.Many2One(
+        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+    rightsholder_object = fields.Many2One(
+        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+    contribution = fields.Function(
+        fields.Char('Contribution Right'),
+        'on_change_with_rights')
+    successor = fields.Many2Many(
+        'release.rightsholder-release.rightsholder', 'predecessor',
+        'successor', 'Successor', help='Successor')
+
+    @fields.depends('right')
+    def on_change_with_rights(self, name=None):
+        if self.right == 'Copyright':
+            return ('Artwork', 'Text', 'Layout')
+        elif self.right == 'Ancillary Copyright':
+            return ('Production', 'Mixing', 'Mastering')
+
+
+class ReleaseRightsholderReleaseRightsholder(ModelSQL):
+    'ReleaseRightsholder - ReleaseRightsholder'
+    __name__ = 'release.rightsholder-release.rightsholder'
+    _history = True
+    predecessor = fields.Many2One(
+        'release.rightsholder', 'Predecessor', required=True,
+        select=True, ondelete='CASCADE')
+    successor = fields.Many2One(
+        'release.rightsholder', 'Successor', required=True,
+        select=True, ondelete='CASCADE')
 
 
 class Genre(ModelSQL, ModelView, PublicApi):
@@ -2827,22 +2947,12 @@ class Indicators(ModelSQL, ModelView):
     confirmed = fields.Reference(
         'Confirmed', 'selection_indicators', help='The confirmed indicators')
 
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
-
     @fields.depends('category')
     def selection_indicators(self):
         for code, description in indicators_list:
             if self.category == code:
                 return [('indicators.' + code, description)]
         return []
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
 
 
 class IndicatorsIndicators(ModelSQL):
@@ -2857,7 +2967,7 @@ class IndicatorsIndicators(ModelSQL):
         ondelete='CASCADE')
 
 
-class IndicatorsEvent(ModelSQL, ModelView):
+class IndicatorsEvent(ModelSQL, ModelView, CurrencyDigits):
     'Indicators: Event'
     __name__ = 'indicators.event'
     _history = True
@@ -2873,24 +2983,24 @@ class IndicatorsEvent(ModelSQL, ModelView):
     attendants = fields.Integer(
         'Attendants', help='The number of attendants of the event')
     turnover_tickets = fields.Numeric(
-        'Turnover Tickets', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The ticket related turnover')
     turnover_benefit = fields.Numeric(
-        'Turnover Benefit', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Turnover Benefit', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The benefit related turnover')
     expenses_musicians = fields.Numeric(
-        'Expenses Musicians', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Expenses Musicians', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the musicians')
     expenses_production = fields.Numeric(
-        'Expenses Production', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Expenses Production', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the production')
 
 
-class IndicatorsLocation(ModelSQL, ModelView):
+class IndicatorsLocation(ModelSQL, ModelView, CurrencyDigits):
     'Indicators: Location'
     __name__ = 'indicators.location'
     _history = True
@@ -2903,8 +3013,8 @@ class IndicatorsLocation(ModelSQL, ModelView):
         'weekday_period', 'reference', 'Opening Hours',
         help='The opening hours of the location')
     turnover_gastronomy = fields.Numeric(
-        'Turnover Gastronomy', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Turnover Gastronomy', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The gastronomy related turnover (e.g. food, drinks)')
 
 
@@ -2919,12 +3029,10 @@ class IndicatorsLocationSpace(ModelSQL, ModelView):
 
     size = fields.Float(
         'Size', digits=(10, 14),
-        help='The size of the location space [squaremeter]',
-        states={'invisible': Eval('category') != 'audio'},
-        depends=['category'])
+        help='The size of the location space [squaremeter]')
 
 
-class IndicatorsWebsiteResource(ModelSQL, ModelView):
+class IndicatorsWebsiteResource(ModelSQL, ModelView, CurrencyDigits):
     'Indicators: Website Resource'
     __name__ = 'indicators.website_resource'
     _history = True
@@ -2938,12 +3046,12 @@ class IndicatorsWebsiteResource(ModelSQL, ModelView):
     downloads = fields.Integer(
         'Downloads', help='The number of downloads')
     turnover_ads = fields.Numeric(
-        'Turnover Tickets', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The ticket related turnover')
     turnover_sale = fields.Numeric(
-        'Turnover Tickets', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The ticket related turnover')
 
 
@@ -2960,7 +3068,7 @@ class IndicatorsRelease(ModelSQL, ModelView):
         'Copies', help='The number of copies')
 
 
-class IndicatorsUtilisation(ModelSQL, ModelView):
+class IndicatorsUtilisation(ModelSQL, ModelView, CurrencyDigits):
     'Indicators: Utilisation'
     __name__ = 'indicators.utilisation'
     _history = True
@@ -2970,8 +3078,8 @@ class IndicatorsUtilisation(ModelSQL, ModelView):
         help='The main indicators object')
 
     base = fields.Numeric(
-        'Base', depends=['indicators'],
-        digits=(16, Eval('indicators.currency_digits', 2)),
+        'Base', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
         help='The base value')
     relevance = fields.Many2One(
         'tariff_system.tariff.relevance', 'Relevance',
@@ -3371,7 +3479,8 @@ class DeclarationCollection(ModelSQL, ModelView):
 
 # --- Utilisation ------------------------------------------------------------
 
-class Utilisation(ModelSQL, ModelView, CurrentState, PublicApi):
+class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
+                  PublicApi):
     'Utilisation'
     __name__ = 'utilisation'
     _history = True
@@ -3449,8 +3558,6 @@ class Utilisation(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The allocation of the utilisation')
 
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
     invoice_amount = fields.Numeric(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states=STATES, depends=['active', 'currency_digits'],
@@ -3537,15 +3644,8 @@ class Utilisation(ModelSQL, ModelView, CurrentState, PublicApi):
         default['code'] = None
         return super(Utilisation, cls).copy(utilisations, default=default)
 
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
 
-
-class UtilisationCreationlist(ModelSQL, ModelView):
+class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits):
     'Utilisation Creationlist'
     __name__ = 'utilisation.creationlist'
     _history = True
@@ -3574,8 +3674,6 @@ class UtilisationCreationlist(ModelSQL, ModelView):
         help='The items within the utilisation creation list')
 
     # calculated values
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
     known_ratio = fields.Numeric(
         'Unknown Ratio', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
@@ -3600,13 +3698,6 @@ class UtilisationCreationlist(ModelSQL, ModelView):
         domain=[('category', '=', 'website_resource')],
         # Todo: visible only for context WebsiteResource & context.category DSP
         help='A summary of the usage reports for a utilisation creationlist')
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
 
 
 class UtilisationCreationlistItem(ModelSQL, ModelView):
@@ -4119,13 +4210,6 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             self.pre_ingest_excerpt_score
         )
         return score if score <= maxval else maxval
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
 
     @classmethod
     def create(cls, vlist):

@@ -1067,10 +1067,10 @@
             <field name="type">form</field>
             <field name="name">artist_playlist_form</field>
         </record>
-        <record model="ir.ui.view" id="artist_playlist_list">
+        <record model="ir.ui.view" id="artist_playlist_tree">
             <field name="model">artist.playlist</field>
             <field name="type">tree</field>
-            <field name="name">artist_playlist_list</field>
+            <field name="name">artist_playlist_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_artist_playlist">
             <field name="name">Playlists</field>
@@ -1079,7 +1079,7 @@
         <record model="ir.action.act_window.view"
                 id="act_artist_playlist_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_playlist_list"/>
+            <field name="view" ref="artist_playlist_tree"/>
             <field name="act_window" ref="act_artist_playlist"/>
         </record>
         <record model="ir.action.act_window.view"
@@ -1098,10 +1098,10 @@
             <field name="type">form</field>
             <field name="name">artist_playlist_item_form</field>
         </record>
-        <record model="ir.ui.view" id="artist_playlist_item_list">
+        <record model="ir.ui.view" id="artist_playlist_item_tree">
             <field name="model">artist.playlist.item</field>
             <field name="type">tree</field>
-            <field name="name">artist_playlist_item_list</field>
+            <field name="name">artist_playlist_item_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_artist_playlist_item">
             <field name="name">Items</field>
@@ -1110,7 +1110,7 @@
         <record model="ir.action.act_window.view"
                 id="act_artist_playlist_item_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_playlist_item_list"/>
+            <field name="view" ref="artist_playlist_item_tree"/>
             <field name="act_window" ref="act_artist_playlist_item"/>
         </record>
         <record model="ir.action.act_window.view"
@@ -1216,6 +1216,37 @@
                   action="act_release_identifier_name"
                   id="menu_identifiers_release_identifier_name"/>
 
+        <!-- Menue: Releases / Rightsholders  -->
+        <record model="ir.ui.view" id="release_rightsholder_form">
+            <field name="model">release.rightsholder</field>
+            <field name="type">form</field>
+            <field name="name">release_rightsholder_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_rightsholder_list">
+            <field name="model">release.rightsholder</field>
+            <field name="type">tree</field>
+            <field name="name">release_rightsholder_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_rightsholder">
+            <field name="name">Release Rightsholder</field>
+            <field name="res_model">release.rightsholder</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_rightsholder_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_rightsholder_list"/>
+            <field name="act_window" ref="act_release_rightsholder"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_rightsholder_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_rightsholder_form"/>
+            <field name="act_window" ref="act_release_rightsholder"/>
+        </record>
+        <menuitem name="Rightsholders" parent="menu_release" sequence="20"
+                  id="menu_release_rightsholder"
+                  action="act_release_rightsholder"/>
+
         <!-- Menue: Releases / Tracks -->
         <record model="ir.ui.view" id="release_track_form">
             <field name="model">release.track</field>
@@ -1245,7 +1276,7 @@
             <field name="view" ref="release_track_form"/>
             <field name="act_window" ref="act_release_track"/>
         </record>
-        <menuitem parent="menu_release" sequence="20"
+        <menuitem parent="menu_release" sequence="30"
                   action="act_release_track"
                   id="menu_release_track"/>
 
@@ -1276,7 +1307,7 @@
             <field name="view" ref="release_genre_form"/>
             <field name="act_window" ref="act_release_genre"/>
         </record>
-        <menuitem parent="menu_release" sequence="30"
+        <menuitem parent="menu_release" sequence="40"
                   action="act_release_genre"
                   id="menu_release_genre"/>
 
@@ -1307,7 +1338,7 @@
             <field name="view" ref="release_style_form"/>
             <field name="act_window" ref="act_release_style"/>
         </record>
-        <menuitem parent="menu_release" sequence="40"
+        <menuitem parent="menu_release" sequence="50"
                   action="act_release_style"
                   id="menu_release_style"/>
 
@@ -1405,6 +1436,37 @@
                   action="act_creation_identifier_name"
                   id="menu_identifiers_creation_identifier_name"/>
 
+        <!-- Menue: Creations / Rightsholders  -->
+        <record model="ir.ui.view" id="creation_rightsholder_form">
+            <field name="model">creation.rightsholder</field>
+            <field name="type">form</field>
+            <field name="name">creation_rightsholder_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_rightsholder_list">
+            <field name="model">creation.rightsholder</field>
+            <field name="type">tree</field>
+            <field name="name">creation_rightsholder_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_rightsholder">
+            <field name="name">Creation Rightsholder</field>
+            <field name="res_model">creation.rightsholder</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_rightsholder_list"/>
+            <field name="act_window" ref="act_creation_rightsholder"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_rightsholder_form"/>
+            <field name="act_window" ref="act_creation_rightsholder"/>
+        </record>
+        <menuitem name="Rightsholders" parent="menu_creation" sequence="20"
+                  action="act_creation_rightsholder"
+                  id="menu_creation_rightsholder"/>
+
         <!-- Menue: Creations / Tariff Category -->
         <record model="ir.ui.view" id="creation_tariff_category_form">
             <field name="model">creation-tariff_category</field>
@@ -1434,7 +1496,7 @@
             <field name="view" ref="creation_tariff_category_form"/>
             <field name="act_window" ref="act_creation_tariff_category"/>
         </record>
-        <menuitem parent="menu_creation" sequence="20"
+        <menuitem parent="menu_creation" sequence="30"
                   action="act_creation_tariff_category"
                   id="menu_creation_tariff_category"/>
 
@@ -1467,7 +1529,7 @@
             <field name="view" ref="creation_derivative_form"/>
             <field name="act_window" ref="act_creation_derivative"/>
         </record>
-        <menuitem parent="menu_creation" sequence="30"
+        <menuitem parent="menu_creation" sequence="40"
                   action="act_creation_derivative"
                   id="menu_creation_derivative"/>
 
@@ -1500,7 +1562,7 @@
             <field name="view" ref="creation_contribution_form"/>
             <field name="act_window" ref="act_creation_contribution"/>
         </record>
-        <menuitem parent="menu_creation" sequence="40"
+        <menuitem parent="menu_creation" sequence="50"
                   action="act_creation_contribution"
                   id="menu_creation_contribution"/>
 
@@ -1534,7 +1596,7 @@
             <field name="view" ref="creation_contribution_role_form"/>
             <field name="act_window" ref="act_creation_contribution_role"/>
         </record>
-        <menuitem parent="menu_creation" sequence="50"
+        <menuitem parent="menu_creation" sequence="60"
                   action="act_creation_contribution_role"
                   id="menu_creation_contribution_role"/>
 
@@ -1865,18 +1927,18 @@
 
         <!-- Menue: Locations / Spaces / Indicators -->
         <record model="ir.ui.view" id="location_space_indicator_form">
-            <field name="model">indicator.location_space</field>
+            <field name="model">indicators.location_space</field>
             <field name="type">form</field>
             <field name="name">location_space_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="location_space_indicator_tree">
-            <field name="model">indicator.location_space</field>
+            <field name="model">indicators.location_space</field>
             <field name="type">tree</field>
             <field name="name">location_space_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_location_space_indicator">
             <field name="name">Location Space Indicators</field>
-            <field name="res_model">indicator.location_space</field>
+            <field name="res_model">indicators.location_space</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -1896,18 +1958,18 @@
 
         <!-- Menue: Locations / Indicators -->
         <record model="ir.ui.view" id="location_indicator_form">
-            <field name="model">indicator.location</field>
+            <field name="model">indicators.location</field>
             <field name="type">form</field>
             <field name="name">location_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="location_indicator_tree">
-            <field name="model">indicator.location</field>
+            <field name="model">indicators.location</field>
             <field name="type">tree</field>
             <field name="name">location_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_location_indicator">
             <field name="name">Location Indicators</field>
-            <field name="res_model">indicator.location</field>
+            <field name="res_model">indicators.location</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>

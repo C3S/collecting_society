@@ -3,6 +3,9 @@
      Repository: https://github.com/C3S/collecting_society -->
 <data>
     <xpath expr="/form/notebook" position="inside">
+	<page string="IDs" id="identifiers">
+	    <field name="identifiers" string="Identifiers"/>
+	</page>
         <page string="Collecting Societies" id="cs">
             <label name="member_c3s"/>
             <field name="member_c3s"/>
