@@ -1152,6 +1152,36 @@
                   action="act_release_identifier_name"
                   id="menu_identifiers_release_identifier_name"/>
 
+    	<!-- Menue: Releases / Rightsholders  -->
+	<record model="ir.ui.view" id="release_rightsholder_form">
+            <field name="model">release.rightsholder</field>
+            <field name="type">form</field>
+            <field name="name">release_rightsholder_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_rightsholder_list">
+            <field name="model">release.rightsholder</field>
+            <field name="type">tree</field>
+            <field name="name">release_rightsholder_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_rightsholder">
+            <field name="name">Release Rightsholder</field>
+            <field name="res_model">release.rightsholder</field>
+        </record>
+	    <record model="ir.action.act_window.view"
+                id="act_release_rightsholder_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_rightsholder_list"/>
+            <field name="act_window" ref="act_release_rightsholder"/>
+	    </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_rightsholder_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_rightsholder_form"/>
+            <field name="act_window" ref="act_release_rightsholder"/>
+        </record>
+	<menuitem name="Rightsholders" id="menu_release_rightsholder"
+                  parent="menu_release" sequence="0" 
+			  action="act_release_rightsholder"/>
 
         <!-- Menue: Creations -->
         <record model="ir.ui.view" id="creation_form">
@@ -1379,6 +1409,36 @@
                   action="act_creation_identifier_name"
                   id="menu_identifiers_creation_identifier_name"/>
 
+    	<!-- Menue: Creations / Rightsholders  -->
+	<record model="ir.ui.view" id="creation_rightsholder_form">
+            <field name="model">creation.rightsholder</field>
+            <field name="type">form</field>
+            <field name="name">creation_rightsholder_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_rightsholder_list">
+            <field name="model">creation.rightsholder</field>
+            <field name="type">tree</field>
+            <field name="name">creation_rightsholder_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_rightsholder">
+            <field name="name">Creation Rightsholder</field>
+            <field name="res_model">creation.rightsholder</field>
+        </record>
+	    <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_rightsholder_list"/>
+            <field name="act_window" ref="act_creation_rightsholder"/>
+	    </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_rightsholder_form"/>
+            <field name="act_window" ref="act_creation_rightsholder"/>
+        </record>
+	<menuitem name="Rightsholders" id="menu_creation_rightsholder"
+                  parent="menu_creation" sequence="0" 
+			  action="act_creation_rightsholder"/>
 
         <!-- Menue: Licenses -->
         <record model="ir.ui.view" id="release_track_license_form">

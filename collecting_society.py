@@ -54,6 +54,7 @@ __all__ = [
     'CreationIdentifier',
     'CreationIdentifierName',
     'CreationRightsholder',
+    'CreationRightsholderCreationRightsholder',
     'Release',
     'ReleaseTrack',
     'ReleaseGenre',
@@ -61,6 +62,7 @@ __all__ = [
     'ReleaseIdentifier',
     'ReleaseIdentifierName',
     'ReleaseRightsholder',
+    'ReleaseRightsholderReleaseRightsholder',
     'MixinIdentifier',
     'Genre',
     'Style',
@@ -1987,8 +1989,8 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
         fields.Char('Contribution Right'),
         'on_change_with_rights')
     successor = fields.Many2Many(
-        'creation.rightsholder-creation.rightsholder', 'rightsholder_left',
-        'rightsholder_right', 'Successor', help='successor')
+        'creation.rightsholder-creation.rightsholder', 'predecessor',
+        'successor', 'Successor', help='Successor')
     instruments = fields.One2Many(
         'instrument', 'Instrument', 'Instrument',
         help='Instrument the rightsholder is the relevant authority for')
@@ -2005,11 +2007,11 @@ class CreationRightsholderCreationRightsholder(ModelSQL):
     'CreationRightsholder - CreationRightsholder'
     __name__ = 'creation.rightsholder-creation.rightsholder'
     _history = True
-    rightsholder_left = fields.Many2One(
-        'creation.rightsholder', 'Creation Rightsholder', required=True,
+    predecessor = fields.Many2One(
+        'creation.rightsholder', 'Predecessor', required=True,
         select=True, ondelete='CASCADE')
-    rightsholder_right = fields.Many2One(
-        'creation.rightsholder', 'Creation Rightsholder', required=True,
+    successor = fields.Many2One(
+        'creation.rightsholder', 'Successor', required=True,
         select=True, ondelete='CASCADE')
 
 
@@ -2357,8 +2359,8 @@ class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
         fields.Char('Contribution Right'),
         'on_change_with_rights')
     successor = fields.Many2Many(
-        'release.rightsholder-release.rightsholder', 'rightsholder_left',
-        'rightsholder_right', 'Successor', help='successor')
+        'release.rightsholder-release.rightsholder', 'predecessor',
+        'successor', 'Successor', help='Successor')
 
     @fields.depends('right')
     def on_change_with_rights(self, name=None):
@@ -2372,11 +2374,11 @@ class ReleaseRightsholderReleaseRightsholder(ModelSQL):
     'ReleaseRightsholder - ReleaseRightsholder'
     __name__ = 'release.rightsholder-release.rightsholder'
     _history = True
-    rightsholder_left = fields.Many2One(
-        'release.rightsholder', 'Release Rightsholder', required=True,
+    predecessor = fields.Many2One(
+        'release.rightsholder', 'Predecessor', required=True,
         select=True, ondelete='CASCADE')
-    rightsholder_right = fields.Many2One(
-        'release.rightsholder', 'Release Rightsholder', required=True,
+    successor = fields.Many2One(
+        'release.rightsholder', 'Successor', required=True,
         select=True, ondelete='CASCADE')
 
 
