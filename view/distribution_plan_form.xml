@@ -1,6 +1,16 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Distribution Plan" col="6">
+<form string="Distribution Plan" col="2">
+    <label name="code"/>
+    <field name="code"/>
+    <label name="version"/>
+    <field name="version"/>
 
+    <label name="valid_from"/>
+    <field name="valid_from"/>
+    <label name="valid_through"/>
+    <field name="valid_through"/>
+    <label name="transitional_through"/>
+    <field name="transitional_through"/>
 </form>

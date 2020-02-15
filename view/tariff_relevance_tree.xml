@@ -2,5 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Tariff Relevance Categories">
-    
+    <field name="name" expand="1"/>
+    <field name="value_min" expand="1"/>
+    <field name="value_max" expand="1"/>
+    <field name="value_default" expand="1"/>
 </tree>

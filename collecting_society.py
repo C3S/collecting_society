@@ -582,7 +582,10 @@ class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
     _history = True
 
     name = fields.Char(
-        'Name', states=STATES, depends=DEPENDS,
+        'Name', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The name of the category')
     value_min = fields.Float(
         'Minimum', help='The minimum value', states={
@@ -1544,8 +1547,8 @@ class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
 class ArtistPlaylistItem(ModelSQL, ModelView, PublicApi, EntityOrigin):
     'Artist Playlist Item'
     __name__ = 'artist.playlist.item'
-    playlist = fields.One2Many(
-        'artist.playlist', 'items', 'Playlist', required=True,
+    playlist = fields.Many2One(
+        'artist.playlist', 'Playlist', required=True,
         help='The playlist of the item')
     creation = fields.Many2One(
         'creation', 'Creation', required=True,
