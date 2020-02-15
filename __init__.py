@@ -6,7 +6,6 @@ from .collecting_society import *
 from .account import *
 from .party import *
 from .web_user import *
-from .oauth import *
 from .configuration import *
 
 

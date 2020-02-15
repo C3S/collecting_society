@@ -3097,7 +3097,7 @@ class DeviceMessage(ModelSQL, ModelView):
         'Context', [
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
-        ],
+        ], states={'required': True},
         help='The object, which the message is referencing')
     content = fields.Reference(
         'Content', 'selection_content', states={'required': True},
@@ -3129,6 +3129,9 @@ class Fingerprint(ModelSQL, ModelView):
     'Device Message: Fingerprint'
     __name__ = 'device.message.fingerprint'
     _history = True
+
+    device = fields.Function(
+        fields.Many2One('device', 'Device'), 'get_device')
     message = fields.Many2One(
         'device.message', 'Message', states={'required': True},
         help='The device message')
@@ -3155,7 +3158,7 @@ class Fingerprint(ModelSQL, ModelView):
     timestamp = fields.DateTime(
         'Timestamp', states={'readonly': True, 'required': True},
         help='The point in time, when the creation was utlized')
-    fingerprint = fields.Char(
+    fingerprint = fields.Text(
         'Fingerprint', states={'readonly': True, 'required': True},
         help='The fingerprint of a creation sample')
     algorithm = fields.Char(
@@ -3164,6 +3167,10 @@ class Fingerprint(ModelSQL, ModelView):
     version = fields.Char(
         'Version', states={'readonly': True, 'required': True},
         help='The version of the fingerprinting algorithm')
+
+    @fields.depends('message')
+    def get_device(self, name):
+        return self.message.device
 
 
 class FingerprintCreationlist(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -3188,6 +3195,7 @@ class FingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
     'Device Message: Fingerprint Creationlist Item'
     __name__ = 'device.message.fingerprint.creationlist.item'
     _history = True
+
     creation_list = fields.Many2One(
         'device.message.fingerprint.creationlist', 'Creation List',
         states={'required': True},
@@ -3210,10 +3218,27 @@ class Usagereport(ModelSQL, ModelView):
     'Device Message: Usagereport'
     __name__ = 'device.message.usagereport'
     _history = True
+
+    device = fields.Function(
+        fields.Many2One('device', 'Device'), 'get_device')
     message = fields.Many2One(
         'device.message', 'Message', states={'required': True},
         help='The device message')
+    state = fields.Selection(
+        [
+            ('created', 'Creation'),
+            ('processed', 'Processed'),
+            ('discarded', 'Discarded'),
+        ], 'State', sort=False, states={'required': True},
+        help='The state of the usage report:\n'
+             '- created: the usage report was created\n'
+             '- processed: the usage report was processed\n'
+             '- discarded: the usage report was discarded')
 
+    timestamp = fields.DateTime(
+        'Timestamp', states={'required': True},
+        help='The point in time, when the creation was utlized')
+    # Todo: one reference field for website_resource / creation
     website_resource = fields.Many2One(
         'website.resource', 'Website Resource', help='The website resorce')
     creation = fields.Many2One(
@@ -3227,6 +3252,10 @@ class Usagereport(ModelSQL, ModelView):
     utilisation_creation_list = fields.Many2One(
         'utilisation.creationlist', 'Utilisation Creation List',
         help='The utilisation creation list resulting from the usage reports')
+
+    @fields.depends('message')
+    def get_device(self, name):
+        return self.message.device
 
 
 # --- Declaration ------------------------------------------------------------
