@@ -18,6 +18,9 @@
     <field name="party"/>
 
     <notebook colspan="8">
+	<page string="IDs" id="identifiers">
+	    <field name="identifiers" string="Identifiers"/>
+	</page>
         <page string="General" id="general" col="6">
             <group id="misc" colspan="6" col="10">
                 <group id="image" colspan="1" col="1" xexpand="0">

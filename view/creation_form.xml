@@ -20,6 +20,9 @@
     <field name="license"/>
 
     <notebook colspan="8">
+	<page string="IDs" id="identifiers">
+	    <field name="identifiers" string="Identifiers"/>
+	</page>
         <page string="Contributions" id="contributions">
             <field name="contributions"/>
         </page>

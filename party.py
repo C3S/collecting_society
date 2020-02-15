@@ -42,7 +42,7 @@ class Party:
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
     identifiers = fields.One2Many(
-        'party.identifier', 'identifier', '3rd-party identifier',
+        'party.identifier', 'party', '3rd-Party Identifier',
         help='The identifiers of the party')
     legal_person = fields.Boolean('Legal Person')
     common_public_interest = fields.Selection(
