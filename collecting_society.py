@@ -173,6 +173,8 @@ class MixinRightsholder(object):
 
 
 class MixinIdentifier(object):
+    'Mixin for <Object>Identifier models'
+
     valid_from = fields.Date('Valid From Date')
     valid_to = fields.Date('Valid To Date')
     id_code = fields.Char('ID Code')
