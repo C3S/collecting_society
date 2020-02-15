@@ -2,16 +2,5 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Utilisation">
-    <label name="timestamp"/>
-    <field name="timestamp" xexpand="1"/>
-    <label name="code"/>
-    <field name="code"/>
-    <label name="party"/>
-    <field name="party"/>
-    <label name="creation"/>
-    <field name="creation"/>
-    <label name="allocation"/>
-    <field name="allocation"/>
-    <label name="state"/>
-    <field name="state"/>
+    
 </form>

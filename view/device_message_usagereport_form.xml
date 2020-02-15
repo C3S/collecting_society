@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Usage Report" col="6">
+    <label name="device"/>
+    <field name="device"/>
+    <label name="message"/>
+    <field name="message"/>
+    <label name="state"/>
+    <field name="state"/>
+
+    <notebook colspan="6">
+        <page string="Data" id="data" col="2">
+            <label name="timestamp"/>
+            <field name="timestamp"/>
+            <label name="indicators"/>
+            <field name="indicators"/>
+            <separator string="Reference" id="reference" xexpand="0" colspan="2"/>
+            <label name="creation"/>
+            <field name="creation"/>
+            <label name="website_resource"/>
+            <field name="website_resource"/>
+        </page>
+        <page string="Processing" id="processing" col="2">
+            <label name="utilisation_creation_list"/>
+            <field name="utilisation_creation_list"/>
+        </page>
+    </notebook>
+</form>

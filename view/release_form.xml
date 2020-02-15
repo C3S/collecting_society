@@ -18,9 +18,9 @@
     <field name="label_catalog_number"/>
 
     <notebook colspan="8">
-        <page string="Identifiers" id="identifiers" col="4">
-            <field name="identifier" colspan="2" yexpand="1"/>
-        </page>
+	<page string="IDs" id="identifiers">
+	    <field name="identifiers" string="Identifiers"/>
+	</page>
         <page string="Metadata" id="metadata" col="4">
             <field name="artists" colspan="4" height="60"/>
             <group id="image" col="1" xexpand="0">

@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Oauth Provider Redirect URI">
-    <field name="uri"/>
-    <field name="client"/>
-</tree>
+<form string="Event" col="6">
+
+</form>

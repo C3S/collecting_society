@@ -6,7 +6,6 @@ from .collecting_society import *
 from .account import *
 from .party import *
 from .web_user import *
-from .oauth import *
 from .configuration import *
 
 
@@ -39,6 +38,8 @@ def register():
         CreationRole,
         CreationIdentifierName,
         CreationIdentifier,
+        CreationRightsholder,
+        CreationRightsholderCreationRightsholder,
         ArtistPlaylist,
         ArtistPlaylistItem,
         TariffRelevanceCategory,
@@ -72,6 +73,8 @@ def register():
         ReleaseTrack,
         ReleaseIdentifierName,
         ReleaseIdentifier,
+        ReleaseRightsholder,
+        ReleaseRightsholderReleaseRightsholder,
         ArtistRelease,
         Genre,
         ReleaseGenre,

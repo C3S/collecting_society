@@ -3,94 +3,94 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tryton>
     <data>
-        <!--
+    <!--
 
-             Extend existing views
+         Extend existing views
 
-        -->
-        <record model="ir.ui.view" id="party_view_form">
-            <field name="model">party.party</field>
-            <field name="inherit" ref="party.party_view_form"/>
-            <field name="name">party_form</field>
-        </record>
+    -->
+    <record model="ir.ui.view" id="party_view_form">
+        <field name="model">party.party</field>
+        <field name="inherit" ref="party.party_view_form"/>
+        <field name="name">party_form</field>
+    </record>
 	<!-- Identifiers -->
 	<record model="party.identifier.name"
-		id="party_identifier_name_ipi">
+		    id="party_identifier_name_ipi">
 	    <field name="name">IPI</field>
 	    <field name="version">1</field>
-        </record>
+    </record>
 	<record model="party.identifier.name"
-		id="party_identifier_name_isni">
+		    id="party_identifier_name_isni">
 	    <field name="name">ISNI</field>
 	    <field name="version">1</field>
-        </record>
+    </record>
 	<record model="party.identifier.name"
-		id="party_identifier_name_dpid">
+		    id="party_identifier_name_dpid">
 	    <field name="name">DDEX Party Identifier</field>
 	    <field name="version">1</field>
-        </record>
+    </record>
 
 	<!-- Menue: Parties / Identifiers  -->
 	<record model="ir.ui.view" id="party_identifier_form">
-            <field name="model">party.identifier</field>
-            <field name="type">form</field>
-            <field name="name">party_identifier_form</field>
-        </record>
-        <record model="ir.ui.view" id="party_identifier_list">
-            <field name="model">party.identifier</field>
-            <field name="type">tree</field>
-            <field name="name">party_identifier_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_party_identifier">
-            <field name="name">Party Identifier</field>
-            <field name="res_model">party.identifier</field>
-        </record>
+        <field name="model">party.identifier</field>
+        <field name="type">form</field>
+        <field name="name">party_identifier_form</field>
+    </record>
+    <record model="ir.ui.view" id="party_identifier_list">
+        <field name="model">party.identifier</field>
+        <field name="type">tree</field>
+        <field name="name">party_identifier_list</field>
+    </record>
+    <record model="ir.action.act_window" id="act_party_identifier">
+        <field name="name">Party Identifier</field>
+        <field name="res_model">party.identifier</field>
+    </record>
 	<record model="ir.action.act_window.view"
-                id="act_party_identifier_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="party_identifier_list"/>
-            <field name="act_window" ref="act_party_identifier"/>
+            id="act_party_identifier_list">
+        <field name="sequence" eval="10"/>
+        <field name="view" ref="party_identifier_list"/>
+        <field name="act_window" ref="act_party_identifier"/>
 	</record>
-        <record model="ir.action.act_window.view"
-                id="act_party_identifier_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="party_identifier_form"/>
-            <field name="act_window" ref="act_party_identifier"/>
-        </record>
-        <menuitem name="Identifiers" id="menu_party_identifiers"
-                  parent="party.menu_party" sequence="0" 
-		  action="act_party_identifier"/>
+    <record model="ir.action.act_window.view"
+            id="act_party_identifier_form">
+        <field name="sequence" eval="20"/>
+        <field name="view" ref="party_identifier_form"/>
+        <field name="act_window" ref="act_party_identifier"/>
+    </record>
+    <menuitem name="Identifiers" id="menu_party_identifiers"
+              parent="party.menu_party" sequence="0" 
+	          action="act_party_identifier"/>
 
 	<!-- Menue: Parties / Identifier Names -->
 	<record model="ir.ui.view" id="party_identifier_name_form">
-            <field name="model">party.identifier.name</field>
-            <field name="type">form</field>
-            <field name="name">party_identifier_name_form</field>
-        </record>
-        <record model="ir.ui.view" id="party_identifier_name_list">
-            <field name="model">party.identifier.name</field>
-            <field name="type">tree</field>
-            <field name="name">party_identifier_name_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_party_identifier_name">
-            <field name="name">Party Identifier Name</field>
-            <field name="res_model">party.identifier.name</field>
-        </record>
+        <field name="model">party.identifier.name</field>
+        <field name="type">form</field>
+        <field name="name">party_identifier_name_form</field>
+    </record>
+    <record model="ir.ui.view" id="party_identifier_name_list">
+        <field name="model">party.identifier.name</field>
+        <field name="type">tree</field>
+        <field name="name">party_identifier_name_list</field>
+    </record>
+    <record model="ir.action.act_window" id="act_party_identifier_name">
+        <field name="name">Party Identifier Name</field>
+        <field name="res_model">party.identifier.name</field>
+    </record>
 	<record model="ir.action.act_window.view"
-                id="act_party_identifier_name_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="party_identifier_name_list"/>
-            <field name="act_window" ref="act_party_identifier_name"/>
+            id="act_party_identifier_name_list">
+        <field name="sequence" eval="10"/>
+        <field name="view" ref="party_identifier_name_list"/>
+        <field name="act_window" ref="act_party_identifier_name"/>
 	</record>
-        <record model="ir.action.act_window.view"
-                id="act_party_identifier_name_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="party_identifier_name_form"/>
-            <field name="act_window" ref="act_party_identifier_name"/>
-        </record>
-        <menuitem parent="menu_party_identifiers"
-                  action="act_party_identifier_name"
-                  id="menu_identifiers_party_identifier_name"/>
+    <record model="ir.action.act_window.view"
+            id="act_party_identifier_name_form">
+        <field name="sequence" eval="20"/>
+        <field name="view" ref="party_identifier_name_form"/>
+        <field name="act_window" ref="act_party_identifier_name"/>
+    </record>
+    <menuitem parent="menu_party_identifiers"
+              action="act_party_identifier_name"
+              id="menu_identifiers_party_identifier_name"/>
 
     </data>
 </tryton>
