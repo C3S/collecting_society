@@ -41,8 +41,17 @@ class Party:
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
-    identifiers = fields.One2Many('party.identifier',
-        'identifier', '3rd-party identifier', help='')
+    identifiers = fields.One2Many(
+        'party.identifier', 'identifier', '3rd-party identifier',
+        help='The identifiers of the party')
+    legal_person = fields.Boolean('Legal Person')
+    common_public_interest = fields.Selection(
+        [
+            ('no', 'No'),
+            ('on_approval', 'On Approval'),
+            ('approved', 'Approved'),
+            ('rejected', 'Rejected'),
+        ], 'Common Public Interest', required=True, sort=False)
 
     @classmethod
     def __setup__(cls):
@@ -55,6 +64,10 @@ class Party:
     @staticmethod
     def default_oid():
         return str(uuid.uuid4())
+
+    @staticmethod
+    def default_common_public_interest():
+        return 'no'
 
     @staticmethod
     def default_pocket_budget():
