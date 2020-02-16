@@ -64,6 +64,8 @@ __all__ = [
     'ReleaseRightsholder',
     'ReleaseRightsholderReleaseRightsholder',
     'MixinIdentifier',
+    'Instrument',
+    'CreationRightsholderInstrument',
     'Genre',
     'Style',
     'Label',
@@ -2000,9 +2002,10 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
     successor = fields.Many2Many(
         'creation.rightsholder-creation.rightsholder', 'predecessor',
         'successor', 'Successor', help='Successor')
-    # instruments = fields.One2Many(
-    #     'instrument', 'Instrument', 'Instrument',
-    #     help='Instrument the rightsholder is the relevant authority for')
+    instruments = fields.Many2Many(
+        'creation.rightsholder-instrument', 'rightsholder', 'instrument'
+        'Instrument',
+        help='Instrument the rightsholder is the relevant authority for')
 
     @fields.depends('right')
     def on_change_with_rights(self, name=None):
@@ -2016,6 +2019,7 @@ class CreationRightsholderCreationRightsholder(ModelSQL):
     'CreationRightsholder - CreationRightsholder'
     __name__ = 'creation.rightsholder-creation.rightsholder'
     _history = True
+
     predecessor = fields.Many2One(
         'creation.rightsholder', 'Predecessor', required=True,
         select=True, ondelete='CASCADE')
@@ -2383,11 +2387,35 @@ class ReleaseRightsholderReleaseRightsholder(ModelSQL):
     'ReleaseRightsholder - ReleaseRightsholder'
     __name__ = 'release.rightsholder-release.rightsholder'
     _history = True
+
     predecessor = fields.Many2One(
         'release.rightsholder', 'Predecessor', required=True,
         select=True, ondelete='CASCADE')
     successor = fields.Many2One(
         'release.rightsholder', 'Successor', required=True,
+        select=True, ondelete='CASCADE')
+
+
+class Instrument(ModelSQL, ModelView, PublicApi):
+    'Instrument'
+    __name__ = 'instrument'
+    _history = True
+
+    name = fields.Char('Name', help='The name of the instrument.')
+    description = fields.Text(
+        'Description', help='The description of the instrument.')
+
+
+class CreationRightsholderInstrument(ModelSQL)
+    'CreationRightsholderInstrument'
+    __name__ = 'creation.rightsholder-instrument'
+    _history = True
+    
+    rightsholder = fields.Many2One(
+        'creation.rightsholder', 'Rightsholder', required=True,
+        select=True, ondelete='CASCADE')
+    instrument = fields.Many2One(
+        'instrument', 'Instrument', required=True,
         select=True, ondelete='CASCADE')
 
 
