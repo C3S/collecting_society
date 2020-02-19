@@ -52,7 +52,7 @@ __all__ = [
     'CreationRole',
     'CreationTariffCategory',
     'CreationIdentifier',
-    'CreationIdentifierName',
+    'CreationIdentifierSpace',
     'CreationRightsholder',
     'CreationRightsholderCreationRightsholder',
     'Release',
@@ -1529,7 +1529,7 @@ class ArtistIdentifierName(ModelSQL, ModelView):
     'Artist Identifier Name'
     __name__ = 'artist.identifier.name'
     _history = True
-    name = fields.Char('official name')
+    name = fields.Char('official name of the id space')
     version = fields.Char('version')
 
 
@@ -1969,19 +1969,19 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-    identifier_name = fields.Many2One(
-        'creation.identifier.name', 'Creation Identifier Name',
+    id_space = fields.Many2One(
+        'creation.identifier.space', 'Creation Identifier Space',
         required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One(
         'creation', 'Creation',
         required=True, select=True, ondelete='CASCADE')
 
 
-class CreationIdentifierName(ModelSQL, ModelView):
-    'Creation Identifier Name'
-    __name__ = 'creation.identifier.name'
+class CreationIdentifierSpace(ModelSQL, ModelView):
+    'Creation Identifier Space'
+    __name__ = 'creation.identifier.space'
     _history = True
-    name = fields.Char('official name')
+    name = fields.Char('official name of the id space')
     version = fields.Char('version')
 
 
@@ -3290,6 +3290,7 @@ class FingerprintCreationlist(ModelSQL, ModelView, CurrentState, PublicApi):
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
+    # TODO: readonly if utilisation_creationlist != None
     confirmed = fields.Boolean(
         'Confirmed', states=STATES, depends=DEPENDS,
         help='The confirmation state by the licensee.')
