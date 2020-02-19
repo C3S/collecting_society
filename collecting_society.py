@@ -310,6 +310,40 @@ class AccessControlList(object):
         return tuple(permissions)
 
 
+def getMixinIndicators(name):
+    'Retrieves a dynamically generated mixin class for access to indicators'
+    names = [
+        'event',
+        'location',
+        'location_space',
+        'website_resource',
+        'utilisation']
+    assert(name in names)
+
+    class MixinIndicators(object):
+        'Mixin for direct access to estimated and confirmed indicators'
+        indicators_estimated = fields.Function(
+            fields.Many2One(
+                'indicators.' + name, 'Estimated'), 'get_indicators_estimated')
+        indicators_confirmed = fields.Function(
+            fields.Many2One(
+                'indicators.' + name, 'Confirmed'), 'get_indicators_confirmed')
+
+        @fields.depends('indicators')
+        def get_indicators_estimated(self, name):
+            if self.indicators:
+                return self.indicators.estimated
+            return
+
+        @fields.depends('indicators')
+        def get_indicators_confirmed(self, name):
+            if self.indicators:
+                return self.indicators.confirmed
+            return
+
+    return MixinIndicators
+
+
 ##############################################################################
 # General
 ##############################################################################
@@ -2440,7 +2474,8 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
 
 # --- Real World Objects -----------------------------------------------------
 
-class Event(ModelSQL, ModelView, CurrentState, PublicApi):
+class Event(ModelSQL, ModelView, CurrentState, PublicApi,
+            getMixinIndicators('event')):
     'Event'
     __name__ = 'event'
     _history = True
@@ -3182,6 +3217,9 @@ class DeviceMessage(ModelSQL, ModelView):
         'device', 'Device', states={'required': True},
         help='The device of the message')
 
+    uuid = fields.Char(
+        'UUID', required=True, states=STATES, depends=DEPENDS,
+        help='The uuid of the message')
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
         help='The point in time, when the message arrived or was sent.')
@@ -3197,24 +3235,77 @@ class DeviceMessage(ModelSQL, ModelView):
             ('usagereport', 'Usage Report'),
         ], 'Category', sort=False, states={'required': True},
         help='The category of the message content: Incoming or Outgoing')
+
     previous_message = fields.One2One(
         'device.message-device.message', 'next_message', 'previous_message',
-        'Previous Message', domain=[('previous_message', '=', [])],
+        'Previous Message', domain=[
+            ['OR',
+                # only free ones
+                [('next_message', '=', None)],
+                # allow saving (new relations to the current one)
+                [('next_message.id', '=', Eval('id'))]],
+            # no circles
+            ('last_message', '!=', Eval('last_message')),
+            # no self reference
+            ('id', '!=', Eval('id')),
+        ], depends=['id', 'last_message'],
         help='The previous message in a message sequence')
     next_message = fields.One2One(
         'device.message-device.message', 'previous_message', 'next_message',
-        'Next Message', domain=[('next_message', '=', [])],
+        'Next Message', domain=[
+            ['OR',
+                # only free ones
+                [('previous_message', '=', None)],
+                # allow saving (new relations to the current one)
+                [('previous_message.id', '=', Eval('id'))]],
+            # no circles
+            ('first_message', '!=', Eval('first_message')),
+            # no self reference
+            ('id', '!=', Eval('id')),
+        ], depends=['id', 'first_message'],
         help='The next message in a message sequence')
+    first_message = fields.Function(
+        fields.Many2One(
+            'device.message', 'First Message', help='The first message'),
+        'get_first_message', searcher='search_message_id')
+    last_message = fields.Function(
+        fields.Many2One(
+            'device.message', 'Last Message', help='The last message'),
+        'get_last_message', searcher='search_message_id')
 
     context = fields.Reference(
         'Context', [
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
-        ], states={'required': True},
-        help='The object, which the message is referencing')
+        ], help='The object, which the message is referencing')
     content = fields.Reference(
-        'Content', 'selection_content', states={'required': True},
-        help='The message content')
+        'Content', 'selection_content', help='The message content')
+
+    @classmethod
+    def __setup__(cls):
+        super(DeviceMessage, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the device must be unique.'),
+        ]
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('uuid',) + tuple(clause[1:]),
+            ('timestamp',) + tuple(clause[1:]),
+        ]
+
+    @classmethod
+    def search_message_id(cls, name, clause):
+        return [
+            ('id',) + tuple(clause[1:])
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
 
     @fields.depends('category')
     def selection_content(self):
@@ -3223,6 +3314,30 @@ class DeviceMessage(ModelSQL, ModelView):
         if self.category == 'usagereport':
             return [('device.message.usagereport', 'Usage Report')]
         return []
+
+    @fields.depends('previous_message')
+    def get_first_message(self, name=None):
+        reentrance_message = self.previous_message
+        message = self.previous_message
+        while message:
+            if not message.previous_message:
+                return (message.id)
+            message = message.previous_message
+            if message == reentrance_message:
+                raise Exception('Circular sequence detected: %s' % self)
+        return None
+
+    @fields.depends('next_message')
+    def get_last_message(self, name=None):
+        reentrance_message = self.next_message
+        message = self.next_message
+        while message:
+            if not message.next_message:
+                return (message.id)
+            message = message.next_message
+            if message == reentrance_message:
+                raise Exception('Circular sequence detected: %s' % self)
+        return None
 
 
 class DeviceMessageDeviceMessage(ModelSQL):
