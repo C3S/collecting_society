@@ -2,5 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Release Indicators" col="6">
+    <label name="copies"/>
+    <field name="copies"/>
 
+    <field name="confirmed_releases" colspan="2"/>
 </form>

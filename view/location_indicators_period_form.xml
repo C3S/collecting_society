@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form string="Opening Hour Period" col="4">
+    <label name="location_indicators"/>
+    <field name="location_indicators"/>
+
+    <newline/>
+    
+    <label name="start_weekday"/>
+    <field name="start_weekday"/>
+    <label name="end_weekday"/>
+    <field name="end_weekday"/>
+
+    <label name="start_time"/>
+    <field name="start_time"/>
+    <label name="end_time"/>
+    <field name="end_time"/>
+
+    <label name="duration"/>
+    <field name="duration"/>
+</form>

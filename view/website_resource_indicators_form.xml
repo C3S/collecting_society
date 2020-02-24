@@ -1,6 +1,15 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Website Resource Indicators" col="6">
+<form string="Website Resource Indicators" col="2">
+    <label name="streams"/>
+    <field name="streams"/>
+    <label name="downloads"/>
+    <field name="downloads"/>
+    <label name="turnover_ads"/>
+    <field name="turnover_ads"/>
+    <label name="turnover_sale"/>
+    <field name="turnover_sale"/>
 
+    <field name="reported_device_message_usagereports" colspan="2"/>
 </form>

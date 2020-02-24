@@ -1,6 +1,20 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Utilisation Indicators" col="6">
+<form string="Utilisation Indicators" col="2">
+    <label name="base"/>
+    <field name="base"/>
+    <label name="relevance"/>
+    <field name="relevance"/>
+    <field name="adjustments" colspan="2"/>
 
+    <label name="invoice_amount"/>
+    <field name="invoice_amount"/>
+    <label name="administration_amount"/>
+    <field name="administration_amount"/>
+    <label name="distribution_amount"/>
+    <field name="distribution_amount"/>
+
+    <field name="estimated_utilisations" colspan="2"/>
+    <field name="confirmed_utilisations" colspan="2"/>
 </form>

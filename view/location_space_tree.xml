@@ -2,5 +2,10 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Location Spaces">
-    
+    <field name="location"/>
+    <field name="category" expand="1"/>
+    <field name="size" expand="1"/>
+    <field name="events"/>
+    <field name="current_devices"/>
+    <field name="active"/>
 </tree>

@@ -2,7 +2,6 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Device Messages">
-    <field name="id"/>
     <field name="uuid" expand="1"/>
     <field name="device" expand="1"/>
     <field name="timestamp" expand="1"/>

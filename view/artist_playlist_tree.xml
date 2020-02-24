@@ -2,7 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Artist Playlists">
+    <field name="id"/>
     <field name="artist" expand="1"/>
-    <field name="items" expand="1"/>
+    <field name="items"/>
     <field name="public"/>
 </tree>

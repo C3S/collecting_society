@@ -1,6 +1,22 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Event Indicators" col="6">
+<form string="Event Indicators" col="2">
+    <label name="start"/>
+    <field name="start"/>
+    <label name="end"/>
+    <field name="end"/>
+    <label name="attendants"/>
+    <field name="attendants"/>
+    <label name="turnover_tickets"/>
+    <field name="turnover_tickets"/>
+    <label name="turnover_benefit"/>
+    <field name="turnover_benefit"/>
+    <label name="expenses_musicians"/>
+    <field name="expenses_musicians"/>
+    <label name="expenses_production"/>
+    <field name="expenses_production"/>
 
+    <field name="estimated_events" colspan="2"/>
+    <field name="confirmed_events" colspan="2"/>
 </form>

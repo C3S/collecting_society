@@ -2,5 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Location Space Categories">
-    
+    <field name="name" expand="1"/>
+    <field name="code" expand="1"/>
+    <field name="spaces"/>
+    <field name="active"/>
 </tree>

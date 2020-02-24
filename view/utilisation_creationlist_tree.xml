@@ -2,5 +2,12 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Utilisation Creationlists">
-    
+    <field name="context" expand="1"/>
+    <field name="start" expand="1"/>
+    <field name="end" expand="1"/>
+    <field name="utilisations"/>
+    <field name="items"/>
+    <field name="known_ratio"/>
+    <field name="represented_ratio"/>
+    <field name="complete"/>
 </tree>

@@ -69,6 +69,12 @@
             <newline/>
             <field name="neighbouring_rights_societies" colspan="4"/>
         </page>
+        <page string="Indicators" id="indicators" col="2">
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="confirmed_copies"/>
+            <field name="confirmed_copies"/>
+        </page>
         <page string="Access" id="access" col="6">
             <field name="acl" colspan="6"/>
             <label name="entity_origin"/>

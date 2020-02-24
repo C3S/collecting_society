@@ -1,6 +1,44 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Location Space" col="6">
+<form string="Location Space" col="8">
+    <label name="location"/>
+    <field name="location"/>
+    <label name="category"/>
+    <field name="category"/>
+    <label name="size"/>
+    <field name="size"/>
 
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <notebook colspan="8">
+        <page string="Events" id="events" col="1">
+            <field name="events"/>
+        </page>
+        <page string="Indicators" id="indicators" col="4">
+            <separator string="Estimated" id="estimated" colspan="2"/>
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="estimated_size"/>
+            <field name="estimated_size"/>
+            <label name="confirmed_size"/>
+            <field name="confirmed_size"/>
+        </page>
+        <page string="Devices" id="devices" col="1">
+            <field name="current_devices"/>
+            <field name="device_assignments"/>
+        </page>
+        <page string="Device Messages" id="messages" col="1">
+            <field name="messages"/>
+        </page>
+        <page string="Fingerprints" id="fingerprints" col="1">
+            <field name="fingerprints"/>
+        </page>
+        <page string="Playlists" id="playlists" col="1">
+            <field name="playlists"/>
+        </page>
+    </notebook>
 </form>

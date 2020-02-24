@@ -2,5 +2,11 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Event Indicators">
-    
+    <field name="start" expand="1"/>
+    <field name="end" expand="1"/>
+    <field name="attendants" expand="1"/>
+    <field name="turnover_tickets" expand="1"/>
+    <field name="turnover_benefit" expand="1"/>
+    <field name="expenses_musicians" expand="1"/>
+    <field name="expenses_production" expand="1"/>
 </tree>

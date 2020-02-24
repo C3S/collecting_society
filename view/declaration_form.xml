@@ -1,6 +1,38 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Declaration" col="6">
+<form string="Declaration" col="8">
+    <label name="licensee"/>
+    <field name="licensee"/>
+    <label name="state"/>
+    <field name="state"/>
+    <label name="group"/>
+    <field name="group"/>
 
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="template"/>
+        <field name="template" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="tariff"/>
+    <field name="tariff"/>
+    <label name="creation_time"/>
+    <field name="creation_time"/>
+    <label name="period"/>
+    <field name="period"/>
+    <label name="context"/>
+    <field name="context"/>
+
+    <newline/>
+
+    <notebook colspan="8">
+        <page string="Collections" id="collections" col="1">
+            <field name="collections"/>
+        </page>
+        <page string="Utilisations" id="utilisations" col="1">
+            <field name="utilisations"/>
+        </page>
+    </notebook>
 </form>

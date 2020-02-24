@@ -106,6 +106,8 @@
         <record model="ir.sequence" id="sequence_declaration">
             <field name="name">Declaration</field>
             <field name="code">declaration</field>
+            <field name="prefix">DECL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Utilisation -->
@@ -121,6 +123,8 @@
         <record model="ir.sequence" id="sequence_utilisation">
             <field name="name">Utilisation</field>
             <field name="code">utilisation</field>
+            <field name="prefix">UTIL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Distribution -->
@@ -136,6 +140,8 @@
         <record model="ir.sequence" id="sequence_distribution">
             <field name="name">Distribution</field>
             <field name="code">distribution</field>
+            <field name="prefix">DIST</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Distribution Plan -->
@@ -1772,18 +1778,18 @@
 
         <!-- Menue: Events / Indicators -->
         <record model="ir.ui.view" id="event_indicators_form">
-            <field name="model">indicators.event</field>
+            <field name="model">event.indicators</field>
             <field name="type">form</field>
             <field name="name">event_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="event_indicators_tree">
-            <field name="model">indicators.event</field>
+            <field name="model">event.indicators</field>
             <field name="type">tree</field>
             <field name="name">event_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_event_indicators">
             <field name="name">Event Indicators</field>
-            <field name="res_model">indicators.event</field>
+            <field name="res_model">event.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -1926,66 +1932,99 @@
                   id="menu_location_space_category"/>
 
         <!-- Menue: Locations / Spaces / Indicators -->
-        <record model="ir.ui.view" id="location_space_indicator_form">
-            <field name="model">indicators.location_space</field>
+        <record model="ir.ui.view" id="location_space_indicators_form">
+            <field name="model">location.space.indicators</field>
             <field name="type">form</field>
             <field name="name">location_space_indicators_form</field>
         </record>
-        <record model="ir.ui.view" id="location_space_indicator_tree">
-            <field name="model">indicators.location_space</field>
+        <record model="ir.ui.view" id="location_space_indicators_tree">
+            <field name="model">location.space.indicators</field>
             <field name="type">tree</field>
             <field name="name">location_space_indicators_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_location_space_indicator">
+        <record model="ir.action.act_window" id="act_location_space_indicators">
             <field name="name">Location Space Indicators</field>
-            <field name="res_model">indicators.location_space</field>
+            <field name="res_model">location.space.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_space_indicator_tree">
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="location_space_indicator_tree"/>
-            <field name="act_window" ref="act_location_space_indicator"/>
+            <field name="view" ref="location_space_indicators_tree"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_space_indicator_form">
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="location_space_indicator_form"/>
-            <field name="act_window" ref="act_location_space_indicator"/>
+            <field name="view" ref="location_space_indicators_form"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
         </record>
         <menuitem name="Indicators" parent="menu_location_space" sequence="20"
-                  action="act_location_space_indicator"
-                  id="menu_location_space_indicator"/>
+                  action="act_location_space_indicators"
+                  id="menu_location_space_indicators"/>
 
         <!-- Menue: Locations / Indicators -->
-        <record model="ir.ui.view" id="location_indicator_form">
-            <field name="model">indicators.location</field>
+        <record model="ir.ui.view" id="location_indicators_form">
+            <field name="model">location.indicators</field>
             <field name="type">form</field>
             <field name="name">location_indicators_form</field>
         </record>
-        <record model="ir.ui.view" id="location_indicator_tree">
-            <field name="model">indicators.location</field>
+        <record model="ir.ui.view" id="location_indicators_tree">
+            <field name="model">location.indicators</field>
             <field name="type">tree</field>
             <field name="name">location_indicators_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_location_indicator">
+        <record model="ir.action.act_window" id="act_location_indicators">
             <field name="name">Location Indicators</field>
-            <field name="res_model">indicators.location</field>
+            <field name="res_model">location.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_indicator_tree">
+        <record model="ir.action.act_window.view" id="act_location_indicators_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="location_indicator_tree"/>
-            <field name="act_window" ref="act_location_indicator"/>
+            <field name="view" ref="location_indicators_tree"/>
+            <field name="act_window" ref="act_location_indicators"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_indicator_form">
+        <record model="ir.action.act_window.view" id="act_location_indicators_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="location_indicator_form"/>
-            <field name="act_window" ref="act_location_indicator"/>
+            <field name="view" ref="location_indicators_form"/>
+            <field name="act_window" ref="act_location_indicators"/>
         </record>
         <menuitem name="Indicators" parent="menu_location" sequence="30"
-                  action="act_location_indicator"
-                  id="menu_location_indicator"/>
+                  action="act_location_indicators"
+                  id="menu_location_indicators"/>
+
+        <!-- Menue: Locations / Indicators / Periods -->
+        <record model="ir.ui.view" id="location_indicators_period_form">
+            <field name="model">location.indicators.period</field>
+            <field name="type">form</field>
+            <field name="name">location_indicators_period_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_indicators_period_tree">
+            <field name="model">location.indicators.period</field>
+            <field name="type">tree</field>
+            <field name="name">location_indicators_period_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_indicators_period">
+            <field name="name">Periods</field>
+            <field name="res_model">location.indicators.period</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_indicators_period_tree"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_indicators_period_form"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <menuitem parent="menu_location_indicators" sequence="10"
+                  action="act_location_indicators_period"
+                  id="menu_location_indicators_period"/>
 
         <!-- Menue: Websites -->
         <record model="ir.ui.view" id="website_form">
@@ -2113,18 +2152,18 @@
 
         <!-- Menue: Websites / Resources / Indicators -->
         <record model="ir.ui.view" id="website_resource_indicators_form">
-            <field name="model">indicators.website_resource</field>
+            <field name="model">website.resource.indicators</field>
             <field name="type">form</field>
             <field name="name">website_resource_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="website_resource_indicators_tree">
-            <field name="model">indicators.website_resource</field>
+            <field name="model">website.resource.indicators</field>
             <field name="type">tree</field>
             <field name="name">website_resource_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_website_resource_indicators">
             <field name="name">Website Resource Indicators</field>
-            <field name="res_model">indicators.website_resource</field>
+            <field name="res_model">website.resource.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -2146,7 +2185,7 @@
         <record model="ir.action.act_window" id="act_licensee_release">
             <field name="name">Releases</field>
             <field name="res_model">release</field>
-            <field name="domain">[('indicators', '!=', None)]</field>
+            <field name="domain">[('confirmed_copies', '!=', None)]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_licensee_release_list">
@@ -2165,18 +2204,18 @@
 
         <!-- Menue: Releases / Indicators -->
         <record model="ir.ui.view" id="release_indicators_form">
-            <field name="model">indicators.release</field>
+            <field name="model">release.indicators</field>
             <field name="type">form</field>
             <field name="name">release_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="release_indicators_tree">
-            <field name="model">indicators.release</field>
+            <field name="model">release.indicators</field>
             <field name="type">tree</field>
             <field name="name">release_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_release_indicators">
             <field name="name">Release Indicators</field>
-            <field name="res_model">indicators.release</field>
+            <field name="res_model">release.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -2601,18 +2640,18 @@
 
         <!-- Menue: Utilisations / Indicators -->
         <record model="ir.ui.view" id="utilisation_indicators_form">
-            <field name="model">indicators.utilisation</field>
+            <field name="model">utilisation.indicators</field>
             <field name="type">form</field>
             <field name="name">utilisation_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="utilisation_indicators_tree">
-            <field name="model">indicators.utilisation</field>
+            <field name="model">utilisation.indicators</field>
             <field name="type">tree</field>
             <field name="name">utilisation_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_utilisation_indicators">
             <field name="name">Utilisation Indicators</field>
-            <field name="res_model">indicators.utilisation</field>
+            <field name="res_model">utilisation.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>

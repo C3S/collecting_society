@@ -1,6 +1,36 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Website Resource" col="6">
+<form string="Website Resource" col="8">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="uuid"/>
+    <field name="uuid"/>
+    <label name="category"/>
+    <field name="category"/>
 
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="website"/>
+    <field name="website"/>
+    <label name="url"/>
+    <field name="url"/>
+
+    <notebook colspan="8">
+        <page string="Device Messages" id="messages" col="1">
+            <field name="messages"/>
+        </page>
+        <page string="Fingerprints" id="fingerprints" col="1">
+            <field name="fingerprints"/>
+        </page>
+        <page string="Usage Reports" id="usagereports" col="1">
+            <field name="usagereports"/>
+        </page>
+        <page string="Playlists" id="playlists" col="1">
+            <field name="playlists"/>
+        </page>
+    </notebook>
 </form>

@@ -2,5 +2,11 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Websites">
-    
+    <field name="name" expand="1"/>
+    <field name="category" expand="1"/>
+    <field name="url" expand="1"/>
+    <field name="party" expand="1"/>
+    <field name="resources"/>
+    <field name="current_devices"/>
+    <field name="active"/>
 </tree>
