@@ -36,7 +36,7 @@ def register():
         CreationDerivative,
         CreationContribution,
         CreationRole,
-        CreationIdentifierName,
+        CreationIdentifierSpace,
         CreationIdentifier,
         CreationRightsholder,
         CreationRightsholderCreationRightsholder,

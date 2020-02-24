@@ -3,6 +3,6 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Creation Identifier">
     <field name="id_code"/>
-    <field name="identifier_name"/>
+    <field name="id_space"/>
     <field name="creation"/>
 </tree>
