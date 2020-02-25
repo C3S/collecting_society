@@ -2,5 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Website Resource Indicators">
-    
+    <field name="streams" expand="1"/>
+    <field name="downloads" expand="1"/>
+    <field name="turnover_ads" expand="1"/>
+    <field name="turnover_sale" expand="1"/>
 </tree>

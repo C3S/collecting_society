@@ -2,5 +2,28 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Website" col="6">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="category"/>
+    <field name="category"/>
 
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="url"/>
+    <field name="url"/>
+    <label name="party"/>
+    <field name="party"/>
+
+    <notebook colspan="6">
+        <page string="Resources" id="resources" col="1">
+            <field name="resources"/>
+        </page>
+        <page string="Devices" id="devices" col="1">
+            <field name="current_devices"/>
+            <field name="device_assignments"/>
+        </page>
+    </notebook>
 </form>

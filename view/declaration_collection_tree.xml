@@ -2,5 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Declaration Collections">
-    
+    <field name="declaration" expand="1"/>
+    <field name="timestamp" expand="1"/>
+    <field name="trigger" expand="1"/>
+    <field name="utilisations" expand="1"/>
 </tree>

@@ -9,17 +9,24 @@
     <label name="state"/>
     <field name="state"/>
 
+    <label name="timestamp"/>
+    <field name="timestamp"/>
+    <label name="creation"/>
+    <field name="creation"/>
+
+    <newline/>
+
     <notebook colspan="6">
-        <page string="Data" id="data" col="2">
-            <label name="timestamp"/>
-            <field name="timestamp"/>
-            <label name="indicators"/>
-            <field name="indicators"/>
-            <separator string="Reference" id="reference" xexpand="0" colspan="2"/>
-            <label name="creation"/>
-            <field name="creation"/>
-            <label name="website_resource"/>
-            <field name="website_resource"/>
+        <page string="Indicators" id="indicators" col="2">
+            <separator string="Reported" id="reported" colspan="2"/>
+            <label name="reported_streams"/>
+            <field name="reported_streams"/>
+            <label name="reported_downloads"/>
+            <field name="reported_downloads"/>
+            <label name="reported_turnover_ads"/>
+            <field name="reported_turnover_ads"/>
+            <label name="reported_turnover_sale"/>
+            <field name="reported_turnover_sale"/>
         </page>
         <page string="Processing" id="processing" col="2">
             <label name="utilisation_creation_list"/>

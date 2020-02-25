@@ -2,5 +2,12 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Declaration Collection" col="6">
-
+    <label name="timestamp"/>
+    <field name="timestamp"/>
+    <label name="declaration"/>
+    <field name="declaration"/>
+    <label name="trigger"/>
+    <field name="trigger"/>
+    
+    <field name="utilisations" colspan="6"/>
 </form>

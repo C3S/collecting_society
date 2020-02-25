@@ -2,5 +2,23 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Event Performance" col="6">
+    <label name="event"/>
+    <field name="event"/>
+    <label name="artist"/>
+    <field name="artist"/>
 
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="start"/>
+    <field name="start"/>
+    <label name="playlist"/>
+    <field name="playlist"/>
+
+    <newline/>
+
+    <label name="end"/>
+    <field name="end"/>
 </form>

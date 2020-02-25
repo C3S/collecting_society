@@ -4,8 +4,8 @@
 <form string="Release Identifier">
     <label name="id_code"/>
     <field name="id_code"/>
-    <label name="identifier_name"/>
-    <field name="identifier_name"/>
+    <label name="space"/>
+    <field name="space"/>
     <label name="release"/>
     <field name="release"/>
 

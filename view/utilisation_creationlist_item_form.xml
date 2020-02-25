@@ -2,5 +2,10 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Utilisation Creationlist Item" col="6">
-
+    <label name="creationlist"/>
+    <field name="creationlist"/>
+    <label name="creation"/>
+    <field name="creation"/>
+    <label name="weight"/>
+    <field name="weight"/>
 </form>

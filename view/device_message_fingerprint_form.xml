@@ -10,22 +10,20 @@
     <field name="state"/>
 
     <notebook colspan="6">
-        <page string="Data" id="data" col="2">
+        <page string="Data" id="data" col="6">
             <label name="timestamp"/>
             <field name="timestamp"/>
             <label name="algorithm"/>
             <field name="algorithm"/>
             <label name="version"/>
             <field name="version"/>
+            <field name="fingerprint" yexpand="1" colspan="6"/>
         </page>
         <page string="Processing" id="processing" col="2">
             <label name="matched_creation"/>
             <field name="matched_creation"/>
             <label name="merged_creation"/>
             <field name="merged_creation"/>
-        </page>
-        <page string="Fingerprint" id="fingerprint" col="1">
-            <field name="fingerprint" yexpand="1"/>
         </page>
     </notebook>
 </form>

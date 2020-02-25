@@ -1,5 +1,6 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
+import sys
 import os
 import uuid
 import datetime
@@ -10,22 +11,35 @@ from sql.functions import CharLength
 import hurry.filesize
 
 from trytond.model import ModelView, ModelSQL, fields
+from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition
 
 from trytond.transaction import Transaction
-from trytond.pool import Pool
+from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Bool, Or, And
 
 
 __all__ = [
+
+    # Mixins
+    'MixinRightsholder',
+    'MixinIdentifier',
+    'ClaimState',
+    'CommitState',
+    'EntityOrigin',
+    'PublicApi',
+    'CurrencyDigits',
+    'AccessControlList',
 
     # Collecting Society
     'CollectingSociety',
     'TariffSystem',
     'TariffCategory',
     'TariffAdjustmentCategory',
+    'TariffCategoryTariffAdjustmentCategory',
     'TariffAdjustment',
     'TariffRelevanceCategory',
+    'TariffCategoryTariffRelevanceCategory',
     'TariffRelevance',
     'Tariff',
     'Allocation',
@@ -33,7 +47,14 @@ __all__ = [
     'DistributionPlan',
     'DistributeStart',
     'Distribute',
-    'MixinRightsholder',
+    'EventIndicators',
+    'LocationIndicators',
+    'LocationIndicatorsPeriod',
+    'LocationSpaceIndicators',
+    'WebsiteResourceIndicators',
+    'ReleaseIndicators',
+    'UtilisationIndicators',
+    'IndicatorsMeta',
 
     # Licenser
     'License',
@@ -42,7 +63,7 @@ __all__ = [
     'ArtistRelease',
     'ArtistPayeeAcceptance',
     'ArtistIdentifier',
-    'ArtistIdentifierName',
+    'ArtistIdentifierSpace',
     'ArtistPlaylist',
     'ArtistPlaylistItem',
     'Creation',
@@ -52,7 +73,7 @@ __all__ = [
     'CreationRole',
     'CreationTariffCategory',
     'CreationIdentifier',
-    'CreationIdentifierName',
+    'CreationIdentifierSpace',
     'CreationRightsholder',
     'CreationRightsholderCreationRightsholder',
     'Release',
@@ -60,7 +81,7 @@ __all__ = [
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier',
-    'ReleaseIdentifierName',
+    'ReleaseIdentifierSpace',
     'ReleaseRightsholder',
     'ReleaseRightsholderReleaseRightsholder',
     'MixinIdentifier',
@@ -84,22 +105,14 @@ __all__ = [
     'WebsiteResourceCreation',
     'WebsiteResourceCategory',
     'WebsiteCategoryWebsiteResourceCategory',
-    'Indicators',
-    'IndicatorsIndicators',
-    'IndicatorsEvent',
-    'IndicatorsLocation',
-    'IndicatorsLocationSpace',
-    'IndicatorsWebsiteResource',
-    'IndicatorsRelease',
-    'IndicatorsUtilisation',
     'Device',
     'DeviceMessage',
     'DeviceMessageDeviceMessage',
     'DeviceAssignment',
-    'Fingerprint',
-    'FingerprintCreationlist',
-    'FingerprintCreationlistItem',
-    'Usagereport',
+    'DeviceMessageFingerprint',
+    'DeviceMessageFingerprintCreationlist',
+    'DeviceMessageFingerprintCreationlistItem',
+    'DeviceMessageUsagereport',
     'Declaration',
     'DeclarationGroup',
     'DeclarationCollection',
@@ -313,49 +326,6 @@ class AccessControlList(object):
 
 
 ##############################################################################
-# General
-##############################################################################
-
-weekdays = [
-    ('monday', 'Monday'),
-    ('tuesday', 'Tuesday'),
-    ('wednesday', 'Wednesday'),
-    ('thursday', 'Thursday'),
-    ('friday', 'Friday'),
-    ('saturday', 'Saturday'),
-    ('sunday', 'Sunday'),
-]
-
-
-class WeekdayPeriod(ModelSQL, ModelView, PublicApi):
-    'Weekday Period'
-    __name__ = 'weekday_period'
-    _history = True
-
-    reference = fields.Reference(
-        'Reference', [
-            ('indicators.location', 'Indicators Location'),
-        ],
-        help='The object for which the period is for')
-
-    from_weekday = fields.Selection(
-        weekdays, 'From Weekday', required=True, sort=False,
-        help='From weekday')
-    from_hours = fields.Integer(
-        'From Hours', help='From Hours')
-    from_seconds = fields.Integer(
-        'From Seconds', help='From Seconds')
-
-    until_weekday = fields.Selection(
-        weekdays, 'Until Weekday', required=True, sort=False,
-        help='Until weekday')
-    until_hours = fields.Integer(
-        'Until Hours', help='Until Hours')
-    until_seconds = fields.Integer(
-        'Until Seconds', help='Until Seconds')
-
-
-##############################################################################
 # Collecting Society
 ##############################################################################
 
@@ -376,6 +346,8 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
         'Represents Ancillary Copyright', help='The collecting society '
         'represents ancillary copyights of performers')
 
+
+# --- Tariffs -----------------------------------------------------------------
 
 class TariffSystem(ModelSQL, ModelView, CurrentState):
     'Tariff System'
@@ -398,7 +370,7 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
     tariffs = fields.One2Many(
         'tariff_system.tariff', 'system', 'Tariffs',
         help='The tariffs of the tariff system.')
-    # Todo: attachement
+    # TODO: attachement
 
     @classmethod
     def __setup__(cls):
@@ -462,12 +434,16 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The tariffs in this tariff category.')
 
-    adjustment_categories = fields.Many2One(
-        'tariff_system.tariff.adjustment.category', 'Adjustment Categories',
+    adjustment_categories = fields.Many2Many(
+        'tariff_category-tariff_adjustment_category',
+        'tariff_category', 'tariff_adjustment_category',
+        'Adjustment Categories',
         states=STATES, depends=DEPENDS,
         help='The adjustment categories applicable for the tariff category')
-    relevance_categories = fields.Many2One(
-        'tariff_system.tariff.relevance.category', 'Relevance Categories',
+    relevance_categories = fields.Many2Many(
+        'tariff_category-tariff_relevance_category',
+        'tariff_category', 'tariff_relevance_category',
+        'Relevance Categories',
         states=STATES, depends=DEPENDS,
         help='The relevance categories applicable for the tariff category')
 
@@ -539,14 +515,28 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
             ('percentage', 'Percentage'),
         ], 'Operation', required=True, sort=False,
         help='The mathematical operation of the category')
-    tariff_categories = fields.One2Many(
-        'tariff_system.category', 'adjustment_categories', 'Tariff Categories',
+    tariff_categories = fields.Many2Many(
+        'tariff_category-tariff_adjustment_category',
+        'tariff_adjustment_category', 'tariff_category', 'Tariff Categories',
         states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The tariff categories, for which the adjustment category can '
              'be applied')
+
+
+class TariffCategoryTariffAdjustmentCategory(ModelSQL):
+    'Tariff Category - Tariff Adjustment Category'
+    __name__ = 'tariff_category-tariff_adjustment_category'
+    _history = True
+    tariff_category = fields.Many2One(
+        'tariff_system.category', 'Tariff Category',
+        required=True, select=True, ondelete='CASCADE')
+    tariff_adjustment_category = fields.Many2One(
+        'tariff_system.tariff.adjustment.category',
+        'Tariff Adjustment Category',
+        required=True, select=True, ondelete='CASCADE')
 
 
 class TariffAdjustment(ModelSQL, ModelView, PublicApi):
@@ -575,8 +565,8 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
         }, depends=['deviation'],
         help='Reason for deviation')
 
-    indicators_utilisation = fields.Many2One(
-        'indicators.utilisation', 'Indicators Utilisation',
+    utilisation_indicators = fields.Many2One(
+        'utilisation.indicators', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff adjustment')
 
 
@@ -606,11 +596,27 @@ class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    tariff_categories = fields.One2Many(
-        'tariff_system.category', 'relevance_categories', 'Tariff Categories',
-        states=STATES, depends=DEPENDS,
+    tariff_categories = fields.Many2Many(
+        'tariff_category-tariff_relevance_category',
+        'tariff_relevance_category', 'tariff_category', 'Tariff Categories',
+        states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The tariff categories, for which the relevance category can '
              'be applied')
+
+
+class TariffCategoryTariffRelevanceCategory(ModelSQL):
+    'Tariff Category - Tariff Relevance Category'
+    __name__ = 'tariff_category-tariff_relevance_category'
+    _history = True
+    tariff_category = fields.Many2One(
+        'tariff_system.category', 'Tariff Category',
+        required=True, select=True, ondelete='CASCADE')
+    tariff_relevance_category = fields.Many2One(
+        'tariff_system.tariff.relevance.category', 'Tariff Relevance Category',
+        required=True, select=True, ondelete='CASCADE')
 
 
 class TariffRelevance(ModelSQL, ModelView, PublicApi):
@@ -633,8 +639,9 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
         }, depends=['deviation'],
         help='Reason for deviation')
 
-    indicators_utilisation = fields.One2Many(
-        'indicators.utilisation', 'relevance', 'Indicators Utilisation',
+    # TODO: Many2One Interface
+    utilisation_indicators = fields.One2Many(
+        'utilisation.indicators', 'relevance', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff relevance')
 
 
@@ -664,6 +671,8 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def search_code(self, name):
         return self.get_code(name)
 
+
+# --- Allocation --------------------------------------------------------------
 
 class Allocation(ModelSQL, ModelView, CurrencyDigits):
     'Allocation'
@@ -705,6 +714,8 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     def default_type():
         return 'pocket2hats'
 
+
+# --- Distribution ------------------------------------------------------------
 
 class Distribution(ModelSQL, ModelView):
     'Distribution'
@@ -792,7 +803,7 @@ class DistributionPlan(ModelSQL, ModelView):
         'Transitional through',
         help='Date of the end of the transitinal phase, through which the '
         'tariff might still be used.')
-    # Todo: attachement
+    # TODO: attachement
 
     @classmethod
     def __setup__(cls):
@@ -1073,6 +1084,414 @@ class Distribute(Wizard):
         #             result=result)
 
         return result
+
+
+# --- Indicators --------------------------------------------------------------
+
+class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
+    'Event Indicators'
+    __name__ = 'event.indicators'
+    _history = True
+
+    start = fields.DateTime(
+        'Start', help='Start of the event')
+    end = fields.DateTime(
+        'End', help='End of the event')
+    attendants = fields.Integer(
+        'Attendants', help='The number of attendants of the event')
+    turnover_tickets = fields.Numeric(
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The ticket related turnover')
+    turnover_benefit = fields.Numeric(
+        'Turnover Benefit', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The benefit related turnover')
+    expenses_musicians = fields.Numeric(
+        'Expenses Musicians', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The expenses for the musicians')
+    expenses_production = fields.Numeric(
+        'Expenses Production', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The expenses for the production')
+
+
+class LocationIndicators(ModelSQL, ModelView, CurrencyDigits):
+    'Location Indicators'
+    __name__ = 'location.indicators'
+    _history = True
+
+    opening_hours = fields.One2Many(
+        'location.indicators.period', 'location_indicators', 'Opening Hours',
+        help='The opening hours of the location')
+    opening_hours_duration = fields.Function(
+        fields.Integer('Opening Hours Duration'), 'get_opening_hours_duration')
+    turnover_gastronomy = fields.Numeric(
+        'Turnover Gastronomy', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The gastronomy related turnover (e.g. food, drinks)')
+
+    def get_opening_hours_duration(self, name):
+        duration = 0
+        for period in self.opening_hours:
+            duration += period.duration
+        return duration
+
+
+class LocationIndicatorsPeriod(ModelSQL, ModelView, PublicApi):
+    'Location Indicators Period'
+    __name__ = 'location.indicators.period'
+    _history = True
+
+    weekdays = [
+        ('monday', 'Monday'),
+        ('tuesday', 'Tuesday'),
+        ('wednesday', 'Wednesday'),
+        ('thursday', 'Thursday'),
+        ('friday', 'Friday'),
+        ('saturday', 'Saturday'),
+        ('sunday', 'Sunday'),
+    ]
+    weekdays_mapping = {
+        'monday': 1,
+        'tuesday': 2,
+        'wednesday': 3,
+        'thursday': 4,
+        'friday': 5,
+        'saturday': 6,
+        'sunday': 7,
+    }
+
+    location_indicators = fields.Many2One(
+        'location.indicators', 'Location Indicators',
+        states={'required': True}, help='The location indicators')
+
+    start_weekday = fields.Selection(
+        weekdays, 'Start Weekday', required=True, sort=False)
+    start_time = fields.Time(
+        'Start Time', format='%H:%M', required=True)
+
+    end_weekday = fields.Selection(
+        weekdays, 'End Weekday', required=True, sort=False)
+    end_time = fields.Time(
+        'End Time', format='%H:%M', required=True)
+
+    duration = fields.Function(
+        fields.Integer(
+            'Duration', 'The duration of the period [h]'),
+        'get_duration')
+
+    def get_duration(self, name):
+        start_day = self.weekdays_mapping[self.start_weekday]
+        end_day = self.weekdays_mapping[self.end_weekday]
+        # calculate hours within days
+        duration_days = 1 + end_day - start_day
+        if duration_days < 0:
+            duration_days += 7
+        duration_hours = duration_days * 24
+        # substract hours of first day
+        start_hour = self.start_time.hour
+        start_minute = self.start_time.minute
+        if start_minute >= 30:
+            start_hour += 1
+        duration_hours -= start_hour
+        # substract hours of last day
+        end_hour = self.end_time.hour
+        end_minute = self.end_time.minute
+        if end_minute >= 30:
+            end_hour += 1
+        duration_hours -= 24 - end_hour
+        return duration_hours
+
+
+class LocationSpaceIndicators(ModelSQL, ModelView):
+    'Location Space Indicators'
+    __name__ = 'location.space.indicators'
+    _history = True
+
+    size = fields.Float(
+        'Size', digits=(10, 14),
+        help='The size of the location space [squaremeter]')
+
+
+class WebsiteResourceIndicators(ModelSQL, ModelView, CurrencyDigits):
+    'Website Resource Indicators'
+    __name__ = 'website.resource.indicators'
+    _history = True
+
+    streams = fields.Integer(
+        'Streams', help='The number of streams')
+    downloads = fields.Integer(
+        'Downloads', help='The number of downloads')
+    turnover_ads = fields.Numeric(
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The ticket related turnover')
+    turnover_sale = fields.Numeric(
+        'Turnover Tickets', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The ticket related turnover')
+
+
+class ReleaseIndicators(ModelSQL, ModelView):
+    'Release Indicators'
+    __name__ = 'release.indicators'
+    _history = True
+
+    copies = fields.Integer(
+        'Copies', help='The number of copies')
+
+
+class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
+    'Utilisation Indicators'
+    __name__ = 'utilisation.indicators'
+    _history = True
+
+    base = fields.Numeric(
+        'Base', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The base value')
+    relevance = fields.Many2One(
+        'tariff_system.tariff.relevance', 'Relevance',
+        help='The relevance')
+    adjustments = fields.One2Many(
+        'tariff_system.tariff.adjustment', 'utilisation_indicators',
+        'Adjustments',
+        help='The adjustments')
+
+    invoice_amount = fields.Numeric(
+        'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The amount to invoice')
+    administration_amount = fields.Numeric(
+        'Administration Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The amount for administration')
+    distribution_amount = fields.Numeric(
+        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The amount to distribute')
+
+
+class IndicatorsMeta(PoolMeta):
+    """
+    Metaclass for models to be measured by indicators.
+
+    Measured models are models of real world objects to be measured by a set of
+    attributes. Indicators are models containing the set of attributes. Each
+    measured model is expected to have exactly one corresponding indicator
+    model and may refer to several samples of this indicator model.
+
+    This metaclass prepares measured models to be used with indicators by:
+
+    - adding Many2One fields to the measured model for each sample
+    - adding One2Many fields to the indicators model for each sample
+    - adding getter/setter for all indicator attributes in the measured model
+    - autocreating the relations to the indicators in the measured model
+
+    To add this metaclass to a measured model, it needs to have set:
+
+        __metaclass__ = IndicatorsMeta
+        __indicators__ = <INDICATORS_MODEL_NAME>
+        __samples__ = [<SAMPLE_NAME_1>, <SAMPLE_NAME_2>]
+
+    Example:
+
+        __metaclass__ = IndicatorsMeta
+        __indicators__ = 'events.indicators'
+        __samples__ = ['estimated', 'confirmed']
+
+    If the indicator model would include one field 'size' and the samples would
+    be 'estimated' and 'confirmed', the attributes would be accesible via
+    `estimated_size` and `confirmed_size` in the measured model. The indicators
+    are accessible via `estimated_indicators` and `confirmed_indicators`.
+
+    Changes to the measured model:
+
+    - Adds fields for the indicators for each sample
+        - [fields.Many2One] <SAMPLE_NAME>_indicators
+    - Adds create/copy classmethods to autocreate the indicators objects
+        - [classmethod] create
+        - [classmethod] copy
+    - Adds shortcut function fields with setter/getter for indicator attributes
+        - [fields.Function] <SAMPLE_NAME>_<ATTRIBUTE_NAME>
+        - [method] get_<SAMPLE_NAME>_<ATTRIBUTE_NAME>
+        - [method] set_<SAMPLE_NAME>_<ATTRIBUTE_NAME>
+    - Adds original field name in shortcut fields to ease later access:
+        - [string] estimated_<ATTRIBUTE_NAME>._attribute_name
+        - [string] confirmed_<ATTRIBUTE_NAME>._attribute_name
+
+    Changes to the indicators model:
+    - Adds back reference field to the measured for each sample
+        - [fields.One2Many] <SAMPLE_NAME>_<MEASURED_MODEL_NAME>
+
+    Note: The class name of the indicator model is expected to be the
+    capitalized model name without dots.
+    """
+
+    @staticmethod
+    def _create(measured_class_name):
+        """Dummy create method added, if none is present"""
+        def create(cls, vlist):
+            MeasuredClass = getattr(sys.modules[__name__], measured_class_name)
+            return super(cls, MeasuredClass).create(vlist)
+        return classmethod(create)
+
+    @staticmethod
+    def _copy(measured_class_name):
+        """Dummy copy method added, if none is present"""
+        def copy(cls, measured_instances, default=None):
+            MeasuredClass = getattr(sys.modules[__name__], measured_class_name)
+            super(cls, MeasuredClass).copy(measured_instances, default=default)
+        return classmethod(copy)
+
+    @staticmethod
+    def create(indicators_model_name, samples):
+        """This copy method wraps the copy method of the measured class"""
+        def create(cls, vlist):
+            for entry in vlist:
+                # autocreate indicator model
+                for sample_name in samples:
+                    IndicatorsModel = Pool().get(indicators_model_name)
+                    indicators, = IndicatorsModel.create([{}])
+                    indicators.save()
+                    entry['%s_indicators' % sample_name] = indicators.id
+            return cls._create(vlist)
+        return classmethod(create)
+
+    @staticmethod
+    def copy(samples):
+        """This create method wraps the create method of the measured class"""
+        def copy(cls, measured_instances, default=None):
+            if default is None:
+                default = {}
+            default = default.copy()
+            for sample_name in samples:
+                field_name = '%s_indicators' % sample_name
+                if field_name in default:
+                    default[field_name] = None
+            cls._copy(measured_instances, default=default)
+        return classmethod(copy)
+
+    @staticmethod
+    def get_attribute(sample_name):
+        def get_value(self, name):
+            indicators = getattr(self, '%s_indicators' % sample_name)
+            if indicators:
+                attribute_name = getattr(self.__class__, name)._attribute_name
+                value = getattr(indicators, attribute_name)
+                if isinstance(value, tuple):
+                    return [entry.id for entry in value]
+                return getattr(indicators, attribute_name)
+        return get_value
+
+    @staticmethod
+    def set_attribute(sample_name):
+        def set_value(cls, measured_instances, name, value):
+            for instance in measured_instances:
+                attribute_name = getattr(cls, name)._attribute_name
+                indicators = getattr(instance, '%s_indicators' % sample_name)
+                if indicators:
+                    indicators.write([indicators], {
+                        attribute_name: value})
+        return classmethod(set_value)
+
+    @staticmethod
+    def search_attribute(sample_name):
+        def search(cls, name, clause):
+            attribute_name = getattr(cls, name)._attribute_name
+            key = '%s_indicators.%s' % (sample_name, attribute_name)
+            return [
+                (key,) + tuple(clause[1:]),
+            ]
+        return classmethod(search)
+
+    def __new__(cls, measured_class_name, bases, dct):
+        # execute PoolMeta.__new__()
+        new = super(cls, IndicatorsMeta).__new__(
+            cls, measured_class_name, bases, dct)
+
+        # sanity checks
+        assert(dct['__indicators__'])
+        assert(dct['__samples__'])
+
+        # get model/class name and class of the indicators object
+        samples = dct['__samples__']
+        measured_model_name = dct['__name__']
+        indicators_model_name = dct['__indicators__']
+        indicators_class_name = "".join([
+            part.capitalize() for part in indicators_model_name.split('.')])
+        IndicatorsClass = getattr(sys.modules[__name__], indicators_class_name)
+
+        # add create/copy classmethods to autocreate the indicators objects
+        # reassign present create/copy functions or create dummies
+        if hasattr(new, 'create'):
+            new._create = new.create
+        else:
+            setattr(new, '_create', cls._create(measured_class_name))
+        setattr(new, 'create', cls.create(indicators_model_name, samples))
+        if hasattr(new, 'copy'):
+            new._copy = new.copy
+        else:
+            setattr(new, '_copy', cls._copy(measured_class_name))
+        setattr(new, 'copy', cls.copy(samples))
+
+        # for each sample
+        for sample_name in samples:
+
+            # add indicators field to the measured model
+            indicators_field_name = '%s_indicators' % sample_name
+            indicators_field_description = '%s Indicators' % (
+                sample_name.capitalize())
+            setattr(new, indicators_field_name,
+                    fields.Many2One(
+                        indicators_model_name, indicators_field_description))
+
+            # add getter/setter for all attributes in the indicators model
+            for attribute_name, field in IndicatorsClass.__dict__.iteritems():
+                if isinstance(field, Field):
+                    # ignore back references
+                    if getattr(field, '_backreference', False):
+                        continue
+                    # function field name (e.g. estimated_turnover)
+                    field_name = '%s_%s' % (sample_name, attribute_name)
+                    # add function field
+                    setattr(new, field_name,
+                            fields.Function(field,
+                                            'get_%s' % field_name,
+                                            'set_%s' % field_name,
+                                            'search_%s' % field_name))
+                    # save original field name in field to ease later access
+                    getattr(new, field_name)._attribute_name = attribute_name
+                    # getter
+                    setattr(new, 'get_%s' % field_name,
+                            cls.get_attribute(sample_name))
+                    # setter
+                    setattr(new, 'set_%s' % field_name,
+                            cls.set_attribute(sample_name))
+                    # searcher
+                    setattr(new, 'search_%s' % field_name,
+                            cls.search_attribute(sample_name))
+
+        # for each sample
+        for sample_name in samples:
+
+            # add back reference to the indicator model
+            measured_field_name = '%s_%ss' % (
+                sample_name, measured_model_name.replace('.', '_'))
+            measured_field_description = '%s %ss' % (
+                sample_name.capitalize(), measured_class_name)
+            field = fields.One2Many(
+                measured_model_name, indicators_field_name,
+                measured_field_description, states={
+                    'readonly': True,
+                    'invisible': ~Bool(Eval(measured_field_name))
+                }, depends=[measured_field_name])
+            field._backreference = True
+            setattr(IndicatorsClass, measured_field_name, field)
+
+        return new
 
 
 ##############################################################################
@@ -1519,20 +1938,20 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
-    identifier_name = fields.Many2One(
-        'artist.identifier.name', 'Artist Identifier Name',
+    space = fields.Many2One(
+        'artist.identifier.space', 'Artist Identifier Space',
         required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One(
         'artist', 'Artist',
         required=True, select=True, ondelete='CASCADE')
 
 
-class ArtistIdentifierName(ModelSQL, ModelView):
-    'Artist Identifier Name'
-    __name__ = 'artist.identifier.name'
+class ArtistIdentifierSpace(ModelSQL, ModelView):
+    'Artist Identifier Space'
+    __name__ = 'artist.identifier.space'
     _history = True
-    name = fields.Char('official name')
-    version = fields.Char('version')
+    name = fields.Char('Name of the ID space')
+    version = fields.Char('Version')
 
 
 class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
@@ -1971,22 +2390,20 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-
-    identifier_name = fields.Many2One(
-        'creation.identifier.name', 'Creation Identifier Name',
+    space = fields.Many2One(
+        'creation.identifier.space', 'Creation Identifier Space',
         required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One(
         'creation', 'Creation',
         required=True, select=True, ondelete='CASCADE')
 
 
-class CreationIdentifierName(ModelSQL, ModelView):
-    'Creation Identifier Name'
-    __name__ = 'creation.identifier.name'
+class CreationIdentifierSpace(ModelSQL, ModelView):
+    'Creation Identifier Space'
+    __name__ = 'creation.identifier.space'
     _history = True
-
-    name = fields.Char('official name')
-    version = fields.Char('version')
+    name = fields.Char('Name of the ID space')
+    version = fields.Char('Version')
 
 
 class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
@@ -2050,6 +2467,12 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     _history = True
     _rec_name = 'title'
 
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'release.indicators'
+    __samples__ = ['confirmed']
+
     type = fields.Selection(
         [
             ('artist', 'Artist Release'),
@@ -2112,8 +2535,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     # production
     copyright_date = fields.Date(
         'Copyright Date', help='Date of the copyright.')
-    # copyright_owners = fields.Many2One(
-    #    'party.party', 'Copyright Owner(s)', help='Copyright owning parties')
     production_date = fields.Date(
         'Production Date', help='Date of production.')
     producers = fields.Function(
@@ -2153,9 +2574,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         help='Release Rightsholder')
     published = fields.Boolean(
         'Published', help='Is the release published and publicly accessible?')
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', domain=[('category', '=', 'release')],
-        help='The indicators for the release')
 
     @classmethod
     def __setup__(cls):
@@ -2360,18 +2778,18 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
-    identifier_name = fields.Many2One(
-        'release.identifier.name', 'Release Identifier Name', required=True,
+    space = fields.Many2One(
+        'release.identifier.space', 'Release Identifier Space', required=True,
         select=True, ondelete='CASCADE')
     release = fields.Many2One(
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
-class ReleaseIdentifierName(ModelSQL, ModelView):
-    'Release Identifier Name'
-    __name__ = 'release.identifier.name'
+class ReleaseIdentifierSpace(ModelSQL, ModelView):
+    'Release Identifier Space'
+    __name__ = 'release.identifier.space'
     _history = True
-    name = fields.Char('Name')
+    name = fields.Char('Name of the ID space')
     version = fields.Char('Version')
 
 
@@ -2484,10 +2902,16 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
 
 # --- Real World Objects -----------------------------------------------------
 
-class Event(ModelSQL, ModelView, CurrentState, PublicApi):
+class Event(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi):
     'Event'
     __name__ = 'event'
     _history = True
+
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'event.indicators'
+    __samples__ = ['estimated', 'confirmed']
 
     name = fields.Char(
         'Name', select=True, states={
@@ -2510,13 +2934,29 @@ class Event(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The performences of the event')
 
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        domain=[('category', '=', 'event')],
-        help='The indicators for the event')
+    # shortcuts to attributes in indicators
+    start = fields.Function(
+        fields.DateTime(
+            'Start', help='Start of the event'),
+        'get_start')
+    end = fields.Function(
+        fields.DateTime(
+            'End', help='End of the event'),
+        'get_end')
+
+    def get_start(self, name=None):
+        if self.confirmed_indicators and self.confirmed_indicators.start:
+            return self.confirmed_indicators.start
+        if self.estimated_indicators and self.estimated_indicators.start:
+            return self.estimated_indicators.start
+        return None
+
+    def get_end(self, name=None):
+        if self.confirmed_indicators and self.confirmed_indicators.end:
+            return self.confirmed_indicators.end
+        if self.estimated_indicators and self.estimated_indicators.end:
+            return self.estimated_indicators.end
+        return None
 
 
 class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -2531,17 +2971,34 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         'End', states=STATES, depends=DEPENDS,
         help='End of the performance')
     event = fields.Many2One(
-        'event', 'Event', states=STATES, depends=DEPENDS,
+        'event', 'Event', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The event of the performance')
+    artist = fields.Many2One(
+        'artist', 'Artist', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The artist of the performance')
     playlist = fields.Many2One(
-        'artist.playlist', 'Playlist', states=STATES, depends=DEPENDS,
+        'artist.playlist', 'Playlist',
+        states=STATES, depends=['active', 'artist'],
+        domain=[('artist', '=', Eval('artist'))],
         help='The playlist of the performance')
 
 
-class Location(ModelSQL, ModelView, CurrentState, PublicApi):
+class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi):
     'Location'
     __name__ = 'location'
     _history = True
+
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'location.indicators'
+    __samples__ = ['estimated', 'confirmed']
 
     name = fields.Char(
         'Name', select=True, states={
@@ -2573,14 +3030,6 @@ class Location(ModelSQL, ModelView, CurrentState, PublicApi):
         'location.space', 'location', 'Spaces',
         states=STATES, depends=DEPENDS,
         help='The spaces associated with the location')
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        domain=[('category', '=', 'location')],
-        help='The indicators for the location')
 
 
 class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -2638,6 +3087,12 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     __name__ = 'location.space'
     _history = True
 
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'location.space.indicators'
+    __samples__ = ['estimated', 'confirmed']
+
     location = fields.Many2One(
         'location', 'Location', states={
             'required': True,
@@ -2658,23 +3113,58 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
         'device.assignment', 'assignment', 'Device Assignments',
         states=STATES, depends=DEPENDS,
         help='The assigned devices')
-    # Todo: devices: fields.Function() -> current devices
+    current_devices = fields.Function(
+        fields.One2Many(
+            'device', None, 'Current Devices',
+            help="The currently associated devices"),
+        'get_current_devices')
     messages = fields.One2Many(
         'device.message', 'context', 'Messages',
         states=STATES, depends=DEPENDS,
         help='The device messages for the location space')
+    fingerprints = fields.Function(
+        fields.One2Many(
+            'device.message.fingerprint', None, 'Fingerprints'),
+        'get_fingerprints')
+
     playlists = fields.One2Many(
         'utilisation.creationlist', 'context', 'Utilisation Creationlists',
         states=STATES, depends=DEPENDS,
         help='The utilisation creation lists of the location space')
 
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        domain=[('category', '=', 'location_space')],
-        help='The indicators for the location space')
+    # shortcuts to attributes in indicators
+    size = fields.Function(
+        fields.Integer(
+            'Size', help='The size of the location space [squaremeter]'),
+        'get_size')
+
+    def get_size(self, name=None):
+        if self.confirmed_indicators and self.confirmed_indicators.size:
+            return self.confirmed_indicators.size
+        if self.estimated_indicators and self.estimated_indicators.size:
+            return self.estimated_indicators.size
+        return None
+
+    def get_current_devices(self, name=None):
+        devices = []
+        now = datetime.datetime.now()
+        for assignment in self.device_assignments:
+            if not assignment.start or assignment.start > now:
+                continue
+            if assignment.end and assignment.end < now:
+                continue
+            devices.append(assignment.device.id)
+        return devices
+
+    def get_message_content(self, category):
+        contents = []
+        for message in self.messages:
+            if message.category == category:
+                contents.append(message.content.id)
+        return contents
+
+    def get_fingerprints(self, name):
+        return self.get_message_content('fingerprint')
 
 
 class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -2761,7 +3251,22 @@ class Website(ModelSQL, ModelView, CurrentState, PublicApi):
         'device.assignment', 'assignment', 'Device Assignments',
         states=STATES, depends=DEPENDS,
         help='The resources of the website')
-    # Todo: devices: fields.Function() -> current devices
+    current_devices = fields.Function(
+        fields.One2Many(
+            'device', None, 'Current Devices',
+            help="The currently associated devices"),
+        'get_current_devices')
+
+    def get_current_devices(self, name=None):
+        devices = []
+        now = datetime.datetime.now()
+        for assignment in self.device_assignments:
+            if not assignment.start or assignment.start > now:
+                continue
+            if assignment.end and assignment.end < now:
+                continue
+            devices.append(assignment.device.id)
+        return devices
 
 
 class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -2781,7 +3286,7 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
 
     resource_categories = fields.Many2Many(
         'website.category-website.resource.category',
-        'website_resource_category', 'website_category',
+        'website_category', 'website_resource_category',
         'Website Resource Categories',
         states=STATES, depends=DEPENDS,
         help='The website resource categories applicable for the website '
@@ -2821,7 +3326,8 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class WebsiteResource(ModelSQL, ModelView, CurrentState, PublicApi):
+class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
+                      PublicApi):
     'Website Resource'
     __name__ = 'website.resource'
     _history = True
@@ -2846,7 +3352,9 @@ class WebsiteResource(ModelSQL, ModelView, CurrentState, PublicApi):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
-        domain=[('website.category', 'in', 'category.resource_categories')],
+        # TODO: only selection of website resource cats valid for website cat
+        # domain=[('website_categories.code', '=', 'website.category.code')],
+        # domain=[('code', '=', 'website.category.resource_categories.code')],
         help='The category of the resource')
 
     url = fields.Char(
@@ -2855,6 +3363,14 @@ class WebsiteResource(ModelSQL, ModelView, CurrentState, PublicApi):
         'device.message', 'context', 'Messages',
         states=STATES, depends=DEPENDS,
         help='The device messages for the website resource')
+    usagereports = fields.Function(
+        fields.One2Many(
+            'device.message.usagereport', None, 'Usage Reports'),
+        'get_usagereports')
+    fingerprints = fields.Function(
+        fields.One2Many(
+            'device.message.fingerprint', None, 'Usage Reports'),
+        'get_fingerprints')
 
     originals = fields.Many2Many(
         'website.resource-creation', 'creation', 'resource', 'Originals',
@@ -2876,6 +3392,19 @@ class WebsiteResource(ModelSQL, ModelView, CurrentState, PublicApi):
     @staticmethod
     def default_uuid():
         return str(uuid.uuid4())
+
+    def get_message_content(self, category):
+        contents = []
+        for message in self.messages:
+            if message.category == category:
+                contents.append(message.content.id)
+        return contents
+
+    def get_usagereports(self, name):
+        return self.get_message_content('usagereport')
+
+    def get_fingerprints(self, name):
+        return self.get_message_content('fingerprint')
 
 
 class WebsiteResourceCreation(ModelSQL):
@@ -2906,9 +3435,9 @@ class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the resource category.')
 
-    webite_categories = fields.Many2Many(
+    website_categories = fields.Many2Many(
         'website.category-website.resource.category',
-        'website_category', 'website_resource_category',
+        'website_resource_category', 'website_category',
         'Website Categories', states=STATES, depends=DEPENDS,
         help='The website categories for which the website resource category '
              'is applicable')
@@ -2959,184 +3488,6 @@ class WebsiteCategoryWebsiteResourceCategory(ModelSQL):
     website_resource_category = fields.Many2One(
         'website.resource.category', 'Website Resource Category',
         required=True, select=True, ondelete='CASCADE')
-
-
-# --- Indicators -------------------------------------------------------------
-
-indicators_list = [
-    ('event', 'Event'),
-    ('location', 'Location'),
-    ('location_space', 'Location Space'),
-    ('website_resource', 'Website Resource'),
-    # TODO: ('relase', 'Relase'),
-    ('utilisation', 'Utilisation'),
-]
-
-
-class Indicators(ModelSQL, ModelView):
-    'Indicators'
-    __name__ = 'indicators'
-    _history = True
-
-    creation_time = fields.DateTime(
-        'Creation Time', states={'required': True},
-        help='The point in time the indicators were created')
-    source = fields.One2Many(
-        'indicators-indicators', 'source', 'Source',
-        help='The copied indicators object')
-    target = fields.One2Many(
-        'indicators-indicators', 'target', 'Source',
-        help='The copies of this indicators')
-    category = fields.Selection(
-        indicators_list, 'Category', required=True, sort=False,
-        help='The category of the indicators')
-
-    estimated = fields.Reference(
-        'Estimated', 'selection_indicators', help='The estimated indicators')
-    confirmed = fields.Reference(
-        'Confirmed', 'selection_indicators', help='The confirmed indicators')
-
-    @fields.depends('category')
-    def selection_indicators(self):
-        for code, description in indicators_list:
-            if self.category == code:
-                return [('indicators.' + code, description)]
-        return []
-
-
-class IndicatorsIndicators(ModelSQL):
-    'Indicators'
-    __name__ = 'indicators-indicators'
-    _history = True
-    source = fields.Many2One(
-        'indicators', 'Source Indicators', required=True, select=True,
-        ondelete='CASCADE')
-    target = fields.Many2One(
-        'indicators', 'Target Indicators', required=True, select=True,
-        ondelete='CASCADE')
-
-
-class IndicatorsEvent(ModelSQL, ModelView, CurrencyDigits):
-    'Indicators: Event'
-    __name__ = 'indicators.event'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    start = fields.DateTime(
-        'Start', help='Start of the event')
-    end = fields.DateTime(
-        'End', help='End of the event')
-    attendants = fields.Integer(
-        'Attendants', help='The number of attendants of the event')
-    turnover_tickets = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
-    turnover_benefit = fields.Numeric(
-        'Turnover Benefit', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The benefit related turnover')
-    expenses_musicians = fields.Numeric(
-        'Expenses Musicians', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The expenses for the musicians')
-    expenses_production = fields.Numeric(
-        'Expenses Production', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The expenses for the production')
-
-
-class IndicatorsLocation(ModelSQL, ModelView, CurrencyDigits):
-    'Indicators: Location'
-    __name__ = 'indicators.location'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    opening_hours = fields.One2Many(
-        'weekday_period', 'reference', 'Opening Hours',
-        help='The opening hours of the location')
-    turnover_gastronomy = fields.Numeric(
-        'Turnover Gastronomy', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The gastronomy related turnover (e.g. food, drinks)')
-
-
-class IndicatorsLocationSpace(ModelSQL, ModelView):
-    'Indicators: Location Space'
-    __name__ = 'indicators.location_space'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    size = fields.Float(
-        'Size', digits=(10, 14),
-        help='The size of the location space [squaremeter]')
-
-
-class IndicatorsWebsiteResource(ModelSQL, ModelView, CurrencyDigits):
-    'Indicators: Website Resource'
-    __name__ = 'indicators.website_resource'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    streams = fields.Integer(
-        'Streams', help='The number of streams')
-    downloads = fields.Integer(
-        'Downloads', help='The number of downloads')
-    turnover_ads = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
-    turnover_sale = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
-
-
-class IndicatorsRelease(ModelSQL, ModelView):
-    'Indicators: Release'
-    __name__ = 'indicators.release'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    copies = fields.Integer(
-        'Copies', help='The number of copies')
-
-
-class IndicatorsUtilisation(ModelSQL, ModelView, CurrencyDigits):
-    'Indicators: Utilisation'
-    __name__ = 'indicators.utilisation'
-    _history = True
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        help='The main indicators object')
-
-    base = fields.Numeric(
-        'Base', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
-        help='The base value')
-    relevance = fields.Many2One(
-        'tariff_system.tariff.relevance', 'Relevance',
-        help='The relevance')
-    adjustments = fields.One2Many(
-        'tariff_system.tariff.adjustment', 'indicators_utilisation',
-        'Adjustments',
-        help='The adjustments')
 
 
 # --- Devices ----------------------------------------------------------------
@@ -3226,6 +3577,8 @@ class DeviceMessage(ModelSQL, ModelView):
         'device', 'Device', states={'required': True},
         help='The device of the message')
 
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the message')
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
         help='The point in time, when the message arrived or was sent.')
@@ -3241,24 +3594,77 @@ class DeviceMessage(ModelSQL, ModelView):
             ('usagereport', 'Usage Report'),
         ], 'Category', sort=False, states={'required': True},
         help='The category of the message content: Incoming or Outgoing')
+
     previous_message = fields.One2One(
         'device.message-device.message', 'next_message', 'previous_message',
-        'Previous Message', domain=[('previous_message', '=', [])],
+        'Previous Message', domain=[
+            ['OR',
+                # only free ones
+                [('next_message', '=', None)],
+                # allow saving (new relations to the current one)
+                [('next_message.id', '=', Eval('id'))]],
+            # no circles
+            ('last_message', '!=', Eval('last_message')),
+            # no self reference
+            ('id', '!=', Eval('id')),
+        ], depends=['id', 'last_message'],
         help='The previous message in a message sequence')
     next_message = fields.One2One(
         'device.message-device.message', 'previous_message', 'next_message',
-        'Next Message', domain=[('next_message', '=', [])],
+        'Next Message', domain=[
+            ['OR',
+                # only free ones
+                [('previous_message', '=', None)],
+                # allow saving (new relations to the current one)
+                [('previous_message.id', '=', Eval('id'))]],
+            # no circles
+            ('first_message', '!=', Eval('first_message')),
+            # no self reference
+            ('id', '!=', Eval('id')),
+        ], depends=['id', 'first_message'],
         help='The next message in a message sequence')
+    first_message = fields.Function(
+        fields.Many2One(
+            'device.message', 'First Message', help='The first message'),
+        'get_first_message', searcher='search_message_id')
+    last_message = fields.Function(
+        fields.Many2One(
+            'device.message', 'Last Message', help='The last message'),
+        'get_last_message', searcher='search_message_id')
 
     context = fields.Reference(
         'Context', [
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
-        ], states={'required': True},
-        help='The object, which the message is referencing')
+        ], help='The object, which the message is referencing')
     content = fields.Reference(
-        'Content', 'selection_content', states={'required': True},
-        help='The message content')
+        'Content', 'selection_content', help='The message content')
+
+    @classmethod
+    def __setup__(cls):
+        super(DeviceMessage, cls).__setup__()
+        cls._sql_constraints += [
+            ('uuid_uniq', 'UNIQUE(uuid)',
+                'The UUID of the device must be unique.'),
+        ]
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [
+            'OR',
+            ('uuid',) + tuple(clause[1:]),
+            ('timestamp',) + tuple(clause[1:]),
+        ]
+
+    @classmethod
+    def search_message_id(cls, name, clause):
+        return [
+            ('id',) + tuple(clause[1:])
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
 
     @fields.depends('category')
     def selection_content(self):
@@ -3267,6 +3673,28 @@ class DeviceMessage(ModelSQL, ModelView):
         if self.category == 'usagereport':
             return [('device.message.usagereport', 'Usage Report')]
         return []
+
+    def get_first_message(self, name=None):
+        reentrance_message = self.previous_message
+        message = self.previous_message
+        while message:
+            if not message.previous_message:
+                return (message.id)
+            message = message.previous_message
+            if message == reentrance_message:
+                raise Exception('Circular sequence detected: %s' % self)
+        return None
+
+    def get_last_message(self, name=None):
+        reentrance_message = self.next_message
+        message = self.next_message
+        while message:
+            if not message.next_message:
+                return (message.id)
+            message = message.next_message
+            if message == reentrance_message:
+                raise Exception('Circular sequence detected: %s' % self)
+        return None
 
 
 class DeviceMessageDeviceMessage(ModelSQL):
@@ -3282,7 +3710,7 @@ class DeviceMessageDeviceMessage(ModelSQL):
         ondelete='CASCADE')
 
 
-class Fingerprint(ModelSQL, ModelView):
+class DeviceMessageFingerprint(ModelSQL, ModelView):
     'Device Message: Fingerprint'
     __name__ = 'device.message.fingerprint'
     _history = True
@@ -3291,6 +3719,7 @@ class Fingerprint(ModelSQL, ModelView):
         fields.Many2One('device', 'Device'), 'get_device')
     message = fields.Many2One(
         'device.message', 'Message', states={'required': True},
+        domain=[('category', '=', 'fingerprint')],
         help='The device message')
     state = fields.Selection(
         [
@@ -3309,31 +3738,31 @@ class Fingerprint(ModelSQL, ModelView):
         help='The creation, which matches the fingerprint')
     merged_creation = fields.Many2One(
         'device.message.fingerprint.creationlist.item', 'Creation List',
-        states={'required': True},
         help='The item in the resulting creation list')
 
     timestamp = fields.DateTime(
-        'Timestamp', states={'readonly': True, 'required': True},
+        'Timestamp', states={'required': True},
         help='The point in time, when the creation was utlized')
     fingerprint = fields.Text(
-        'Fingerprint', states={'readonly': True, 'required': True},
+        'Fingerprint', states={'required': True},
         help='The fingerprint of a creation sample')
     algorithm = fields.Char(
-        'Algorithm', states={'readonly': True, 'required': True},
+        'Algorithm', states={'required': True},
         help='The name of the fingerprinting algorithm')
     version = fields.Char(
-        'Version', states={'readonly': True, 'required': True},
+        'Version', states={'required': True},
         help='The version of the fingerprinting algorithm')
 
-    @fields.depends('message')
     def get_device(self, name):
-        return self.message.device
+        return self.message.device.id
 
 
-class FingerprintCreationlist(ModelSQL, ModelView, CurrentState, PublicApi):
+class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
+                                           PublicApi):
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
+    # TODO: readonly if utilisation_creationlist != None
     confirmed = fields.Boolean(
         'Confirmed', states=STATES, depends=DEPENDS,
         help='The confirmation state by the licensee.')
@@ -3348,7 +3777,7 @@ class FingerprintCreationlist(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The utilisation creation list resulting from the fingerprints')
 
 
-class FingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
+class DeviceMessageFingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
     'Device Message: Fingerprint Creationlist Item'
     __name__ = 'device.message.fingerprint.creationlist.item'
     _history = True
@@ -3371,15 +3800,22 @@ class FingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
         help='The fingerprints merged into this creation list item')
 
 
-class Usagereport(ModelSQL, ModelView):
+class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
     'Device Message: Usagereport'
     __name__ = 'device.message.usagereport'
     _history = True
+
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'website.resource.indicators'
+    __samples__ = ['reported']
 
     device = fields.Function(
         fields.Many2One('device', 'Device'), 'get_device')
     message = fields.Many2One(
         'device.message', 'Message', states={'required': True},
+        domain=[('category', '=', 'usagereport')],
         help='The device message')
     state = fields.Selection(
         [
@@ -3394,25 +3830,21 @@ class Usagereport(ModelSQL, ModelView):
 
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
-        help='The point in time, when the creation was utlized')
-    # Todo: one reference field for website_resource / creation
-    website_resource = fields.Many2One(
-        'website.resource', 'Website Resource', help='The website resorce')
-    creation = fields.Many2One(
-        'creation', 'Creation', help='The creation of the creation list item')
+        help='The point in time of the utilisation')
 
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={'required': True},
-        domain=[('category', '=', 'website_resource')],
-        help='The main indicators object')
+    # context dependend fields: dsp
+    creation = fields.Many2One(
+        'creation', 'Creation',
+        # TODO: visible only for message.context = website.resource
+        #       and message.context.category = DSP
+        help='The creation of the creation list item')
 
     utilisation_creation_list = fields.Many2One(
         'utilisation.creationlist', 'Utilisation Creation List',
         help='The utilisation creation list resulting from the usage reports')
 
-    @fields.depends('message')
     def get_device(self, name):
-        return self.message.device
+        return self.message.device.id
 
 
 # --- Declaration ------------------------------------------------------------
@@ -3459,7 +3891,7 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             ('monthly', 'Monthly'),
             ('quarterly', 'Quarterly'),
             ('yearly', 'Yearly'),
-        ], 'State', required=True, sort=False,
+        ], 'Period', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The period of a recurring declaration.')
     group = fields.Many2One(
@@ -3519,7 +3951,7 @@ class DeclarationCollection(ModelSQL, ModelView):
     timestamp = fields.DateTime(
         'Timestamp', help='The timestamp of the declaration collection')
     declaration = fields.Many2One(
-        'declaration', 'Declaration',
+        'declaration', 'Declaration', states={'required': True},
         help='The declaration, which created the utilisations')
     utilisations = fields.One2Many(
         'utilisation', 'declaration_collection', 'Utilisatons',
@@ -3534,92 +3966,16 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
     __name__ = 'utilisation'
     _history = True
 
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'utilisation.indicators'
+    __samples__ = ['estimated', 'confirmed']
+
     code = fields.Char(
-        'Code', required=True, select=True, states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
+        'Code', required=True, select=True,
+        states={'required': True, 'readonly': True},
         help='Sequential code number of the utilisation')
-    start = fields.DateTime(
-        'Start', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='Start of the period of utilisation')
-    end = fields.DateTime(
-        'End', states=STATES, depends=DEPENDS,
-        help='End of the period of utilisation')
-
-    declaration = fields.Many2One(
-        'declaration', 'Declaration', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='The declaration, which created this utilisation')
-    declaration_collection = fields.Many2One(
-        'declaration.collection', 'Declaration Collection',
-        states=STATES, depends=DEPENDS,
-        help='The declaration collection, which created the utilisation')
-
-    licensee = fields.Many2One(
-        'party.party', 'Licensee', states=STATES, depends=DEPENDS,
-        help='The licensee party')
-    context = fields.Reference(
-        'Context', context_list, states=STATES, depends=DEPENDS,
-        help='The context object of the planned utilisation')
-    tariff = fields.Many2One(
-        'tariff_system.tariff', 'Tariff', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='The resulting tariff for the utilisation')
-
-    indicators = fields.Many2One(
-        'indicators', 'Indicators', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        domain=[('category', '=', 'utilisation')],
-        help='The main indicators object')
-    location_indicators = fields.Many2One(
-        'indicators', 'Indicators', states=STATES, depends=DEPENDS,
-        # Todo: required for context Location
-        domain=[('category', '=', 'location')],
-        help='The main indicators object')
-    location_space_indicators = fields.Many2One(
-        'indicators', 'Indicators', states=STATES, depends=DEPENDS,
-        # Todo: required for context Location
-        domain=[('category', '=', 'location_space')],
-        help='The main indicators object')
-
-    creation_list = fields.Many2One(
-        'utilisation.creationlist', 'Creationlist',
-        states=STATES, depends=DEPENDS,
-        help='The creation list for the distribution process')
-    distribution_plan = fields.Many2One(
-        'distribution.plan', 'Distribution Plan', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='The distribution plan for the utilisation')
-    allocation = fields.Many2One(
-        'distribution.allocation', 'Allocation',
-        states=STATES, depends=DEPENDS,
-        help='The allocation of the utilisation')
-
-    invoice_amount = fields.Numeric(
-        'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
-        states=STATES, depends=['active', 'currency_digits'],
-        help='The amount to invoice')
-    administration_amount = fields.Numeric(
-        'Administration Amount', digits=(16, Eval('currency_digits', 2)),
-        states=STATES, depends=['active', 'currency_digits'],
-        help='The amount for administration')
-    distribution_amount = fields.Numeric(
-        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        states=STATES, depends=['active', 'currency_digits'],
-        help='The amount to distribute')
-
     state = fields.Selection(
         [
             ('created', 'Created'),
@@ -3638,6 +3994,15 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         '*Invoiced*: An invoice for the utilisation was created.\n'
         '*Payed*: The invoice amount was received.\n'
         '*Distributed*: The distribution amount was distributed.')
+    start = fields.DateTime(
+        'Start', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='Start of the period of utilisation')
+    end = fields.DateTime(
+        'End', states=STATES, depends=DEPENDS,
+        help='End of the period of utilisation')
     confirmation = fields.Selection(
         [
             (None, ''),
@@ -3648,11 +4013,62 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         states=STATES, depends=DEPENDS,
         help='The confirmation state of the utilisation')
     locked = fields.Boolean(
-        'Locked', states={
+        'Locked', states={'readonly': True},
+        help='Locked state for processing purposes')
+
+    declaration = fields.Many2One(
+        'declaration', 'Declaration', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
-        help='Locked state for processing purposes')
+        help='The declaration, which created this utilisation')
+    declaration_collection = fields.Many2One(
+        'declaration.collection', 'Declaration Collection',
+        states={'readonly': True},
+        help='The declaration collection, which created the utilisation')
+
+    licensee = fields.Many2One(
+        'party.party', 'Licensee', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The licensee party')
+    context = fields.Reference(
+        'Context', context_list, states=STATES, depends=DEPENDS,
+        help='The context object of the planned utilisation')
+    tariff = fields.Many2One(
+        'tariff_system.tariff', 'Tariff', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The resulting tariff for the utilisation')
+
+    creation_list = fields.Many2One(
+        'utilisation.creationlist', 'Creationlist',
+        states=STATES, depends=DEPENDS,
+        help='The creation list for the distribution process')
+    distribution_plan = fields.Many2One(
+        'distribution.plan', 'Distribution Plan', states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
+        help='The distribution plan for the utilisation')
+    allocation = fields.Many2One(
+        'distribution.allocation', 'Allocation',
+        states=STATES, depends=DEPENDS,
+        help='The allocation of the utilisation')
+
+    # context dependend fields: location
+    confirmed_location_indicators = fields.Many2One(
+        'location.indicators', 'Location Indicators',
+        states=STATES, depends=DEPENDS,
+        # TODO: visible and required only for context Location
+        help='The confirmed location indicators')
+    confirmed_location_space_indicators = fields.Many2One(
+        'location.space.indicators', 'Location Space Indicators',
+        states=STATES, depends=DEPENDS,
+        # TODO: visible and required only for context Location
+        help='The confirmed location space indicators')
 
     @classmethod
     def __setup__(cls):
@@ -3661,7 +4077,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('code_uniq', 'UNIQUE(code)',
              'The code of the utilisation must be unique.')
         ]
-        cls._order.insert(1, ('timestamp', 'ASC'))
+        cls._order.insert(1, ('start', 'ASC'))
 
     @staticmethod
     def default_state():
@@ -3699,6 +4115,12 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits):
     __name__ = 'utilisation.creationlist'
     _history = True
 
+    # Note: The metaclass adds relations to indicators and shortcut function
+    #       fields to their attributes to this class (see metaclass docstring)
+    __metaclass__ = IndicatorsMeta
+    __indicators__ = 'website.resource.indicators'
+    __samples__ = ['total']
+
     utilisations = fields.One2Many(
         'utilisation', 'creation_list', 'Utilisations',
         help='The utilisations, in which the list is used to distribute')
@@ -3735,24 +4157,20 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits):
     # context dependend fields
     performer = fields.Many2One(
         'artist', 'Performer',
-        # Todo: visible only for context EventPerformance
+        # TODO: visible only for context EventPerformance
         help='The performing artist')
     fingerprints_creationlist = fields.One2Many(
         'device.message.fingerprint.creationlist', 'utilisation_creationlist',
         'Fingerprint Creationlist',
-        # Todo: visible only for context WebsiteResource|LocationSpace
+        # TODO: visible only for context WebsiteResource|LocationSpace
         help='The merged fingerprint creation lists')
-    usage_report_summary = fields.Many2One(
-        'indicators', 'Indicators',
-        domain=[('category', '=', 'website_resource')],
-        # Todo: visible only for context WebsiteResource & context.category DSP
-        help='A summary of the usage reports for a utilisation creationlist')
 
 
 class UtilisationCreationlistItem(ModelSQL, ModelView):
     'Utilisation Creationlist Item'
     __name__ = 'utilisation.creationlist.item'
     _history = True
+
     creationlist = fields.Many2One(
         'utilisation.creationlist', 'Creation List', states={'required': True},
         help='The utilisation creation list of the items')
@@ -3760,7 +4178,8 @@ class UtilisationCreationlistItem(ModelSQL, ModelView):
         'creation', 'Creation', states={'required': True},
         help='The utilized creation')
     weight = fields.Integer(
-        'Weight', help='The relative weight for the distribution')
+        'Weight', states={'required': True},
+        help='The relative weight for the distribution')
 
 
 ##############################################################################
@@ -4463,7 +4882,6 @@ class AccessControlEntry(ModelSQL, ModelView):
         roles = "\n".join([p.name for p in self.roles])
         return roles
 
-    @fields.depends('web_user')
     def get_party(self, name):
         return self.web_user.party.id
 

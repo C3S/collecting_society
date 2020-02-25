@@ -2,23 +2,36 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Device Message" col="4">
+    <label name="uuid"/>
+    <field name="uuid"/>
     <label name="device"/>
     <field name="device"/>
-    <label name="timestamp"/>
-    <field name="timestamp"/>
 
     <label name="category"/>
     <field name="category"/>
     <label name="direction"/>
     <field name="direction"/>
 
+    <label name="timestamp"/>
+    <field name="timestamp"/>
+
+    <newline/>        
+
+    <label name="first_message"/>
+    <field name="first_message"/>
     <label name="context"/>
     <field name="context"/>
+
     <label name="previous_message"/>
     <field name="previous_message"/>
-
     <label name="content"/>
     <field name="content"/>
+
     <label name="next_message"/>
     <field name="next_message"/>
+
+    <newline/>
+
+    <label name="last_message"/>
+    <field name="last_message"/>
 </form>

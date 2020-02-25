@@ -2,5 +2,12 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Utilisation">
-    
+    <field name="code" expand="1"/>
+    <field name="declaration" expand="1"/>
+    <field name="start" expand="1"/>
+    <field name="licensee" expand="1"/>
+    <field name="tariff" expand="1"/>
+    <field name="confirmation" expand="1"/>
+    <field name="state"/>
+    <field name="active"/>
 </tree>

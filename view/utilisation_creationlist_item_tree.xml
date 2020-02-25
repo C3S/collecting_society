@@ -2,5 +2,7 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Utilisation Creationlist Items">
-    
+    <field name="creationlist" expand="1"/>
+    <field name="creation" expand="1"/>
+    <field name="weight" expand="1"/>
 </tree>

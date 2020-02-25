@@ -106,6 +106,8 @@
         <record model="ir.sequence" id="sequence_declaration">
             <field name="name">Declaration</field>
             <field name="code">declaration</field>
+            <field name="prefix">DECL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Utilisation -->
@@ -121,6 +123,8 @@
         <record model="ir.sequence" id="sequence_utilisation">
             <field name="name">Utilisation</field>
             <field name="code">utilisation</field>
+            <field name="prefix">UTIL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Distribution -->
@@ -136,6 +140,8 @@
         <record model="ir.sequence" id="sequence_distribution">
             <field name="name">Distribution</field>
             <field name="code">distribution</field>
+            <field name="prefix">DIST</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Distribution Plan -->
@@ -197,38 +203,38 @@
         </record>
 
         <!-- Data: Identifier Names -->
-    	<record model="release.identifier.name"
-    		id="release_identifier_name_grid">
+    	<record model="release.identifier.space"
+    		id="release_identifier_space_grid">
     	    <field name="name">GRid</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="release.identifier.name"
-    		id="release_identifier_name_ean_upc">
+    	<record model="release.identifier.space"
+    		id="release_identifier_space_ean_upc">
     	    <field name="name">EAN/UPC</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="artist.identifier.name"
-    		id="artist_identifier_name_ipn">
+    	<record model="artist.identifier.space"
+    		id="artist_identifier_space_ipn">
     	    <field name="name">IPN</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.name"
-    		id="creation_identifier_name_hfa">
+    	<record model="creation.identifier.space"
+    		id="creation_identifier_space_hfa">
     	    <field name="name">HFA Song Code</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.name"
-    		id="creation_identifier_name_isrc">
+    	<record model="creation.identifier.space"
+    		id="creation_identifier_space_isrc">
     	    <field name="name">ISRC</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.name"
-    		id="creation_identifier_name_iswc">
+    	<record model="creation.identifier.space"
+    		id="creation_identifier_space_iswc">
     	    <field name="name">ISWC</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.name"
-    		id="creation_identifier_name_cwr">
+    	<record model="creation.identifier.space"
+    		id="creation_identifier_space_cwr">
     	    <field name="name">CWR</field>
     	    <field name="version">1</field>
         </record>
@@ -1028,38 +1034,38 @@
 		          action="act_artist_identifier"
                   id="menu_artist_identifiers"/>
 
-    	<!-- Menue: Artists / Identifier / Names -->
-    	<record model="ir.ui.view" id="artist_identifier_name_form">
-            <field name="model">artist.identifier.name</field>
+    	<!-- Menue: Artists / Identifier / Spaces -->
+    	<record model="ir.ui.view" id="artist_identifier_space_form">
+            <field name="model">artist.identifier.space</field>
             <field name="type">form</field>
-            <field name="name">artist_identifier_name_form</field>
+            <field name="name">artist_identifier_space_form</field>
         </record>
-        <record model="ir.ui.view" id="artist_identifier_name_list">
-            <field name="model">artist.identifier.name</field>
+        <record model="ir.ui.view" id="artist_identifier_space_list">
+            <field name="model">artist.identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">artist_identifier_name_list</field>
+            <field name="name">artist_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_artist_identifier_name">
-            <field name="name">Artist Identifier Names</field>
-            <field name="res_model">artist.identifier.name</field>
+        <record model="ir.action.act_window" id="act_artist_identifier_space">
+            <field name="name">Artist Identifier Spaces</field>
+            <field name="res_model">artist.identifier.space</field>
     	    <field name="domain">[]</field>
     	    <field name="search_value">[]</field>
         </record>
 	    <record model="ir.action.act_window.view"
-                id="act_artist_identifier_name_list">
+                id="act_artist_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_identifier_name_list"/>
-            <field name="act_window" ref="act_artist_identifier_name"/>
+            <field name="view" ref="artist_identifier_space_list"/>
+            <field name="act_window" ref="act_artist_identifier_space"/>
 	    </record>
         <record model="ir.action.act_window.view"
-                id="act_artist_identifier_name_form">
+                id="act_artist_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="artist_identifier_name_form"/>
-            <field name="act_window" ref="act_artist_identifier_name"/>
+            <field name="view" ref="artist_identifier_space_form"/>
+            <field name="act_window" ref="act_artist_identifier_space"/>
 	    </record>
-        <menuitem name="Names" parent="menu_artist_identifiers" sequence="10"
-                  action="act_artist_identifier_name"
-                  id="menu_identifiers_artist_identifier_name"/>
+        <menuitem name="Spaces" parent="menu_artist_identifiers" sequence="10"
+                  action="act_artist_identifier_space"
+                  id="menu_identifiers_artist_identifier_space"/>
 
         <!-- Menue: Artists / Playlists  -->
         <record model="ir.ui.view" id="artist_playlist_form">
@@ -1186,35 +1192,35 @@
                   id="menu_release_identifiers"/>
 
         <!-- Menue: Releases / Identifier Names -->
-        <record model="ir.ui.view" id="release_identifier_name_form">
-            <field name="model">release.identifier.name</field>
+        <record model="ir.ui.view" id="release_identifier_space_form">
+            <field name="model">release.identifier.space</field>
             <field name="type">form</field>
-            <field name="name">release_identifier_name_form</field>
+            <field name="name">release_identifier_space_form</field>
         </record>
-        <record model="ir.ui.view" id="release_identifier_name_list">
-            <field name="model">release.identifier.name</field>
+        <record model="ir.ui.view" id="release_identifier_space_list">
+            <field name="model">release.identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">release_identifier_name_list</field>
+            <field name="name">release_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_release_identifier_name">
-            <field name="name">Release Identifier Names</field>
-            <field name="res_model">release.identifier.name</field>
+        <record model="ir.action.act_window" id="act_release_identifier_space">
+            <field name="name">Release Identifier Spaces</field>
+            <field name="res_model">release.identifier.space</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_identifier_name_list">
+                id="act_release_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="release_identifier_name_list"/>
-            <field name="act_window" ref="act_release_identifier_name"/>
+            <field name="view" ref="release_identifier_space_list"/>
+            <field name="act_window" ref="act_release_identifier_space"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_identifier_name_form">
+                id="act_release_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="release_identifier_name_form"/>
-            <field name="act_window" ref="act_release_identifier_name"/>
+            <field name="view" ref="release_identifier_space_form"/>
+            <field name="act_window" ref="act_release_identifier_space"/>
         </record>
-        <menuitem name="Names" parent="menu_release_identifiers" sequence="10"
-                  action="act_release_identifier_name"
-                  id="menu_identifiers_release_identifier_name"/>
+        <menuitem name="Spaces" parent="menu_release_identifiers" sequence="10"
+                  action="act_release_identifier_space"
+                  id="menu_identifiers_release_identifier_space"/>
 
         <!-- Menue: Releases / Rightsholders  -->
         <record model="ir.ui.view" id="release_rightsholder_form">
@@ -1405,36 +1411,36 @@
                   action="act_creation_identifier"
                   id="menu_creation_identifiers"/>
 
-        <!-- Menue: Creations / Identifier Names -->
-        <record model="ir.ui.view" id="creation_identifier_name_form">
-            <field name="model">creation.identifier.name</field>
+        <!-- Menue: Creations / Identifier / Spaces -->
+        <record model="ir.ui.view" id="creation_identifier_space_form">
+            <field name="model">creation.identifier.space</field>
             <field name="type">form</field>
-            <field name="name">creation_identifier_name_form</field>
+            <field name="name">creation_identifier_space_form</field>
         </record>
-        <record model="ir.ui.view" id="creation_identifier_name_list">
-            <field name="model">creation.identifier.name</field>
+        <record model="ir.ui.view" id="creation_identifier_space_list">
+            <field name="model">creation.identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">creation_identifier_name_list</field>
+            <field name="name">creation_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_creation_identifier_name">
-            <field name="name">Creation Identifier Names</field>
-            <field name="res_model">creation.identifier.name</field>
+        <record model="ir.action.act_window" id="act_creation_identifier_space">
+            <field name="name">Creation Identifier Spaces</field>
+            <field name="res_model">creation.identifier.space</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_identifier_name_list">
+                id="act_creation_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_identifier_name_list"/>
-            <field name="act_window" ref="act_creation_identifier_name"/>
+            <field name="view" ref="creation_identifier_space_list"/>
+            <field name="act_window" ref="act_creation_identifier_space"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_identifier_name_form">
+                id="act_creation_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_identifier_name_form"/>
-            <field name="act_window" ref="act_creation_identifier_name"/>
+            <field name="view" ref="creation_identifier_space_form"/>
+            <field name="act_window" ref="act_creation_identifier_space"/>
         </record>
-        <menuitem name="Names" parent="menu_creation_identifiers" sequence="10"
-                  action="act_creation_identifier_name"
-                  id="menu_identifiers_creation_identifier_name"/>
+        <menuitem name="Spaces" parent="menu_creation_identifiers" sequence="10"
+                  action="act_creation_identifier_space"
+                  id="menu_identifiers_creation_identifier_space"/>
 
         <!-- Menue: Creations / Rightsholders  -->
         <record model="ir.ui.view" id="creation_rightsholder_form">
@@ -1772,18 +1778,18 @@
 
         <!-- Menue: Events / Indicators -->
         <record model="ir.ui.view" id="event_indicators_form">
-            <field name="model">indicators.event</field>
+            <field name="model">event.indicators</field>
             <field name="type">form</field>
             <field name="name">event_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="event_indicators_tree">
-            <field name="model">indicators.event</field>
+            <field name="model">event.indicators</field>
             <field name="type">tree</field>
             <field name="name">event_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_event_indicators">
             <field name="name">Event Indicators</field>
-            <field name="res_model">indicators.event</field>
+            <field name="res_model">event.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -1926,66 +1932,99 @@
                   id="menu_location_space_category"/>
 
         <!-- Menue: Locations / Spaces / Indicators -->
-        <record model="ir.ui.view" id="location_space_indicator_form">
-            <field name="model">indicators.location_space</field>
+        <record model="ir.ui.view" id="location_space_indicators_form">
+            <field name="model">location.space.indicators</field>
             <field name="type">form</field>
             <field name="name">location_space_indicators_form</field>
         </record>
-        <record model="ir.ui.view" id="location_space_indicator_tree">
-            <field name="model">indicators.location_space</field>
+        <record model="ir.ui.view" id="location_space_indicators_tree">
+            <field name="model">location.space.indicators</field>
             <field name="type">tree</field>
             <field name="name">location_space_indicators_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_location_space_indicator">
+        <record model="ir.action.act_window" id="act_location_space_indicators">
             <field name="name">Location Space Indicators</field>
-            <field name="res_model">indicators.location_space</field>
+            <field name="res_model">location.space.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_space_indicator_tree">
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="location_space_indicator_tree"/>
-            <field name="act_window" ref="act_location_space_indicator"/>
+            <field name="view" ref="location_space_indicators_tree"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_space_indicator_form">
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="location_space_indicator_form"/>
-            <field name="act_window" ref="act_location_space_indicator"/>
+            <field name="view" ref="location_space_indicators_form"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
         </record>
         <menuitem name="Indicators" parent="menu_location_space" sequence="20"
-                  action="act_location_space_indicator"
-                  id="menu_location_space_indicator"/>
+                  action="act_location_space_indicators"
+                  id="menu_location_space_indicators"/>
 
         <!-- Menue: Locations / Indicators -->
-        <record model="ir.ui.view" id="location_indicator_form">
-            <field name="model">indicators.location</field>
+        <record model="ir.ui.view" id="location_indicators_form">
+            <field name="model">location.indicators</field>
             <field name="type">form</field>
             <field name="name">location_indicators_form</field>
         </record>
-        <record model="ir.ui.view" id="location_indicator_tree">
-            <field name="model">indicators.location</field>
+        <record model="ir.ui.view" id="location_indicators_tree">
+            <field name="model">location.indicators</field>
             <field name="type">tree</field>
             <field name="name">location_indicators_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_location_indicator">
+        <record model="ir.action.act_window" id="act_location_indicators">
             <field name="name">Location Indicators</field>
-            <field name="res_model">indicators.location</field>
+            <field name="res_model">location.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_indicator_tree">
+        <record model="ir.action.act_window.view" id="act_location_indicators_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="location_indicator_tree"/>
-            <field name="act_window" ref="act_location_indicator"/>
+            <field name="view" ref="location_indicators_tree"/>
+            <field name="act_window" ref="act_location_indicators"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_location_indicator_form">
+        <record model="ir.action.act_window.view" id="act_location_indicators_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="location_indicator_form"/>
-            <field name="act_window" ref="act_location_indicator"/>
+            <field name="view" ref="location_indicators_form"/>
+            <field name="act_window" ref="act_location_indicators"/>
         </record>
         <menuitem name="Indicators" parent="menu_location" sequence="30"
-                  action="act_location_indicator"
-                  id="menu_location_indicator"/>
+                  action="act_location_indicators"
+                  id="menu_location_indicators"/>
+
+        <!-- Menue: Locations / Indicators / Periods -->
+        <record model="ir.ui.view" id="location_indicators_period_form">
+            <field name="model">location.indicators.period</field>
+            <field name="type">form</field>
+            <field name="name">location_indicators_period_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_indicators_period_tree">
+            <field name="model">location.indicators.period</field>
+            <field name="type">tree</field>
+            <field name="name">location_indicators_period_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_indicators_period">
+            <field name="name">Periods</field>
+            <field name="res_model">location.indicators.period</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_indicators_period_tree"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_indicators_period_form"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <menuitem parent="menu_location_indicators" sequence="10"
+                  action="act_location_indicators_period"
+                  id="menu_location_indicators_period"/>
 
         <!-- Menue: Websites -->
         <record model="ir.ui.view" id="website_form">
@@ -2113,18 +2152,18 @@
 
         <!-- Menue: Websites / Resources / Indicators -->
         <record model="ir.ui.view" id="website_resource_indicators_form">
-            <field name="model">indicators.website_resource</field>
+            <field name="model">website.resource.indicators</field>
             <field name="type">form</field>
             <field name="name">website_resource_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="website_resource_indicators_tree">
-            <field name="model">indicators.website_resource</field>
+            <field name="model">website.resource.indicators</field>
             <field name="type">tree</field>
             <field name="name">website_resource_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_website_resource_indicators">
             <field name="name">Website Resource Indicators</field>
-            <field name="res_model">indicators.website_resource</field>
+            <field name="res_model">website.resource.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -2146,7 +2185,7 @@
         <record model="ir.action.act_window" id="act_licensee_release">
             <field name="name">Releases</field>
             <field name="res_model">release</field>
-            <field name="domain">[('indicators', '!=', None)]</field>
+            <field name="domain">[('confirmed_copies', '!=', None)]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_licensee_release_list">
@@ -2165,18 +2204,18 @@
 
         <!-- Menue: Releases / Indicators -->
         <record model="ir.ui.view" id="release_indicators_form">
-            <field name="model">indicators.release</field>
+            <field name="model">release.indicators</field>
             <field name="type">form</field>
             <field name="name">release_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="release_indicators_tree">
-            <field name="model">indicators.release</field>
+            <field name="model">release.indicators</field>
             <field name="type">tree</field>
             <field name="name">release_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_release_indicators">
             <field name="name">Release Indicators</field>
-            <field name="res_model">indicators.release</field>
+            <field name="res_model">release.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
@@ -2601,18 +2640,18 @@
 
         <!-- Menue: Utilisations / Indicators -->
         <record model="ir.ui.view" id="utilisation_indicators_form">
-            <field name="model">indicators.utilisation</field>
+            <field name="model">utilisation.indicators</field>
             <field name="type">form</field>
             <field name="name">utilisation_indicators_form</field>
         </record>
         <record model="ir.ui.view" id="utilisation_indicators_tree">
-            <field name="model">indicators.utilisation</field>
+            <field name="model">utilisation.indicators</field>
             <field name="type">tree</field>
             <field name="name">utilisation_indicators_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_utilisation_indicators">
             <field name="name">Utilisation Indicators</field>
-            <field name="res_model">indicators.utilisation</field>
+            <field name="res_model">utilisation.indicators</field>
             <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
