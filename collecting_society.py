@@ -36,8 +36,10 @@ __all__ = [
     'TariffSystem',
     'TariffCategory',
     'TariffAdjustmentCategory',
+    'TariffCategoryTariffAdjustmentCategory',
     'TariffAdjustment',
     'TariffRelevanceCategory',
+    'TariffCategoryTariffRelevanceCategory',
     'TariffRelevance',
     'Tariff',
     'Allocation',
@@ -430,12 +432,16 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The tariffs in this tariff category.')
 
-    adjustment_categories = fields.Many2One(
-        'tariff_system.tariff.adjustment.category', 'Adjustment Categories',
+    adjustment_categories = fields.Many2Many(
+        'tariff_category-tariff_adjustment_category',
+        'tariff_category', 'tariff_adjustment_category',
+        'Adjustment Categories',
         states=STATES, depends=DEPENDS,
         help='The adjustment categories applicable for the tariff category')
-    relevance_categories = fields.Many2One(
-        'tariff_system.tariff.relevance.category', 'Relevance Categories',
+    relevance_categories = fields.Many2Many(
+        'tariff_category-tariff_relevance_category',
+        'tariff_category', 'tariff_relevance_category',
+        'Relevance Categories',
         states=STATES, depends=DEPENDS,
         help='The relevance categories applicable for the tariff category')
 
@@ -507,14 +513,28 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
             ('percentage', 'Percentage'),
         ], 'Operation', required=True, sort=False,
         help='The mathematical operation of the category')
-    tariff_categories = fields.One2Many(
-        'tariff_system.category', 'adjustment_categories', 'Tariff Categories',
-        add_remove=[], states={
+    tariff_categories = fields.Many2Many(
+        'tariff_category-tariff_adjustment_category',
+        'tariff_adjustment_category', 'tariff_category', 'Tariff Categories',
+        states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The tariff categories, for which the adjustment category can '
              'be applied')
+
+
+class TariffCategoryTariffAdjustmentCategory(ModelSQL):
+    'Tariff Category - Tariff Adjustment Category'
+    __name__ = 'tariff_category-tariff_adjustment_category'
+    _history = True
+    tariff_category = fields.Many2One(
+        'tariff_system.category', 'Tariff Category',
+        required=True, select=True, ondelete='CASCADE')
+    tariff_adjustment_category = fields.Many2One(
+        'tariff_system.tariff.adjustment.category',
+        'Tariff Adjustment Category',
+        required=True, select=True, ondelete='CASCADE')
 
 
 class TariffAdjustment(ModelSQL, ModelView, PublicApi):
@@ -574,11 +594,27 @@ class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    tariff_categories = fields.One2Many(
-        'tariff_system.category', 'relevance_categories', 'Tariff Categories',
-        add_remove=[], states=STATES, depends=DEPENDS,
+    tariff_categories = fields.Many2Many(
+        'tariff_category-tariff_relevance_category',
+        'tariff_relevance_category', 'tariff_category', 'Tariff Categories',
+        states={
+            'required': True,
+            'readonly': ~Eval('active'),
+        }, depends=DEPENDS,
         help='The tariff categories, for which the relevance category can '
              'be applied')
+
+
+class TariffCategoryTariffRelevanceCategory(ModelSQL):
+    'Tariff Category - Tariff Relevance Category'
+    __name__ = 'tariff_category-tariff_relevance_category'
+    _history = True
+    tariff_category = fields.Many2One(
+        'tariff_system.category', 'Tariff Category',
+        required=True, select=True, ondelete='CASCADE')
+    tariff_relevance_category = fields.Many2One(
+        'tariff_system.tariff.relevance.category', 'Tariff Relevance Category',
+        required=True, select=True, ondelete='CASCADE')
 
 
 class TariffRelevance(ModelSQL, ModelView, PublicApi):
