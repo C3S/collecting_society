@@ -10,7 +10,7 @@ from collecting_society import MixinIdentifier
 __all__ = [
     'Party',
     'PartyIdentifier',
-    'PartyIdentifierName',
+    'PartyIdentifierSpace',
     'PartyCategory',
     'ContactMechanism',
     'Category',
@@ -78,16 +78,20 @@ class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Party Identifier'
     __name__ = 'party.identifier'
     _history = True
-    identifier_name = fields.Many2One('party.identifier.name', 'Party Identifier Name', required=True, select=True, ondelete='CASCADE')
-    party = fields.Many2One('party.party', 'Party', required=True, select=True, ondelete='CASCADE')
+    space = fields.Many2One(
+        'party.identifier.space', 'Party Identifier Name',
+        required=True, select=True, ondelete='CASCADE')
+    party = fields.Many2One(
+        'party.party', 'Party',
+        required=True, select=True, ondelete='CASCADE')
 
 
-class PartyIdentifierName(ModelSQL, ModelView):
-    'Party Identifier Name'
-    __name__ = 'party.identifier.name'
+class PartyIdentifierSpace(ModelSQL, ModelView):
+    'Party Identifier Space'
+    __name__ = 'party.identifier.space'
     _history = True
-    name = fields.Char('official name')
-    version = fields.Char('version')
+    name = fields.Char('Name of the ID space')
+    version = fields.Char('Version')
 
 
 class PartyCategory():

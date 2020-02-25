@@ -3,6 +3,6 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Release Identfier">
     <field name="id_code"/>
-    <field name="identifier_name"/>
+    <field name="space"/>
     <field name="release"/>
 </tree>

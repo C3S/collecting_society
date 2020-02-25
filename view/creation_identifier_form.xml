@@ -4,8 +4,8 @@
 <form string="Creation Identifier">
     <label name="id_code"/>
     <field name="id_code"/>
-    <label name="id_space"/>
-    <field name="id_space"/>
+    <label name="space"/>
+    <field name="space"/>
     <label name="creation"/>
     <field name="creation"/>
 

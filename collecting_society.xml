@@ -203,18 +203,18 @@
         </record>
 
         <!-- Data: Identifier Names -->
-    	<record model="release.identifier.name"
-    		id="release_identifier_name_grid">
+    	<record model="release.identifier.space"
+    		id="release_identifier_space_grid">
     	    <field name="name">GRid</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="release.identifier.name"
-    		id="release_identifier_name_ean_upc">
+    	<record model="release.identifier.space"
+    		id="release_identifier_space_ean_upc">
     	    <field name="name">EAN/UPC</field>
     	    <field name="version">1</field>
         </record>
-    	<record model="artist.identifier.name"
-    		id="artist_identifier_name_ipn">
+    	<record model="artist.identifier.space"
+    		id="artist_identifier_space_ipn">
     	    <field name="name">IPN</field>
     	    <field name="version">1</field>
         </record>
@@ -1034,38 +1034,38 @@
 		          action="act_artist_identifier"
                   id="menu_artist_identifiers"/>
 
-    	<!-- Menue: Artists / Identifier / Names -->
-    	<record model="ir.ui.view" id="artist_identifier_name_form">
-            <field name="model">artist.identifier.name</field>
+    	<!-- Menue: Artists / Identifier / Spaces -->
+    	<record model="ir.ui.view" id="artist_identifier_space_form">
+            <field name="model">artist.identifier.space</field>
             <field name="type">form</field>
-            <field name="name">artist_identifier_name_form</field>
+            <field name="name">artist_identifier_space_form</field>
         </record>
-        <record model="ir.ui.view" id="artist_identifier_name_list">
-            <field name="model">artist.identifier.name</field>
+        <record model="ir.ui.view" id="artist_identifier_space_list">
+            <field name="model">artist.identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">artist_identifier_name_list</field>
+            <field name="name">artist_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_artist_identifier_name">
-            <field name="name">Artist Identifier Names</field>
-            <field name="res_model">artist.identifier.name</field>
+        <record model="ir.action.act_window" id="act_artist_identifier_space">
+            <field name="name">Artist Identifier Spaces</field>
+            <field name="res_model">artist.identifier.space</field>
     	    <field name="domain">[]</field>
     	    <field name="search_value">[]</field>
         </record>
 	    <record model="ir.action.act_window.view"
-                id="act_artist_identifier_name_list">
+                id="act_artist_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_identifier_name_list"/>
-            <field name="act_window" ref="act_artist_identifier_name"/>
+            <field name="view" ref="artist_identifier_space_list"/>
+            <field name="act_window" ref="act_artist_identifier_space"/>
 	    </record>
         <record model="ir.action.act_window.view"
-                id="act_artist_identifier_name_form">
+                id="act_artist_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="artist_identifier_name_form"/>
-            <field name="act_window" ref="act_artist_identifier_name"/>
+            <field name="view" ref="artist_identifier_space_form"/>
+            <field name="act_window" ref="act_artist_identifier_space"/>
 	    </record>
-        <menuitem name="Names" parent="menu_artist_identifiers" sequence="10"
-                  action="act_artist_identifier_name"
-                  id="menu_identifiers_artist_identifier_name"/>
+        <menuitem name="Spaces" parent="menu_artist_identifiers" sequence="10"
+                  action="act_artist_identifier_space"
+                  id="menu_identifiers_artist_identifier_space"/>
 
         <!-- Menue: Artists / Playlists  -->
         <record model="ir.ui.view" id="artist_playlist_form">
@@ -1192,35 +1192,35 @@
                   id="menu_release_identifiers"/>
 
         <!-- Menue: Releases / Identifier Names -->
-        <record model="ir.ui.view" id="release_identifier_name_form">
-            <field name="model">release.identifier.name</field>
+        <record model="ir.ui.view" id="release_identifier_space_form">
+            <field name="model">release.identifier.space</field>
             <field name="type">form</field>
-            <field name="name">release_identifier_name_form</field>
+            <field name="name">release_identifier_space_form</field>
         </record>
-        <record model="ir.ui.view" id="release_identifier_name_list">
-            <field name="model">release.identifier.name</field>
+        <record model="ir.ui.view" id="release_identifier_space_list">
+            <field name="model">release.identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">release_identifier_name_list</field>
+            <field name="name">release_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_release_identifier_name">
-            <field name="name">Release Identifier Names</field>
-            <field name="res_model">release.identifier.name</field>
+        <record model="ir.action.act_window" id="act_release_identifier_space">
+            <field name="name">Release Identifier Spaces</field>
+            <field name="res_model">release.identifier.space</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_identifier_name_list">
+                id="act_release_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="release_identifier_name_list"/>
-            <field name="act_window" ref="act_release_identifier_name"/>
+            <field name="view" ref="release_identifier_space_list"/>
+            <field name="act_window" ref="act_release_identifier_space"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_identifier_name_form">
+                id="act_release_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="release_identifier_name_form"/>
-            <field name="act_window" ref="act_release_identifier_name"/>
+            <field name="view" ref="release_identifier_space_form"/>
+            <field name="act_window" ref="act_release_identifier_space"/>
         </record>
-        <menuitem name="Names" parent="menu_release_identifiers" sequence="10"
-                  action="act_release_identifier_name"
-                  id="menu_identifiers_release_identifier_name"/>
+        <menuitem name="Spaces" parent="menu_release_identifiers" sequence="10"
+                  action="act_release_identifier_space"
+                  id="menu_identifiers_release_identifier_space"/>
 
         <!-- Menue: Releases / Rightsholders  -->
         <record model="ir.ui.view" id="release_rightsholder_form">
@@ -1411,7 +1411,7 @@
                   action="act_creation_identifier"
                   id="menu_creation_identifiers"/>
 
-        <!-- Menue: Creations / Identifier Names -->
+        <!-- Menue: Creations / Identifier / Spaces -->
         <record model="ir.ui.view" id="creation_identifier_space_form">
             <field name="model">creation.identifier.space</field>
             <field name="type">form</field>
@@ -1423,7 +1423,7 @@
             <field name="name">creation_identifier_space_list</field>
         </record>
         <record model="ir.action.act_window" id="act_creation_identifier_space">
-            <field name="name">Creation Identifier Names</field>
+            <field name="name">Creation Identifier Spaces</field>
             <field name="res_model">creation.identifier.space</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1438,7 +1438,7 @@
             <field name="view" ref="creation_identifier_space_form"/>
             <field name="act_window" ref="act_creation_identifier_space"/>
         </record>
-        <menuitem name="Names" parent="menu_creation_identifiers" sequence="10"
+        <menuitem name="Spaces" parent="menu_creation_identifiers" sequence="10"
                   action="act_creation_identifier_space"
                   id="menu_identifiers_creation_identifier_space"/>
 

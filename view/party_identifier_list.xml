@@ -3,6 +3,6 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree string="Party Identfier">
     <field name="id_code"/>
-    <field name="identifier_name"/>
+    <field name="space"/>
     <field name="party"/>
 </tree>

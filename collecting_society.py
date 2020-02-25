@@ -63,7 +63,7 @@ __all__ = [
     'ArtistRelease',
     'ArtistPayeeAcceptance',
     'ArtistIdentifier',
-    'ArtistIdentifierName',
+    'ArtistIdentifierSpace',
     'ArtistPlaylist',
     'ArtistPlaylistItem',
     'Creation',
@@ -81,7 +81,7 @@ __all__ = [
     'ReleaseGenre',
     'ReleaseStyle',
     'ReleaseIdentifier',
-    'ReleaseIdentifierName',
+    'ReleaseIdentifierSpace',
     'ReleaseRightsholder',
     'ReleaseRightsholderReleaseRightsholder',
     'MixinIdentifier',
@@ -1936,20 +1936,20 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Artist Identifier'
     __name__ = 'artist.identifier'
     _history = True
-    identifier_name = fields.Many2One(
-        'artist.identifier.name', 'Artist Identifier Name',
+    space = fields.Many2One(
+        'artist.identifier.space', 'Artist Identifier Space',
         required=True, select=True, ondelete='CASCADE')
     artist = fields.Many2One(
         'artist', 'Artist',
         required=True, select=True, ondelete='CASCADE')
 
 
-class ArtistIdentifierName(ModelSQL, ModelView):
-    'Artist Identifier Name'
-    __name__ = 'artist.identifier.name'
+class ArtistIdentifierSpace(ModelSQL, ModelView):
+    'Artist Identifier Space'
+    __name__ = 'artist.identifier.space'
     _history = True
-    name = fields.Char('official name of the id space')
-    version = fields.Char('version')
+    name = fields.Char('Name of the ID space')
+    version = fields.Char('Version')
 
 
 class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
@@ -2388,7 +2388,7 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
-    id_space = fields.Many2One(
+    space = fields.Many2One(
         'creation.identifier.space', 'Creation Identifier Space',
         required=True, select=True, ondelete='CASCADE')
     creation = fields.Many2One(
@@ -2400,8 +2400,8 @@ class CreationIdentifierSpace(ModelSQL, ModelView):
     'Creation Identifier Space'
     __name__ = 'creation.identifier.space'
     _history = True
-    name = fields.Char('official name of the id space')
-    version = fields.Char('version')
+    name = fields.Char('Name of the ID space')
+    version = fields.Char('Version')
 
 
 class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
@@ -2761,18 +2761,18 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Release Identifier'
     __name__ = 'release.identifier'
     _history = True
-    identifier_name = fields.Many2One(
-        'release.identifier.name', 'Release Identifier Name', required=True,
+    space = fields.Many2One(
+        'release.identifier.space', 'Release Identifier Space', required=True,
         select=True, ondelete='CASCADE')
     release = fields.Many2One(
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
 
 
-class ReleaseIdentifierName(ModelSQL, ModelView):
-    'Release Identifier Name'
-    __name__ = 'release.identifier.name'
+class ReleaseIdentifierSpace(ModelSQL, ModelView):
+    'Release Identifier Space'
+    __name__ = 'release.identifier.space'
     _history = True
-    name = fields.Char('Name')
+    name = fields.Char('Name of the ID space')
     version = fields.Char('Version')
 
 
