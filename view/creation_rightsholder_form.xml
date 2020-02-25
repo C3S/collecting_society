@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Release Rightsholder">
+<form string="Creation Rightsholder">
     <label name="right"/>
     <field name="right"/>
     <label name="valid_from"/>
@@ -20,8 +20,6 @@
     <field name="contribution"/>
     <label name="successor"/>
     <field name="successor"/>
-    <!--
     <label name="instruments"/>
     <field name="instruments"/>
-    -->
 </form>

@@ -1971,6 +1971,7 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Creation Identifier'
     __name__ = 'creation.identifier'
     _history = True
+
     identifier_name = fields.Many2One(
         'creation.identifier.name', 'Creation Identifier Name',
         required=True, select=True, ondelete='CASCADE')
@@ -1983,6 +1984,7 @@ class CreationIdentifierName(ModelSQL, ModelView):
     'Creation Identifier Name'
     __name__ = 'creation.identifier.name'
     _history = True
+
     name = fields.Char('official name')
     version = fields.Char('version')
 
@@ -1991,28 +1993,41 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
     'Creation Rightsholder'
     __name__ = 'creation.rightsholder'
     _history = True
+
     rightsholder_subject = fields.Many2One(
         'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
     rightsholder_object = fields.Many2One(
         'creation', 'Creation', required=True, select=True,
         ondelete='CASCADE')
-    contribution = fields.Function(
-        fields.Char('Contribution Right'),
-        'on_change_with_rights')
-    successor = fields.Many2Many(
+    contribution = fields.Selection(
+        'get_contribution', 'Contribution Right')
+    successor = fields.Many2One(
         'creation.rightsholder-creation.rightsholder', 'predecessor',
-        'successor', 'Successor', help='Successor')
+        'successor', 'Successors', help='Successor')
     instruments = fields.Many2Many(
-        'creation.rightsholder-instrument', 'rightsholder', 'instrument'
-        'Instrument',
+        'creation.rightsholder-instrument', 'rightsholder', 'instrument',
+        'Instruments',
+        states={
+            'required': Eval('contribution') == 'instrument',
+            'invisible': Eval('contribution') != 'instrument'
+        }, depends=['contribution'],
         help='Instrument the rightsholder is the relevant authority for')
 
     @fields.depends('right')
-    def on_change_with_rights(self, name=None):
-        if self.right == 'Copyright':
-            return ('Lyrics', 'Composition')
-        elif self.right == 'Ancillary Copyright':
-            return ('Instrument', 'Production', 'Mixing', 'Mastering')
+    def get_contribution(self):
+        if self.right == 'copyright':
+            return [
+                ('lyrics', 'Lyrics'),
+                ('composition', 'Composition'),
+            ]
+        elif self.right == 'ancillary':
+            return [
+                ('instrument', 'Instrument'),
+                ('production', 'Production'),
+                ('mixing', 'Mixing'),
+                ('mastering', 'Mastering'),
+            ]
+        return list()
 
 
 class CreationRightsholderCreationRightsholder(ModelSQL):
@@ -2401,12 +2416,13 @@ class Instrument(ModelSQL, ModelView, PublicApi):
     __name__ = 'instrument'
     _history = True
 
-    name = fields.Char('Name', help='The name of the instrument.')
+    name = fields.Char(
+        'Name', help='The name of the instrument.')
     description = fields.Text(
         'Description', help='The description of the instrument.')
 
 
-class CreationRightsholderInstrument(ModelSQL)
+class CreationRightsholderInstrument(ModelSQL):
     'CreationRightsholderInstrument'
     __name__ = 'creation.rightsholder-instrument'
     _history = True

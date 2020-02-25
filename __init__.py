@@ -76,6 +76,8 @@ def register():
         ReleaseRightsholder,
         ReleaseRightsholderReleaseRightsholder,
         ArtistRelease,
+        Instrument,
+        CreationRightsholderInstrument,
         Genre,
         ReleaseGenre,
         Style,
