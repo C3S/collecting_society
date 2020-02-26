@@ -3679,6 +3679,7 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
 
     device = fields.Function(
         fields.Many2One('device', 'Device'), 'get_device')
+    # TODO: 2One interface via fields.Function
     message = fields.One2Many(
         'device.message', 'content', 'Message', states={'required': True},
         domain=[('category', '=', 'fingerprint')],
@@ -3776,6 +3777,7 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
 
     device = fields.Function(
         fields.Many2One('device', 'Device'), 'get_device')
+    # TODO: 2One interface via fields.Function
     message = fields.One2Many(
         'device.message', 'content', 'Message', states={'required': True},
         domain=[('category', '=', 'usagereport')],
