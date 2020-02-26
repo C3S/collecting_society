@@ -2980,9 +2980,13 @@ class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi):
     public = fields.Boolean(
         'Public', states=STATES, depends=DEPENDS,
         help='Visibility for other frontend users')
-    geolocation = fields.Char(
-        'Geolocation', states=STATES, depends=DEPENDS,
-        help='The geographical location')
+
+    latitude = fields.Float(
+        'Latitude', states=STATES, depends=DEPENDS,
+        help='The latitude of the geographical location')
+    longitude = fields.Float(
+        'Longitude', states=STATES, depends=DEPENDS,
+        help='The longitude of the geographical location')
 
     spaces = fields.One2Many(
         'location.space', 'location', 'Spaces',
@@ -3117,7 +3121,7 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     def get_message_content(self, category):
         contents = []
         for message in self.messages:
-            if message.category == category:
+            if message.category == category and message.content:
                 contents.append(message.content.id)
         return contents
 
@@ -3627,10 +3631,10 @@ class DeviceMessage(ModelSQL, ModelView):
     @fields.depends('category')
     def selection_content(self):
         if self.category == 'fingerprint':
-            return [('device.message.fingerprint', 'Fingerprint')]
+            return [('', ''), ('device.message.fingerprint', 'Fingerprint')]
         if self.category == 'usagereport':
-            return [('device.message.usagereport', 'Usage Report')]
-        return []
+            return [('', ''), ('device.message.usagereport', 'Usage Report')]
+        return [('', '')]
 
     def get_first_message(self, name=None):
         reentrance_message = self.previous_message
@@ -3675,8 +3679,8 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
 
     device = fields.Function(
         fields.Many2One('device', 'Device'), 'get_device')
-    message = fields.Many2One(
-        'device.message', 'Message', states={'required': True},
+    message = fields.One2Many(
+        'device.message', 'content', 'Message', states={'required': True},
         domain=[('category', '=', 'fingerprint')],
         help='The device message')
     state = fields.Selection(
@@ -3712,7 +3716,8 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
         help='The version of the fingerprinting algorithm')
 
     def get_device(self, name):
-        return self.message.device.id
+        if self.message:
+            return self.message[0].device.id
 
 
 class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
@@ -3771,8 +3776,8 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
 
     device = fields.Function(
         fields.Many2One('device', 'Device'), 'get_device')
-    message = fields.Many2One(
-        'device.message', 'Message', states={'required': True},
+    message = fields.One2Many(
+        'device.message', 'content', 'Message', states={'required': True},
         domain=[('category', '=', 'usagereport')],
         help='The device message')
     state = fields.Selection(
@@ -3802,7 +3807,8 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
         help='The utilisation creation list resulting from the usage reports')
 
     def get_device(self, name):
-        return self.message.device.id
+        if self.message:
+            return self.message[0].device.id
 
 
 # --- Declaration ------------------------------------------------------------
