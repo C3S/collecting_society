@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Usage Report" col="6">
+<form string="Usage Report" col="4">
     <label name="device"/>
     <field name="device"/>
-    <label name="message"/>
-    <field name="message"/>
     <label name="state"/>
     <field name="state"/>
 
@@ -14,9 +12,12 @@
     <label name="creation"/>
     <field name="creation"/>
 
+    <label name="message"/>
+    <field name="message" colspan="3"/>
+
     <newline/>
 
-    <notebook colspan="6">
+    <notebook colspan="4">
         <page string="Indicators" id="indicators" col="2">
             <separator string="Reported" id="reported" colspan="2"/>
             <label name="reported_streams"/>

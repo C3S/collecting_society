@@ -16,10 +16,10 @@
 
     <label name="party"/>
     <field name="party"/>
-    <label name="geolocation"/>
-    <field name="geolocation"/>
-
-    <newline/>
+    <label name="longitude"/>
+    <field name="longitude"/>
+    <label name="latitude"/>
+    <field name="latitude"/>
 
     <field name="spaces" colspan="6"/>
 

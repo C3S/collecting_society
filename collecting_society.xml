@@ -1776,6 +1776,16 @@
                   action="act_event_performance"
                   id="menu_event_performance"/>
 
+        <!-- Menue: Events / Performances / Playlists  -->
+        <menuitem parent="menu_event_performance" sequence="10" 
+                  action="act_artist_playlist"
+                  id="menu_event_performance_playlist"/>
+
+        <!-- Menue: Artists / Playlists / Items  -->
+        <menuitem parent="menu_event_performance_playlist" sequence="10" 
+                  action="act_artist_playlist_item"
+                  id="menu_event_performance_playlist_item"/>
+
         <!-- Menue: Events / Indicators -->
         <record model="ir.ui.view" id="event_indicators_form">
             <field name="model">event.indicators</field>

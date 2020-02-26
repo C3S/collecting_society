@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Fingerprint" col="6">
+<form string="Fingerprint" col="4">
     <label name="device"/>
     <field name="device"/>
-    <label name="message"/>
-    <field name="message"/>
     <label name="state"/>
     <field name="state"/>
 
-    <notebook colspan="6">
+    <label name="message"/>
+    <field name="message" colspan="3"/>
+
+    <newline/>
+
+    <notebook colspan="4">
         <page string="Data" id="data" col="6">
             <label name="timestamp"/>
             <field name="timestamp"/>
