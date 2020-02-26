@@ -1960,6 +1960,11 @@ class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
         help='The artist of the playlist')
     public = fields.Boolean(
         'Public', help='Is the playlist accessible to other web users?')
+    template = fields.Boolean(
+        'Template', help='Is the playlist a template?')
+    performance = fields.One2Many(
+        'event.performance', 'playlist', 'Performance',
+        help='The performance, where the playlist was used')
     items = fields.One2Many(
         'artist.playlist.item', 'playlist', 'Items',
         help='The items in the playlist')
