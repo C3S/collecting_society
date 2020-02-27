@@ -2423,9 +2423,12 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
         ondelete='CASCADE')
     contribution = fields.Selection(
         'get_contribution', 'Contribution Right')
-    successor = fields.Many2One(
+    successor = fields.One2One(
         'creation.rightsholder-creation.rightsholder', 'predecessor',
         'successor', 'Successors', help='Successor')
+    predecessor = fields.One2One(
+        'creation.rightsholder-creation.rightsholder', 'successor',
+        'predecessor', 'Predecessor', help='Predecessor')
     instruments = fields.Many2Many(
         'creation.rightsholder-instrument', 'rightsholder', 'instrument',
         'Instruments',
@@ -2809,9 +2812,12 @@ class ReleaseRightsholder(ModelSQL, ModelView, MixinRightsholder):
     contribution = fields.Function(
         fields.Char('Contribution Right'),
         'on_change_with_rights')
-    successor = fields.Many2Many(
+    successor = fields.One2One(
         'release.rightsholder-release.rightsholder', 'predecessor',
         'successor', 'Successor', help='Successor')
+    predecessor = fields.One2One(
+        'release.rightsholder-release.rightsholder', 'successor',
+        'predecessor', 'Predecessor', help='Predecessor')
 
     @fields.depends('right')
     def on_change_with_rights(self, name=None):
