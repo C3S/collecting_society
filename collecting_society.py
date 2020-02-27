@@ -3760,7 +3760,7 @@ class DeviceMessageFingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
         states={'required': True},
         help='The creation list of the creation list item')
     creation = fields.Many2One(
-        'creation', 'Creation', states={'required': True},
+        'creation', 'Creation',
         help='The creation of the creation list item')
     order = fields.Integer(
         'Order', states={'required': True},
