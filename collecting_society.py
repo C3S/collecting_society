@@ -3793,14 +3793,14 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
         help='The device message')
     state = fields.Selection(
         [
-            ('created', 'Creation'),
+            ('created', 'Created'),
             ('processed', 'Processed'),
             ('discarded', 'Discarded'),
         ], 'State', sort=False, states={'required': True},
         help='The state of the usage report:\n'
-             '- created: the usage report was created\n'
-             '- processed: the usage report was processed\n'
-             '- discarded: the usage report was discarded')
+             '- Created: the usage report was created\n'
+             '- Processed: the usage report was processed\n'
+             '- Discarded: the usage report was discarded')
 
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
