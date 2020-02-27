@@ -20,6 +20,9 @@
     <field name="url"/>
 
     <notebook colspan="8">
+        <page string="Originals" id="originals" col="1">
+            <field name="originals"/>
+        </page>
         <page string="Device Messages" id="messages" col="1">
             <field name="messages"/>
         </page>

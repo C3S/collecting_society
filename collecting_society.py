@@ -1223,13 +1223,13 @@ class WebsiteResourceIndicators(ModelSQL, ModelView, CurrencyDigits):
     downloads = fields.Integer(
         'Downloads', help='The number of downloads')
     turnover_ads = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
+        'Turnover Ads', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
+        help='The ads related turnover')
     turnover_sale = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
+        'Turnover Sale', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
+        help='The sale related turnover')
 
 
 class ReleaseIndicators(ModelSQL, ModelView):
@@ -2052,6 +2052,10 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     rightsholders = fields.One2Many(
         'creation.rightsholder', 'rightsholder_object',
         'Creation Rightsholder', help='Creation Rightsholder')
+    webiste_resources = fields.One2Many(
+        'website.resource-creation', 'creation', 'resource'
+        'Website Resource',
+        help='The website resources, in which the creation was used')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -3340,7 +3344,7 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'get_fingerprints')
 
     originals = fields.Many2Many(
-        'website.resource-creation', 'creation', 'resource', 'Originals',
+        'website.resource-creation', 'resource', 'creation', 'Originals',
         states=STATES, depends=DEPENDS,
         help='The originals used in the resource')
     playlists = fields.One2Many(
