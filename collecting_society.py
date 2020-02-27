@@ -3525,7 +3525,7 @@ class DeviceAssignment(ModelSQL, ModelView):
     assignment = fields.Reference(
         'Assignment', [
             ('location.space', 'Location Space'),
-            ('website.resource', 'Website Resource'),
+            ('website', 'Website'),
         ],
         help='The object the device is assigned to')
     start = fields.DateTime(
