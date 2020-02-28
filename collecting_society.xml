@@ -1777,13 +1777,49 @@
                   id="menu_event_performance"/>
 
         <!-- Menue: Events / Performances / Playlists  -->
+        <record model="ir.action.act_window" id="act_event_performance_playlist">
+            <field name="name">Playlists</field>
+            <field name="res_model">artist.playlist</field>
+            <field name="domain">[('template', '=', False)]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_playlist_tree"/>
+            <field name="act_window" ref="act_event_performance_playlist"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_playlist_form"/>
+            <field name="act_window" ref="act_event_performance_playlist"/>
+        </record>
         <menuitem parent="menu_event_performance" sequence="10" 
-                  action="act_artist_playlist"
+                  action="act_event_performance_playlist"
                   id="menu_event_performance_playlist"/>
 
-        <!-- Menue: Artists / Playlists / Items  -->
+        <!-- Menue: Events / Performances / Playlists / Items  -->
+        <record model="ir.action.act_window" id="act_event_performance_playlist_item">
+            <field name="name">Items</field>
+            <field name="res_model">artist.playlist.item</field>
+            <field name="domain">[('playlist.template', '=', False)]</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_item_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_playlist_item_tree"/>
+            <field name="act_window" ref="act_event_performance_playlist_item"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_item_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_playlist_item_form"/>
+            <field name="act_window" ref="act_event_performance_playlist_item"/>
+        </record>
         <menuitem parent="menu_event_performance_playlist" sequence="10" 
-                  action="act_artist_playlist_item"
+                  action="act_event_performance_playlist_item"
                   id="menu_event_performance_playlist_item"/>
 
         <!-- Menue: Events / Indicators -->
