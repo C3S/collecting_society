@@ -1225,13 +1225,13 @@ class WebsiteResourceIndicators(ModelSQL, ModelView, CurrencyDigits):
     downloads = fields.Integer(
         'Downloads', help='The number of downloads')
     turnover_ads = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
+        'Turnover Ads', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
+        help='The ads related turnover')
     turnover_sale = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
+        'Turnover Sale', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
-        help='The ticket related turnover')
+        help='The sale related turnover')
 
 
 class ReleaseIndicators(ModelSQL, ModelView):
@@ -2054,6 +2054,10 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     rightsholders = fields.One2Many(
         'creation.rightsholder', 'rightsholder_object',
         'Creation Rightsholder', help='Creation Rightsholder')
+    webiste_resources = fields.One2Many(
+        'website.resource-creation', 'creation', 'resource'
+        'Website Resource',
+        help='The website resources, in which the creation was used')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -3388,7 +3392,7 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'get_fingerprints')
 
     originals = fields.Many2Many(
-        'website.resource-creation', 'creation', 'resource', 'Originals',
+        'website.resource-creation', 'resource', 'creation', 'Originals',
         states=STATES, depends=DEPENDS,
         help='The originals used in the resource')
     playlists = fields.One2Many(
@@ -3573,7 +3577,7 @@ class DeviceAssignment(ModelSQL, ModelView):
     assignment = fields.Reference(
         'Assignment', [
             ('location.space', 'Location Space'),
-            ('website.resource', 'Website Resource'),
+            ('website', 'Website'),
         ],
         help='The object the device is assigned to')
     start = fields.DateTime(
@@ -3804,7 +3808,7 @@ class DeviceMessageFingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
         states={'required': True},
         help='The creation list of the creation list item')
     creation = fields.Many2One(
-        'creation', 'Creation', states={'required': True},
+        'creation', 'Creation',
         help='The creation of the creation list item')
     order = fields.Integer(
         'Order', states={'required': True},
@@ -3837,14 +3841,14 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
         help='The device message')
     state = fields.Selection(
         [
-            ('created', 'Creation'),
+            ('created', 'Created'),
             ('processed', 'Processed'),
             ('discarded', 'Discarded'),
         ], 'State', sort=False, states={'required': True},
         help='The state of the usage report:\n'
-             '- created: the usage report was created\n'
-             '- processed: the usage report was processed\n'
-             '- discarded: the usage report was discarded')
+             '- Created: the usage report was created\n'
+             '- Processed: the usage report was processed\n'
+             '- Discarded: the usage report was discarded')
 
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
