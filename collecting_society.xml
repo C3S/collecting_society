@@ -1418,8 +1418,7 @@
             <field name="name">creation_identifier_space_form</field>
         </record>
         <record model="ir.ui.view" id="creation_identifier_space_list">
-            <field name="model">creation.identifier.space</field>
-            <field name="type">tree</field>
+            <field name="model">creation.identifier.space</field> <field name="type">tree</field>
             <field name="name">creation_identifier_space_list</field>
         </record>
         <record model="ir.action.act_window" id="act_creation_identifier_space">
@@ -1472,6 +1471,37 @@
         <menuitem name="Rightsholders" parent="menu_creation" sequence="20"
                   action="act_creation_rightsholder"
                   id="menu_creation_rightsholder"/>
+
+        <!-- Menue: Creations / Rightsholders / Instruments -->
+        <record model="ir.ui.view" id="creation_rightsholder_instrument_form">
+            <field name="model">instrument</field>
+            <field name="type">form</field>
+            <field name="name">creation_rightsholder_instrument_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_rightsholder_instrument_list">
+            <field name="model">instrument</field>
+            <field name="type">tree</field>
+            <field name="name">creation_rightsholder_instrument_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_rightsholder_instrument">
+            <field name="name">Instrument</field>
+            <field name="res_model">instrument</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder__instrument_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_rightsholder_instrument_list"/>
+            <field name="act_window" ref="act_creation_rightsholder_instrument"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_rightsholder_instrument_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_rightsholder_instrument_form"/>
+            <field name="act_window" ref="act_creation_rightsholder_instrument"/>
+        </record>
+        <menuitem name="Instruments" parent="menu_creation_rightsholder" sequence="20"
+                  action="act_creation_rightsholder_instrument"
+                  id="menu_creation_rightsholder_instrument"/>
 
         <!-- Menue: Creations / Tariff Category -->
         <record model="ir.ui.view" id="creation_tariff_category_form">
