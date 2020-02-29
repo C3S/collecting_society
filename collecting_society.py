@@ -4,6 +4,8 @@ import sys
 import os
 import uuid
 import datetime
+import requests
+import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
@@ -13,6 +15,7 @@ import hurry.filesize
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition
+from trytond.exceptions import UserError, UserWarning
 
 from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
@@ -110,6 +113,8 @@ __all__ = [
     'DeviceMessageDeviceMessage',
     'DeviceAssignment',
     'DeviceMessageFingerprint',
+    'DeviceMessageFingerprintMatch',
+    'DeviceMessageFingerprintMatchForm',
     'DeviceMessageFingerprintCreationlist',
     'DeviceMessageFingerprintCreationlistItem',
     'DeviceMessageUsagereport',
@@ -890,8 +895,7 @@ class Distribute(Wizard):
         'collecting_society.distribution_distribute_start_view_form',
         [
             Button('Cancel', 'end', 'tryton-cancel'),
-            Button(
-                'Start', 'distribute', 'tryton-ok', default=True),
+            Button('Start', 'distribute', 'tryton-ok', default=True),
         ])
     distribute = StateTransition()
 
@@ -3743,16 +3747,16 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
         help='The device message')
     state = fields.Selection(
         [
-            ('created', 'Creation'),
+            ('created', 'Created'),
             ('matched', 'Matched'),
             ('merged', 'Merged'),
             ('discarded', 'Discarded'),
         ], 'State', sort=False, states={'required': True},
         help='The state of the fingerprint:\n'
-             '- created: the fingerprint was created\n'
-             '- matched: a creation was tried to match\n'
-             '- merged: the matched creations were merged\n'
-             '- discarded: the fingerprint was discarded')
+             '- Created: the fingerprint was created\n'
+             '- Matched: a creation was tried to match\n'
+             '- Merged: the matched creations were merged\n'
+             '- Discarded: the fingerprint was discarded')
     matched_creation = fields.Many2One(
         'creation', 'Creation',
         help='The creation, which matches the fingerprint')
@@ -3763,19 +3767,202 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
         help='The point in time, when the creation was utlized')
-    fingerprint = fields.Text(
-        'Fingerprint', states={'required': True},
-        help='The fingerprint of a creation sample')
     algorithm = fields.Char(
         'Algorithm', states={'required': True},
         help='The name of the fingerprinting algorithm')
     version = fields.Char(
         'Version', states={'required': True},
         help='The version of the fingerprinting algorithm')
+    data = fields.Text(
+        'Data', states={'required': True},
+        help='The fingerprint data of a creation sample')
 
     def get_device(self, name):
         if self.message:
             return self.message[0].device.id
+
+
+class DeviceMessageFingerprintMatchForm(ModelView):
+    'Device Message Fingerprint Match Form'
+    __name__ = 'device.message.fingerprint.match.start'
+    fingerprints = fields.One2Many(
+        'device.message.fingerprint', None, 'Fingerprints',
+        states={'required': True}, help='The device message')
+
+
+class DeviceMessageFingerprintMatch(Wizard):
+    'Device Message Fingerprint Match'
+    __name__ = 'device.message.fingerprint.match'
+
+    # TODO: Create a configuration model for fingerprint services
+    fingerprint_services = {
+        # algorithm
+        'echoprint': {
+            # version
+            '1.0.0': {
+                'url': '%s://%s:%s/query' % (
+                    os.environ.get('ECHOPRINT_SCHEMA'),
+                    os.environ.get('ECHOPRINT_HOSTNAME'),
+                    os.environ.get('ECHOPRINT_PORT')),
+                'data': lambda fingerprint: {
+                    'fp_code': fingerprint.data.encode('utf8')
+                },
+                'verify': False,
+                'threshold': 50
+            }
+        }
+    }
+
+    start = StateView(
+        'device.message.fingerprint.match.start',
+        'collecting_society.device_message_fingerprint_match_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Match', 'match', 'tryton-ok', default=True),
+        ])
+    match = StateTransition()
+
+    def default_start(self, fields):
+        Fingerprint = Pool().get('device.message.fingerprint')
+        active_model = Transaction().context.get('active_model', '')
+        if active_model == 'device.message.fingerprint':
+            fingerprints = Transaction().context['active_ids']
+        else:
+            fingerprints = [
+                fingerprint.id for fingerprint
+                in Fingerprint.search([('state', '=', 'created')])]
+        return {
+            'fingerprints': fingerprints
+        }
+
+    def transition_match(self):
+        Warning = Pool().get('res.user.warning')
+        Creation = Pool().get('creation')
+        services = self.fingerprint_services
+        for fingerprint in self.start.fingerprints:
+
+            # sanity check: unkonwn algorithm
+            if fingerprint.algorithm not in services:
+                warning_name = 'unkownfingerprintalgorithm,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Unkown Fingerprint Algorithm',
+                        'The fingerprint "%s" cannot be matched, because the '
+                        'algorithm "%s" is not known.' % (
+                            fingerprint.id, fingerprint.algorithm))
+                continue
+            algorithm = services[fingerprint.algorithm]
+
+            # sanity check: unkonwn version
+            if fingerprint.version not in algorithm:
+                warning_name = 'unkownfingerprintversion,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Unkown Fingerprint Version',
+                        'The fingerprint "%s" cannot be matched, because the '
+                        'version "%s" for algorithm "%s" is not known.' % (
+                            fingerprint.id, fingerprint.version,
+                            fingerprint.algorithm))
+                continue
+
+            # sanity check: empty fingerprint data
+            if not fingerprint.data:
+                warning_name = 'nofingerprintdata,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'No Fingerprint Data',
+                        'The fingerprint "%s" cannot be matched, because it '
+                        'contains no data.' % fingerprint.id)
+                continue
+
+            # query fingerprint service
+            service = algorithm[fingerprint.version]
+            try:
+                request = requests.post(
+                    service['url'],
+                    data=service['data'](fingerprint),
+                    verify=service['verify']
+                )
+            except requests.exceptions.RequestException as e:
+                raise UserError(
+                    'Fingerprint Service Error',
+                    'The service for algorithm "%s" version "%s" returned:\n\n'
+                    '%s' % (
+                        fingerprint.algorithm, fingerprint.version, e))
+
+            # sanity check: response code
+            if request.status_code != 200:
+                warning_name = 'fingerprintserviceerror,%s' % hash(
+                    fingerprint.algorithm + fingerprint.version)
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Fingerprint Service Error',
+                        'The service for algorithm "%s" version "%s" returned:'
+                        '\n\n'
+                        '- Status Code: %s\n'
+                        '- Reason: %s' % (
+                            fingerprint.algorithm, fingerprint.version,
+                            request.status_code, request.reason))
+                continue
+
+            # parse fingerprint service response
+            response = json.loads(request.text)
+
+            # sanity check: low score
+            if response['score'] < service['threshold']:
+                warning_name = 'lowfingerprintscore,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Low Fingerprint Score',
+                        'The fingerprint "%s" cannot be matched, because the '
+                        'matching score "%s" is lower than "%s"' % (
+                            fingerprint.id, response['score'],
+                            service['threshold']))
+                continue
+
+            # sanity check: empty track_id
+            if not response['track_id']:
+                warning_name = 'nocreationcode,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'No Creation Code',
+                        'The fingerprint "%s" cannot be matched, because an '
+                        'empty creation code was returned.' % fingerprint.id)
+                continue
+
+            # sanity check: unknown creation
+            creations = Creation.search([('id', '=', response['track_id'])])
+            if not creations:
+                warning_name = 'creationnotfound,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Creation Not Found',
+                        'The fingerprint "%s" cannot be matched, because the '
+                        'corresponding creation code "%s" was not found in '
+                        'the database.' % (
+                            fingerprint.id, response['track_id']))
+                continue
+
+            # sanity check: overwrite match
+            creation = creations[0]
+            if fingerprint.matched_creation:
+                warning_name = 'matchalreadyexists,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Match Already Exists',
+                        'The fingerprint "%s" has already a matched creation '
+                        '"%s", which will be overwritten with "%s" if '
+                        'proceeded.' % (
+                            fingerprint.id, fingerprint.matched_creation.code,
+                            creation.code))
+
+            # update fingerprint
+            fingerprint.matched_creation = creation
+            if fingerprint.state == 'created':
+                fingerprint.state = 'matched'
+            fingerprint.save()
+
+        return 'end'
 
 
 class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,

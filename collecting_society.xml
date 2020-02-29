@@ -2433,6 +2433,27 @@
                   action="act_device_message_fingerprint"
                   id="menu_device_message_fingerprint"/>
 
+        <!-- Menue: Devices / Messages / Fingerprints / Match -->
+        <record model="ir.action.wizard" id="act_device_message_fingerprint_match">
+            <field name="name">Match</field>
+            <field name="wiz_name">device.message.fingerprint.match</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_device_message_fingerprint_match_keyword1">
+            <field name="action" ref="act_device_message_fingerprint_match"/>
+            <field name="keyword">form_action</field>
+            <field name="model">device.message.fingerprint,-1</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_match_start_view_form">
+            <field name="model">device.message.fingerprint.match.start</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_match_start_form</field>
+        </record>
+        <menuitem name="Match" parent="menu_device_message_fingerprint" sequence="10"
+                  action="act_device_message_fingerprint_match"
+                  id="menu_device_message_fingerprint_match"/>
+
         <!-- Menue: Devices / Messages / Fingerprints / Creation Lists -->
         <record model="ir.ui.view" id="device_message_fingerprint_creationlist_form">
             <field name="model">device.message.fingerprint.creationlist</field>
@@ -2460,7 +2481,7 @@
             <field name="view" ref="device_message_fingerprint_creationlist_form"/>
             <field name="act_window" ref="act_device_message_fingerprint_creationlist"/>
         </record>
-        <menuitem name="Creationlists" parent="menu_device_message_fingerprint" sequence="10"
+        <menuitem name="Creationlists" parent="menu_device_message_fingerprint" sequence="30"
                   action="act_device_message_fingerprint_creationlist"
                   id="menu_device_message_fingerprint_creationlist"/>
 
