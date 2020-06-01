@@ -4077,7 +4077,7 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
-        help="The licencee of the declaration")
+        help="The licensee of the declaration")
     state = fields.Selection(
         [
             ('created', 'Created'),
