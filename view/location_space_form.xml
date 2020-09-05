@@ -2,6 +2,8 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Location Space" col="8">
+    <label name="name"/>
+    <field name="name"/>
     <label name="location"/>
     <field name="location"/>
     <label name="category"/>
