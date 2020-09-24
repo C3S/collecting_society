@@ -3008,7 +3008,8 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The playlist of the performance')
 
 
-class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi):
+class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
+               EntityOrigin):
     'Location'
     __name__ = 'location'
     _history = True
