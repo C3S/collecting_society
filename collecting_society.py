@@ -2698,6 +2698,22 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                     societies.append(society.id)
         return list(set(societies))
 
+    def get_id_code(self, space):
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                return identifier.id_code
+        return None
+
+    def set_id_code(self, space, id_code):
+        replaced = False
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                identifier.id_code = id_code
+                identifier.save()
+                replaced = True
+        if not replaced:
+            self.identifiers.new(space=space, id_code=id_code)
+
     def permits(self, web_user, code, derive=True):
         if super(Release, self).permits(web_user, code, derive):
             return True
