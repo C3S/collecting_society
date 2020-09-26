@@ -200,6 +200,26 @@ class MixinIdentifier(object):
     id_code = fields.Char('ID Code')
 
 
+class MixinIdentifierHelper(object):
+    'Mixin for Repertoire models that feature identifiers'
+
+    def get_id_code(self, space):
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                return identifier.id_code
+        return None
+
+    def set_id_code(self, space, id_code):
+        replaced = False
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                identifier.id_code = id_code
+                identifier.save()
+                replaced = True
+        if not replaced:
+            self.identifiers.new(space=space, id_code=id_code)
+
+
 class CurrentState(object):
     'Mixin for the active state'
     active = fields.Boolean('Active')
@@ -1545,7 +1565,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
 
 
 class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-             CurrentState, ClaimState, CommitState):
+             CurrentState, ClaimState, CommitState, MixinIdentifierHelper):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -2477,7 +2497,7 @@ class CreationRightsholderCreationRightsholder(ModelSQL):
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-              CurrentState, ClaimState, CommitState):
+              CurrentState, ClaimState, CommitState, MixinIdentifierHelper):
     'Release'
     __name__ = 'release'
     _history = True
@@ -2697,22 +2717,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 if performance and society:
                     societies.append(society.id)
         return list(set(societies))
-
-    def get_id_code(self, space):
-        for identifier in self.identifiers:
-            if identifier.space.name == space:
-                return identifier.id_code
-        return None
-
-    def set_id_code(self, space, id_code):
-        replaced = False
-        for identifier in self.identifiers:
-            if identifier.space.name == space:
-                identifier.id_code = id_code
-                identifier.save()
-                replaced = True
-        if not replaced:
-            self.identifiers.new(space=space, id_code=id_code)
 
     def permits(self, web_user, code, derive=True):
         if super(Release, self).permits(web_user, code, derive):
