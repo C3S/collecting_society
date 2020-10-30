@@ -203,6 +203,26 @@ class MixinIdentifier(object):
     id_code = fields.Char('ID Code')
 
 
+class MixinIdentifierHelper(object):
+    'Mixin for Repertoire models that feature identifiers'
+
+    def get_id_code(self, space):
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                return identifier.id_code
+        return None
+
+    def set_id_code(self, space, id_code):
+        replaced = False
+        for identifier in self.identifiers:
+            if identifier.space.name == space:
+                identifier.id_code = id_code
+                identifier.save()
+                replaced = True
+        if not replaced:
+            self.identifiers.new(space=space, id_code=id_code)
+
+
 class CurrentState(object):
     'Mixin for the active state'
     active = fields.Boolean('Active')
@@ -1548,7 +1568,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
 
 
 class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-             CurrentState, ClaimState, CommitState):
+             CurrentState, ClaimState, CommitState, MixinIdentifierHelper):
     'Artist'
     __name__ = 'artist'
     _history = True
@@ -2480,7 +2500,7 @@ class CreationRightsholderCreationRightsholder(ModelSQL):
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-              CurrentState, ClaimState, CommitState):
+              CurrentState, ClaimState, CommitState, MixinIdentifierHelper):
     'Release'
     __name__ = 'release'
     _history = True
@@ -3011,7 +3031,8 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The playlist of the performance')
 
 
-class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi):
+class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
+               EntityOrigin):
     'Location'
     __name__ = 'location'
     _history = True
@@ -3107,6 +3128,19 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
             ('code',) + tuple(clause[1:]),
         ]
 
+    # (22:38:19) alexander.blum: https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1893
+    # (22:38:50) Thomas: thx
+    # (22:38:52) alexander.blum: so in der art. die verknuepfung muss weg und - falls moeglich - eine kaskade definiert werden (geht nur bei one2many, soweit ich im kopf habe)
+    # (22:39:23) Thomas: schon geshen? locations haben jetzt eine map: https://seafile.c3s.cc/f/b9463e99a3d34c8e9844/
+    # (22:39:37) alexander.blum: ansonsten muss das eben weiter prozessiert werden (z.B. foreach space in location.spaces: space.delete())
+    # (22:43:26) alexander.blum: kaskade mit https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1915
+    # @classmethod
+    # def delete(cls, records):
+    #     for record in records:
+    #         if record.group or record.solo_artists:
+    #             record.solo_artists = []
+    #             record.save()
+    #     return super(Artist, cls).delete(records)
 
 class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Space'
@@ -3119,6 +3153,9 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     __indicators__ = 'location.space.indicators'
     __samples__ = ['estimated', 'confirmed']
 
+    name = fields.Char(
+        'Name', required=False, select=True, states=STATES, depends=DEPENDS,
+        help="The name of the location space")
     location = fields.Many2One(
         'location', 'Location', states={
             'required': True,
@@ -4205,7 +4242,7 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
-        help="The licencee of the declaration")
+        help="The licensee of the declaration")
     state = fields.Selection(
         [
             ('created', 'Created'),
