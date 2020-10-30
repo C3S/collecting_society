@@ -173,7 +173,7 @@ class MixinRightsholder(object):
     country = fields.Many2One(
         'country.country', 'Territory or Country', states={'required': True})
     collecting_society = fields.Many2One(
-        'collecting_society', 'Collecting Society', states={'required': True})
+        'collecting_society', 'Collecting Society')
 
     @property
     def rightsholder_subject(self):
@@ -202,6 +202,8 @@ class MixinIdentifier(object):
 
 class MixinIdentifierHelper(object):
     'Mixin for Repertoire models that feature identifiers'
+
+    # TODO: honor valid-from and -to dates
 
     def get_id_code(self, space):
         for identifier in self.identifiers:
@@ -2442,10 +2444,10 @@ class CreationIdentifierSpace(ModelSQL, ModelView):
 class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
     'Creation Rightsholder'
     __name__ = 'creation.rightsholder'
-    _history = True
+    _history = True 
 
     rightsholder_subject = fields.Many2One(
-        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Rightsholder', required=True, select=True, ondelete='CASCADE')
     rightsholder_object = fields.Many2One(
         'creation', 'Creation', required=True, select=True,
         ondelete='CASCADE')
@@ -2453,7 +2455,7 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
         'get_contribution', 'Contribution Right')
     successor = fields.One2One(
         'creation.rightsholder-creation.rightsholder', 'predecessor',
-        'successor', 'Successors', help='Successor')
+        'successor', 'Successor', help='Successor')
     predecessor = fields.One2One(
         'creation.rightsholder-creation.rightsholder', 'successor',
         'predecessor', 'Predecessor', help='Predecessor')
