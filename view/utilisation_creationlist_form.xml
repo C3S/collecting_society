@@ -34,7 +34,7 @@
         </page>
         <!-- TODO: visible only for context = LocationSpace|WebiteResource -->
         <page string="Fingerprint Creation List" id="fingerprint_creationlist">
-            <field name="fingerprints_creationlist"/>
+            <field name="fingerprint_creationlists"/>
         </page>
         <!-- TODO: visible only for context = WebiteResource -->
         <page string="Usage Report Summary" id="usagereport_summary" col="2">

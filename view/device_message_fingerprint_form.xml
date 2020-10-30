@@ -13,8 +13,10 @@
     <field name="matched_creation"/>
     <label name="merged_creation"/>
     <field name="merged_creation"/>
+    <label name="matched_state"/>
+    <field name="matched_state"/>
 
-    <newline/>    
+    <newline/>
 
     <field name="message" yexpand="0" colspan="6"/>
 

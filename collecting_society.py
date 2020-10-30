@@ -114,7 +114,10 @@ __all__ = [
     'DeviceAssignment',
     'DeviceMessageFingerprint',
     'DeviceMessageFingerprintMatch',
-    'DeviceMessageFingerprintMatchForm',
+    'DeviceMessageFingerprintMatchStart',
+    'DeviceMessageFingerprintMerge',
+    'DeviceMessageFingerprintMergeStart',
+    'DeviceMessageFingerprintMergeReview',
     'DeviceMessageFingerprintCreationlist',
     'DeviceMessageFingerprintCreationlistItem',
     'DeviceMessageUsagereport',
@@ -2099,9 +2102,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     def get_license(self, name):
         license = None
-        for l in self.licenses:
-            if not license or l.freedom_rank > license.freedom_rank:
-                license = l
+        for lic in self.licenses:
+            if not license or lic.freedom_rank > license.freedom_rank:
+                license = lic
         return license and license.id or None
 
     def get_release(self, name):
@@ -2863,7 +2866,7 @@ class CreationRightsholderInstrument(ModelSQL):
     'CreationRightsholderInstrument'
     __name__ = 'creation.rightsholder-instrument'
     _history = True
-    
+
     rightsholder = fields.Many2One(
         'creation.rightsholder', 'Rightsholder', required=True,
         select=True, ondelete='CASCADE')
@@ -3392,7 +3395,7 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'get_usagereports')
     fingerprints = fields.Function(
         fields.One2Many(
-            'device.message.fingerprint', None, 'Usage Reports'),
+            'device.message.fingerprint', None, 'Fingerprints'),
         'get_fingerprints')
 
     originals = fields.Many2Many(
@@ -3733,6 +3736,14 @@ class DeviceMessageDeviceMessage(ModelSQL):
         ondelete='CASCADE')
 
 
+fingerprint_states = [
+    ('created', 'Created'),
+    ('matched', 'Matched'),
+    ('merged', 'Merged'),
+    ('discarded', 'Discarded'),
+]
+
+
 class DeviceMessageFingerprint(ModelSQL, ModelView):
     'Device Message: Fingerprint'
     __name__ = 'device.message.fingerprint'
@@ -3746,22 +3757,31 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
         domain=[('category', '=', 'fingerprint')],
         help='The device message')
     state = fields.Selection(
-        [
-            ('created', 'Created'),
-            ('matched', 'Matched'),
-            ('merged', 'Merged'),
-            ('discarded', 'Discarded'),
-        ], 'State', sort=False, states={'required': True},
+        fingerprint_states, 'State', sort=False, states={'required': True},
         help='The state of the fingerprint:\n'
              '- Created: the fingerprint was created\n'
              '- Matched: a creation was tried to match\n'
              '- Merged: the matched creations were merged\n'
              '- Discarded: the fingerprint was discarded')
+    matched_state = fields.Selection(
+        [
+            ('success', 'Success'),
+            ('fail_score', 'Fail - Low Fingerprint Score'),
+            ('fail_code', 'Fail - No Creation Code'),
+            ('fail_creation', 'Fail - Creation Not Found'),
+        ], 'Match', sort=False, states={
+            'required': Eval('state') != 'created',
+            'invisible': Eval('state') == 'created',
+        }, depends=['state'], help='The state of the match:\n'
+        '- Success: Match found.\n'
+        '- Fail - Low Fingerprint Score: Fingerprint score too low.\n'
+        '- Fail - No Creation Code: No creation code given.\n'
+        '- Fail - Creation Not Found: No creation found.')
     matched_creation = fields.Many2One(
         'creation', 'Creation',
         help='The creation, which matches the fingerprint')
     merged_creation = fields.Many2One(
-        'device.message.fingerprint.creationlist.item', 'Creation List',
+        'device.message.fingerprint.creationlist.item', 'Creation List Item',
         help='The item in the resulting creation list')
 
     timestamp = fields.DateTime(
@@ -3782,12 +3802,12 @@ class DeviceMessageFingerprint(ModelSQL, ModelView):
             return self.message[0].device.id
 
 
-class DeviceMessageFingerprintMatchForm(ModelView):
-    'Device Message Fingerprint Match Form'
+class DeviceMessageFingerprintMatchStart(ModelView):
+    'Device Message Fingerprint Match Start'
     __name__ = 'device.message.fingerprint.match.start'
     fingerprints = fields.One2Many(
         'device.message.fingerprint', None, 'Fingerprints',
-        states={'required': True}, help='The device message')
+        states={'required': True}, help='The fingerprints to match')
 
 
 class DeviceMessageFingerprintMatch(Wizard):
@@ -3840,6 +3860,17 @@ class DeviceMessageFingerprintMatch(Wizard):
         Creation = Pool().get('creation')
         services = self.fingerprint_services
         for fingerprint in self.start.fingerprints:
+
+            # sanity check: overwrite match
+            if fingerprint.matched_creation:
+                warning_name = 'matchalreadyexists,%s' % fingerprint.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Match Already Exists',
+                        'The fingerprint "%s" has already a matched creation '
+                        '"%s", which might be overwritten if proceeded.' % (
+                            fingerprint.id,
+                            fingerprint.matched_creation.code))
 
             # sanity check: unkonwn algorithm
             if fingerprint.algorithm not in services:
@@ -3906,6 +3937,7 @@ class DeviceMessageFingerprintMatch(Wizard):
                 continue
 
             # parse fingerprint service response
+            # TODO: log response
             response = json.loads(request.text)
 
             # sanity check: low score
@@ -3918,6 +3950,10 @@ class DeviceMessageFingerprintMatch(Wizard):
                         'matching score "%s" is lower than "%s"' % (
                             fingerprint.id, response['score'],
                             service['threshold']))
+                fingerprint.matched_state = 'fail_score'
+                if fingerprint.state == 'created':
+                    fingerprint.state = 'matched'
+                fingerprint.save()
                 continue
 
             # sanity check: empty track_id
@@ -3928,6 +3964,10 @@ class DeviceMessageFingerprintMatch(Wizard):
                         warning_name, 'No Creation Code',
                         'The fingerprint "%s" cannot be matched, because an '
                         'empty creation code was returned.' % fingerprint.id)
+                fingerprint.matched_state = 'fail_code'
+                if fingerprint.state == 'created':
+                    fingerprint.state = 'matched'
+                fingerprint.save()
                 continue
 
             # sanity check: unknown creation
@@ -3941,27 +3981,103 @@ class DeviceMessageFingerprintMatch(Wizard):
                         'corresponding creation code "%s" was not found in '
                         'the database.' % (
                             fingerprint.id, response['track_id']))
+                fingerprint.matched_state = 'fail_creation'
+                if fingerprint.state == 'created':
+                    fingerprint.state = 'matched'
+                fingerprint.save()
                 continue
 
-            # sanity check: overwrite match
-            creation = creations[0]
-            if fingerprint.matched_creation:
-                warning_name = 'matchalreadyexists,%s' % fingerprint.id
-                if Warning.check(warning_name):
-                    raise UserWarning(
-                        warning_name, 'Match Already Exists',
-                        'The fingerprint "%s" has already a matched creation '
-                        '"%s", which will be overwritten with "%s" if '
-                        'proceeded.' % (
-                            fingerprint.id, fingerprint.matched_creation.code,
-                            creation.code))
-
             # update fingerprint
-            fingerprint.matched_creation = creation
+            fingerprint.matched_creation = creations[0]
+            fingerprint.matched_state = 'success'
             if fingerprint.state == 'created':
                 fingerprint.state = 'matched'
             fingerprint.save()
 
+        return 'end'
+
+
+class DeviceMessageFingerprintMergeStart(ModelView):
+    'Device Message Fingerprint Merge Form'
+    __name__ = 'device.message.fingerprint.merge.start'
+    context = fields.Reference(
+        'Context', [
+            ('location.space', 'Location Space'),
+            ('website.resource', 'Website Resource'),
+        ], domain=[('messages', '!=', None)],  # TODO: fingerprints searcher
+        states={'required': True}, help='The context')
+    states = fields.Boolean(
+        'All States', help="Include fingerprints with all states")
+    # TODO: change to multi selection after tryton upgrade
+    # states = fields.MultiSelection(
+    #     fingerprint_states, 'States', sort=False, states={'required': True},
+    #     help='The states of the fingerprints to be included in the merge')
+    start = fields.DateTime(
+        'Start', states={'required': True},
+        help='Start of the period of timestamps to merge')
+    end = fields.DateTime(
+        'End', states={'required': True},
+        help='End of the period of timestamps to merge')
+
+
+class DeviceMessageFingerprintMergeReview(ModelView):
+    'Device Message Fingerprint Review Form'
+    __name__ = 'device.message.fingerprint.merge.review'
+    # TODO: add utilisation (domain: context) to add the creationlist to
+    fingerprints = fields.One2Many(
+        'device.message.fingerprint', None, 'Fingerprints',
+        states={'required': True}, help='The fingerprints to merge')
+
+
+class DeviceMessageFingerprintMerge(Wizard):
+    'Device Message Fingerprint Merge'
+    __name__ = 'device.message.fingerprint.merge'
+
+    # TODO: configuration values
+    creation_minimum_seconds = 20
+    creation_default_seconds = 60 * 3
+
+    start = StateView(
+        'device.message.fingerprint.merge.start',
+        'collecting_society.device_message_fingerprint_merge_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Next', 'review', 'tryton-go-next', default=True),
+        ])
+    review = StateView(
+        'device.message.fingerprint.merge.review',
+        'collecting_society.device_message_fingerprint_merge_review_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Merge', 'merge', 'tryton-ok', default=True),
+        ])
+    merge = StateTransition()
+
+    def default_start(self, fields):
+        return {
+            'end': datetime.datetime.now()
+        }
+
+    def default_review(self, fields):
+        Fingerprint = Pool().get('device.message.fingerprint')
+        order = [('timestamp', 'ASC')]
+        domain = [
+            ('message.context', '=', str(self.start.context)),
+            ('timestamp', '>=', self.start.start),
+            ('timestamp', '<=', self.start.end),
+        ]
+
+        # TODO: change for multi selection after tryton upgrade
+        if not self.start.states:
+            domain.append(('state', '=', 'matched'))
+
+        return {
+            'fingerprints': [
+                fingerprint.id for fingerprint
+                in Fingerprint.search(domain, None, None, order)]
+        }
+
+    def transition_merge(self):
         return 'end'
 
 
@@ -3970,6 +4086,18 @@ class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
+    context = fields.Reference(
+        'Context', [
+            ('location.space', 'Location Space'),
+            ('website.resource', 'Website Resource'),
+        ], states={'required': True},
+        help='The context')
+    start = fields.DateTime(
+        'Start', states={'required': True},
+        help='Start of the period of timestamps to merge')
+    end = fields.DateTime(
+        'End', states={'required': True},
+        help='End of the period of timestamps to merge')
     # TODO: readonly if utilisation_creationlist != None
     confirmed = fields.Boolean(
         'Confirmed', states=STATES, depends=DEPENDS,
@@ -4369,9 +4497,9 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits):
         'artist', 'Performer',
         # TODO: visible only for context EventPerformance
         help='The performing artist')
-    fingerprints_creationlist = fields.One2Many(
+    fingerprint_creationlists = fields.One2Many(
         'device.message.fingerprint.creationlist', 'utilisation_creationlist',
-        'Fingerprint Creationlist',
+        'Fingerprint Creationlists',
         # TODO: visible only for context WebsiteResource|LocationSpace
         help='The merged fingerprint creation lists')
 

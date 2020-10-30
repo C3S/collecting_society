@@ -32,7 +32,6 @@
         </page>
         <page string="Content" id="content" col="1">
             <field name="content"/>
-            <field name="identifiers"/>
         </page>
         <page string="Releases" id="releases" col="1">
             <field name="releases"/>
