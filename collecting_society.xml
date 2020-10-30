@@ -2454,6 +2454,33 @@
                   action="act_device_message_fingerprint_match"
                   id="menu_device_message_fingerprint_match"/>
 
+        <!-- Menue: Devices / Messages / Fingerprints / Merge -->
+        <record model="ir.action.wizard" id="act_device_message_fingerprint_merge">
+            <field name="name">Merge</field>
+            <field name="wiz_name">device.message.fingerprint.merge</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_device_message_fingerprint_merge_keyword1">
+            <field name="action" ref="act_device_message_fingerprint_merge"/>
+            <field name="keyword">form_action</field>
+            <field name="model">device.message.fingerprint,-1</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_merge_start_view_form">
+            <field name="model">device.message.fingerprint.merge.start</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_merge_start_form</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_merge_review_view_form">
+            <field name="model">device.message.fingerprint.merge.review</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_merge_review_form</field>
+        </record>
+        <menuitem name="Merge" parent="menu_device_message_fingerprint" sequence="20"
+                  action="act_device_message_fingerprint_merge"
+                  id="menu_device_message_fingerprint_merge"/>
+
         <!-- Menue: Devices / Messages / Fingerprints / Creation Lists -->
         <record model="ir.ui.view" id="device_message_fingerprint_creationlist_form">
             <field name="model">device.message.fingerprint.creationlist</field>

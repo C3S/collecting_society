@@ -105,7 +105,9 @@ def register():
         DeviceMessage,
         DeviceMessageDeviceMessage,
         DeviceMessageFingerprint,
-        DeviceMessageFingerprintMatchForm,
+        DeviceMessageFingerprintMatchStart,
+        DeviceMessageFingerprintMergeStart,
+        DeviceMessageFingerprintMergeReview,
         DeviceMessageUsagereport,
         Distribution,
         DistributionPlan,
@@ -127,4 +129,5 @@ def register():
     Pool.register(
         Distribute,
         DeviceMessageFingerprintMatch,
+        DeviceMessageFingerprintMerge,
         module='collecting_society', type_='wizard')

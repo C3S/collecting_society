@@ -2,6 +2,16 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form string="Fingerprint Creation List" col="4">
+    <label name="id"/>
+    <field name="id"/>
+    <label name="context"/>
+    <field name="context"/>
+
+    <label name="start"/>
+    <field name="start"/>
+    <label name="end"/>
+    <field name="end"/>
+
     <label name="utilisation_creationlist"/>
     <field name="utilisation_creationlist"/>
     <group col="20" colspan="2" id="checkboxes">
