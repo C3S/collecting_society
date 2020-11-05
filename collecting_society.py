@@ -2447,10 +2447,11 @@ class CreationIdentifierSpace(ModelSQL, ModelView):
 class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
     'Creation Rightsholder'
     __name__ = 'creation.rightsholder'
-    _history = True 
+    _history = True
 
     rightsholder_subject = fields.Many2One(
-        'artist', 'Rightsholder', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Rightsholder',
+        required=True, select=True, ondelete='CASCADE')
     rightsholder_object = fields.Many2One(
         'creation', 'Creation', required=True, select=True,
         ondelete='CASCADE')
@@ -3130,19 +3131,6 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
             ('code',) + tuple(clause[1:]),
         ]
 
-    # (22:38:19) alexander.blum: https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1893
-    # (22:38:50) Thomas: thx
-    # (22:38:52) alexander.blum: so in der art. die verknuepfung muss weg und - falls moeglich - eine kaskade definiert werden (geht nur bei one2many, soweit ich im kopf habe)
-    # (22:39:23) Thomas: schon geshen? locations haben jetzt eine map: https://seafile.c3s.cc/f/b9463e99a3d34c8e9844/
-    # (22:39:37) alexander.blum: ansonsten muss das eben weiter prozessiert werden (z.B. foreach space in location.spaces: space.delete())
-    # (22:43:26) alexander.blum: kaskade mit https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1915
-    # @classmethod
-    # def delete(cls, records):
-    #     for record in records:
-    #         if record.group or record.solo_artists:
-    #             record.solo_artists = []
-    #             record.save()
-    #     return super(Artist, cls).delete(records)
 
 class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Space'
