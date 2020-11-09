@@ -2472,10 +2472,10 @@
             <field name="name">device_message_fingerprint_merge_start_form</field>
         </record>
         <record model="ir.ui.view"
-                id="device_message_fingerprint_merge_review_view_form">
-            <field name="model">device.message.fingerprint.merge.review</field>
+                id="device_message_fingerprint_merge_select_view_form">
+            <field name="model">device.message.fingerprint.merge.select</field>
             <field name="type">form</field>
-            <field name="name">device_message_fingerprint_merge_review_form</field>
+            <field name="name">device_message_fingerprint_merge_select_form</field>
         </record>
         <menuitem name="Merge" parent="menu_device_message_fingerprint" sequence="20"
                   action="act_device_message_fingerprint_merge"

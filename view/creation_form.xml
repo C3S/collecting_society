@@ -30,8 +30,10 @@
             <field name="original_relations" string="Originals"/>
             <field name="derivative_relations" string="Derivatives"/>
         </page>
-        <page string="Content" id="content" col="1">
-            <field name="content"/>
+        <page string="Content" id="content" col="2">
+            <label name="duration"/>
+            <field name="duration"/>
+            <field name="content" colspan="2"/>
         </page>
         <page string="Releases" id="releases" col="1">
             <field name="releases"/>

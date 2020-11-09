@@ -107,7 +107,7 @@ def register():
         DeviceMessageFingerprint,
         DeviceMessageFingerprintMatchStart,
         DeviceMessageFingerprintMergeStart,
-        DeviceMessageFingerprintMergeReview,
+        DeviceMessageFingerprintMergeSelect,
         DeviceMessageUsagereport,
         Distribution,
         DistributionPlan,
