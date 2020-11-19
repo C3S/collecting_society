@@ -2444,13 +2444,14 @@ class CreationIdentifierSpace(ModelSQL, ModelView):
     version = fields.Char('Version')
 
 
-class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
+class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder, PublicApi):
     'Creation Rightsholder'
     __name__ = 'creation.rightsholder'
-    _history = True 
+    _history = True
 
     rightsholder_subject = fields.Many2One(
-        'artist', 'Rightsholder', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Rightsholder', required=True, select=True,
+        ondelete='CASCADE')
     rightsholder_object = fields.Many2One(
         'creation', 'Creation', required=True, select=True,
         ondelete='CASCADE')
@@ -2469,7 +2470,7 @@ class CreationRightsholder(ModelSQL, ModelView, MixinRightsholder):
             'required': Eval('contribution') == 'instrument',
             'invisible': Eval('contribution') != 'instrument'
         }, depends=['contribution'],
-        help='Instrument the rightsholder is the relevant authority for')
+        help='Instrument the rightsholder performed with')
 
     @fields.depends('right')
     def get_contribution(self):
