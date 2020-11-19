@@ -41,7 +41,7 @@
             <field name="prefix">R</field>
             <field name="padding">10</field>
         </record>
-        
+
         <!-- Sequence: Creation -->
         <record model="ir.sequence.type" id="sequence_type_creation">
             <field name="name">Creation</field>
@@ -160,7 +160,7 @@
             <field name="prefix">P</field>
             <field name="padding">10</field>
         </record>
-        
+
         <!-- Sequence: Harddisk Label -->
         <record model="ir.sequence.type" id="sequence_type_harddisk_label">
             <field name="name">Harddisk Label</field>
@@ -175,7 +175,7 @@
             <field name="name">Harddisk Label</field>
             <field name="code">harddisk.label</field>
         </record>
-        
+
         <!-- Sequence: Filesystem Label -->
         <record model="ir.sequence.type" id="sequence_type_filesystem_label">
             <field name="name">Filesystem Label</field>
@@ -203,40 +203,40 @@
         </record>
 
         <!-- Data: Identifier Names -->
-    	<record model="release.identifier.space"
-    		id="release_identifier_space_grid">
-    	    <field name="name">GRid</field>
-    	    <field name="version">1</field>
+        <record model="release.identifier.space"
+            id="release_identifier_space_grid">
+            <field name="name">GRid</field>
+            <field name="version">1</field>
         </record>
-    	<record model="release.identifier.space"
-    		id="release_identifier_space_ean_upc">
-    	    <field name="name">EAN/UPC</field>
-    	    <field name="version">1</field>
+        <record model="release.identifier.space"
+            id="release_identifier_space_ean_upc">
+            <field name="name">EAN/UPC</field>
+            <field name="version">1</field>
         </record>
-    	<record model="artist.identifier.space"
-    		id="artist_identifier_space_ipn">
-    	    <field name="name">IPN</field>
-    	    <field name="version">1</field>
+        <record model="artist.identifier.space"
+            id="artist_identifier_space_ipn">
+            <field name="name">IPN</field>
+            <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.space"
-    		id="creation_identifier_space_hfa">
-    	    <field name="name">HFA Song Code</field>
-    	    <field name="version">1</field>
+        <record model="creation.identifier.space"
+            id="creation_identifier_space_hfa">
+            <field name="name">HFA Song Code</field>
+            <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.space"
-    		id="creation_identifier_space_isrc">
-    	    <field name="name">ISRC</field>
-    	    <field name="version">1</field>
+        <record model="creation.identifier.space"
+            id="creation_identifier_space_isrc">
+            <field name="name">ISRC</field>
+            <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.space"
-    		id="creation_identifier_space_iswc">
-    	    <field name="name">ISWC</field>
-    	    <field name="version">1</field>
+        <record model="creation.identifier.space"
+            id="creation_identifier_space_iswc">
+            <field name="name">ISWC</field>
+            <field name="version">1</field>
         </record>
-    	<record model="creation.identifier.space"
-    		id="creation_identifier_space_cwr">
-    	    <field name="name">CWR</field>
-    	    <field name="version">1</field>
+        <record model="creation.identifier.space"
+            id="creation_identifier_space_cwr">
+            <field name="name">CWR</field>
+            <field name="version">1</field>
         </record>
 
         <!-- Data: Artist Permissions -->
@@ -433,185 +433,185 @@
         <!-- Data: Administrator Role Permissions -->
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_artist')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_artist')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_artist')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_creation">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_creation')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_creation">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_creation')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_creation">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_creation')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_release">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_release')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_release">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_release')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_release">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_release')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_content')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_content')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_content')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_creations">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_artist_creations')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_creations">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_artist_creations')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_creations">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_artist_creations')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_releases">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_artist_releases')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_releases">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_artist_releases')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_releases">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_artist_releases')"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_artist_content')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_edit_artist_content')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_delete_artist_content')"/>
         </record>
 
         <!-- Data: Stakeholder Role Permissions -->
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_artist">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_artist')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_creation">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_creation')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_release">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_release')"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_content">
-            <field name="role" model="ace.role" 
+            <field name="role" model="ace.role"
                    eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
+            <field name="permission" model="ace.permission"
                    eval="ref('ace_permission_view_content')"/>
         </record>
 
@@ -630,7 +630,7 @@
 
         <!-- Menue: Configuration -->
         <menuitem name="Configuration" id="menu_configuration"
-                  parent="menu_collecting_society" sequence="0" 
+                  parent="menu_collecting_society" sequence="0"
                   icon="tryton-preferences"/>
 
         <record model="ir.ui.view" id="collecting_society_form">
@@ -1003,8 +1003,8 @@
                   action="act_artist"
                   id="menu_artist"/>
 
-    	<!-- Menue: Artists / Identifiers  -->
-    	<record model="ir.ui.view" id="artist_identifier_form">
+        <!-- Menue: Artists / Identifiers  -->
+        <record model="ir.ui.view" id="artist_identifier_form">
             <field name="model">artist.identifier</field>
             <field name="type">form</field>
             <field name="name">artist_identifier_form</field>
@@ -1018,12 +1018,12 @@
             <field name="name">Artist Identifiers</field>
             <field name="res_model">artist.identifier</field>
         </record>
-	    <record model="ir.action.act_window.view"
+        <record model="ir.action.act_window.view"
                 id="act_artist_identifier_list">
             <field name="sequence" eval="10"/>
             <field name="view" ref="artist_identifier_list"/>
             <field name="act_window" ref="act_artist_identifier"/>
-	    </record>
+        </record>
         <record model="ir.action.act_window.view"
                 id="act_artist_identifier_form">
             <field name="sequence" eval="20"/>
@@ -1031,11 +1031,11 @@
             <field name="act_window" ref="act_artist_identifier"/>
         </record>
         <menuitem name="Identifiers" parent="menu_artist" sequence="10"
-		          action="act_artist_identifier"
+                  action="act_artist_identifier"
                   id="menu_artist_identifiers"/>
 
-    	<!-- Menue: Artists / Identifier / Spaces -->
-    	<record model="ir.ui.view" id="artist_identifier_space_form">
+        <!-- Menue: Artists / Identifier / Spaces -->
+        <record model="ir.ui.view" id="artist_identifier_space_form">
             <field name="model">artist.identifier.space</field>
             <field name="type">form</field>
             <field name="name">artist_identifier_space_form</field>
@@ -1048,21 +1048,21 @@
         <record model="ir.action.act_window" id="act_artist_identifier_space">
             <field name="name">Artist Identifier Spaces</field>
             <field name="res_model">artist.identifier.space</field>
-    	    <field name="domain">[]</field>
-    	    <field name="search_value">[]</field>
+            <field name="domain">[]</field>
+            <field name="search_value">[]</field>
         </record>
-	    <record model="ir.action.act_window.view"
+        <record model="ir.action.act_window.view"
                 id="act_artist_identifier_space_list">
             <field name="sequence" eval="10"/>
             <field name="view" ref="artist_identifier_space_list"/>
             <field name="act_window" ref="act_artist_identifier_space"/>
-	    </record>
+        </record>
         <record model="ir.action.act_window.view"
                 id="act_artist_identifier_space_form">
             <field name="sequence" eval="20"/>
             <field name="view" ref="artist_identifier_space_form"/>
             <field name="act_window" ref="act_artist_identifier_space"/>
-	    </record>
+        </record>
         <menuitem name="Spaces" parent="menu_artist_identifiers" sequence="10"
                   action="act_artist_identifier_space"
                   id="menu_identifiers_artist_identifier_space"/>
@@ -1094,7 +1094,7 @@
             <field name="view" ref="artist_playlist_form"/>
             <field name="act_window" ref="act_artist_playlist"/>
         </record>
-        <menuitem parent="menu_artist" sequence="20" 
+        <menuitem parent="menu_artist" sequence="20"
                   action="act_artist_playlist"
                   id="menu_artist_playlist"/>
 
@@ -1125,7 +1125,7 @@
             <field name="view" ref="artist_playlist_item_form"/>
             <field name="act_window" ref="act_artist_playlist_item"/>
         </record>
-        <menuitem parent="menu_artist_playlist" sequence="10" 
+        <menuitem parent="menu_artist_playlist" sequence="10"
                   action="act_artist_playlist_item"
                   id="menu_artist_playlist_item"/>
 
@@ -1825,7 +1825,7 @@
             <field name="view" ref="artist_playlist_form"/>
             <field name="act_window" ref="act_event_performance_playlist"/>
         </record>
-        <menuitem parent="menu_event_performance" sequence="10" 
+        <menuitem parent="menu_event_performance" sequence="10"
                   action="act_event_performance_playlist"
                   id="menu_event_performance_playlist"/>
 
@@ -1848,7 +1848,7 @@
             <field name="view" ref="artist_playlist_item_form"/>
             <field name="act_window" ref="act_event_performance_playlist_item"/>
         </record>
-        <menuitem parent="menu_event_performance_playlist" sequence="10" 
+        <menuitem parent="menu_event_performance_playlist" sequence="10"
                   action="act_event_performance_playlist_item"
                   id="menu_event_performance_playlist_item"/>
 
@@ -2472,10 +2472,10 @@
             <field name="name">device_message_fingerprint_merge_start_form</field>
         </record>
         <record model="ir.ui.view"
-                id="device_message_fingerprint_merge_review_view_form">
-            <field name="model">device.message.fingerprint.merge.review</field>
+                id="device_message_fingerprint_merge_select_view_form">
+            <field name="model">device.message.fingerprint.merge.select</field>
             <field name="type">form</field>
-            <field name="name">device_message_fingerprint_merge_review_form</field>
+            <field name="name">device_message_fingerprint_merge_select_form</field>
         </record>
         <menuitem name="Merge" parent="menu_device_message_fingerprint" sequence="20"
                   action="act_device_message_fingerprint_merge"
@@ -2960,7 +2960,7 @@
                   action="act_ace_permission"
                   id="menu_ace_permission"/>
 
-        
+
         <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                     Archiving
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->

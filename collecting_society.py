@@ -117,7 +117,7 @@ __all__ = [
     'DeviceMessageFingerprintMatchStart',
     'DeviceMessageFingerprintMerge',
     'DeviceMessageFingerprintMergeStart',
-    'DeviceMessageFingerprintMergeReview',
+    'DeviceMessageFingerprintMergeSelect',
     'DeviceMessageFingerprintCreationlist',
     'DeviceMessageFingerprintCreationlistItem',
     'DeviceMessageUsagereport',
@@ -2072,6 +2072,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     content = fields.One2Many(
         'content', 'creation', 'Content',
         help='Content associated with the creation.')
+    duration = fields.Function(
+        fields.Float('Duration'),
+        'get_duration')
     tariff_categories = fields.One2Many(
         'creation-tariff_category', 'creation', 'Tariff Category',
         help='Tariff categories of the creation.')
@@ -2165,6 +2168,12 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 if style.id not in styles:
                     styles.append(style.id)
         return styles
+
+    def get_duration(self, name):
+        for content in self.content:
+            if content.category == "audio" and content.length:
+                return content.length
+        return None
 
     def search_license(self, name):
         return self.get_license(name)
@@ -3131,19 +3140,6 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
             ('code',) + tuple(clause[1:]),
         ]
 
-    # (22:38:19) alexander.blum: https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1893
-    # (22:38:50) Thomas: thx
-    # (22:38:52) alexander.blum: so in der art. die verknuepfung muss weg und - falls moeglich - eine kaskade definiert werden (geht nur bei one2many, soweit ich im kopf habe)
-    # (22:39:23) Thomas: schon geshen? locations haben jetzt eine map: https://seafile.c3s.cc/f/b9463e99a3d34c8e9844/
-    # (22:39:37) alexander.blum: ansonsten muss das eben weiter prozessiert werden (z.B. foreach space in location.spaces: space.delete())
-    # (22:43:26) alexander.blum: kaskade mit https://github.com/C3S/collecting_society/blob/develop/collecting_society.py#L1915
-    # @classmethod
-    # def delete(cls, records):
-    #     for record in records:
-    #         if record.group or record.solo_artists:
-    #             record.solo_artists = []
-    #             record.save()
-    #     return super(Artist, cls).delete(records)
 
 class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi):
     'Location Space'
@@ -4048,6 +4044,8 @@ class DeviceMessageFingerprintMergeStart(ModelView):
         states={'required': True}, help='The context')
     states = fields.Boolean(
         'All States', help="Include fingerprints with all states")
+    keep_state = fields.Boolean(
+        'Keep State', help="Keep the current state of the fingerprints")
     # TODO: change to multi selection after tryton upgrade
     # states = fields.MultiSelection(
     #     fingerprint_states, 'States', sort=False, states={'required': True},
@@ -4060,9 +4058,9 @@ class DeviceMessageFingerprintMergeStart(ModelView):
         help='End of the period of timestamps to merge')
 
 
-class DeviceMessageFingerprintMergeReview(ModelView):
-    'Device Message Fingerprint Review Form'
-    __name__ = 'device.message.fingerprint.merge.review'
+class DeviceMessageFingerprintMergeSelect(ModelView):
+    'Device Message Fingerprint Select Form'
+    __name__ = 'device.message.fingerprint.merge.select'
     # TODO: add utilisation (domain: context) to add the creationlist to
     fingerprints = fields.One2Many(
         'device.message.fingerprint', None, 'Fingerprints',
@@ -4074,31 +4072,33 @@ class DeviceMessageFingerprintMerge(Wizard):
     __name__ = 'device.message.fingerprint.merge'
 
     # TODO: configuration values
-    creation_minimum_seconds = 20
-    creation_default_seconds = 60 * 3
+    minimum_duration = datetime.timedelta(seconds=60)
+    default_duration = datetime.timedelta(seconds=60*3)
 
     start = StateView(
         'device.message.fingerprint.merge.start',
         'collecting_society.device_message_fingerprint_merge_start_view_form',
         [
             Button('Cancel', 'end', 'tryton-cancel'),
-            Button('Next', 'review', 'tryton-go-next', default=True),
+            Button('Next', 'select', 'tryton-go-next', default=True),
         ])
-    review = StateView(
-        'device.message.fingerprint.merge.review',
-        'collecting_society.device_message_fingerprint_merge_review_view_form',
+    select = StateView(
+        'device.message.fingerprint.merge.select',
+        'collecting_society.device_message_fingerprint_merge_select_view_form',
         [
             Button('Cancel', 'end', 'tryton-cancel'),
-            Button('Merge', 'merge', 'tryton-ok', default=True),
+            Button('Merge', 'merge', 'tryton-go-next', default=True),
         ])
     merge = StateTransition()
 
     def default_start(self, fields):
         return {
-            'end': datetime.datetime.now()
+            'states': False,
+            'keep_state': False,
+            'end': datetime.datetime.now(),
         }
 
-    def default_review(self, fields):
+    def default_select(self, fields):
         Fingerprint = Pool().get('device.message.fingerprint')
         order = [('timestamp', 'ASC')]
         domain = [
@@ -4118,6 +4118,62 @@ class DeviceMessageFingerprintMerge(Wizard):
         }
 
     def transition_merge(self):
+        # sanity checks
+        fingerprints = self.select.fingerprints
+        if not fingerprints:
+            return 'end'
+
+        # initialize creationlist
+        Creationlist = Pool().get('device.message.fingerprint.creationlist')
+        Item = Pool().get('device.message.fingerprint.creationlist.item')
+        creation_list = Creationlist()
+        creation_list.context = self.start.context
+        creation_list.start = self.start.start
+        creation_list.end = self.start.end
+        creation_list.items = []
+        creation_list.confirmed = False
+        creation_list.utilisation_creationlist = None
+
+        # merge fingerprints
+        item = None
+        expected_duration = None
+        for fingerprint in fingerprints:
+
+            # skip failed matches
+            if fingerprint.matched_state != "success":
+                continue
+
+            # aggregate objects
+            if item:
+                start = item.merged_fingerprints[0].timestamp
+                duration = fingerprint.timestamp - start
+                # append fingerprint for same creation within duration
+                if fingerprint.matched_creation == item.creation:
+                    if duration <= expected_duration:
+                        item.merged_fingerprints.append(fingerprint)
+                        continue
+                # append item if duration minimum is met
+                if duration > self.minimum_duration:
+                    creation_list.items.append(item)
+
+            # create new item
+            item = Item()
+            item.creation = fingerprint.matched_creation
+            item.order = len(creation_list.items) + 1
+            item.timestamp = fingerprint.timestamp
+            item.merged_fingerprints = []
+            item.merged_fingerprints.append(fingerprint)
+            expected_duration = self.default_duration
+            if item.creation.duration:
+                expected_duration = datetime.timedelta(
+                    seconds=int(item.creation.duration))
+
+        # save objects
+        creation_list.save()
+        if not self.start.keep_state:
+            for fingerprint in fingerprints:
+                fingerprint.state = 'merged'
+                fingerprint.save()
         return 'end'
 
 
@@ -4138,6 +4194,24 @@ class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
     end = fields.DateTime(
         'End', states={'required': True},
         help='End of the period of timestamps to merge')
+    # TODO: convert fields.Integer to fields.TimeDelta after tryton upgrade
+    period = fields.Function(
+        fields.Integer('Total [s]'),
+        'get_period')
+    identified_period = fields.Function(
+        fields.Integer('Identified [s]'),
+        'get_identified_period')
+    unidentified_period = fields.Function(
+        fields.Integer('Undentified [s]'),
+        'get_unidentified_period')
+    # TODO: configuration value
+    percentage_precision = 2
+    identified_percentage = fields.Function(
+        fields.Numeric('Identified [%]', digits=(3, percentage_precision)),
+        'get_identified_percentage')
+    unidentified_percentage = fields.Function(
+        fields.Numeric('Undentified [%]', digits=(3, percentage_precision)),
+        'get_unidentified_percentage')
     # TODO: readonly if utilisation_creationlist != None
     confirmed = fields.Boolean(
         'Confirmed', states=STATES, depends=DEPENDS,
@@ -4151,6 +4225,36 @@ class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
         'utilisation.creationlist', 'Utilisation Creation List',
         states=STATES, depends=DEPENDS,
         help='The utilisation creation list resulting from the fingerprints')
+
+    def get_period(self, name):
+        if not self.start or not self.end:
+            return 0
+        period = self.end - self.start
+        return int(period.total_seconds())
+
+    def get_identified_period(self, name):
+        period = 0.0
+        # TODO: configuration value
+        default_duration = DeviceMessageFingerprintMerge.default_duration
+        default_duration = default_duration.total_seconds()
+        for item in self.items:
+            if item.creation.duration:
+                period += item.creation.duration
+            else:
+                period += default_duration
+        return int(period)
+
+    def get_unidentified_period(self, name):
+        return max(0, self.period - self.identified_period)
+
+    def get_identified_percentage(self, name):
+        if not self.period:
+            return Decimal(0)
+        percentage = self.identified_period / Decimal(self.period) * 100
+        return percentage.quantize(Decimal(10) ** -self.percentage_precision)
+
+    def get_unidentified_percentage(self, name):
+        return Decimal(100.00) - self.identified_percentage
 
 
 class DeviceMessageFingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):

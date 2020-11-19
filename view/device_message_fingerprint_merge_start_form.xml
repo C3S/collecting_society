@@ -6,6 +6,8 @@
     <field name="context"/>
     <label name="states"/>
     <field name="states"/>
+    <label name="keep_state"/>
+    <field name="keep_state"/>
     <label name="start"/>
     <field name="start"/>
     <label name="end"/>
