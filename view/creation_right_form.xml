@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creation Rightsholder">
-    <label name="rightsholder_object"/>
-    <field name="rightsholder_object"/>
-    <label name="rightsholder_subject"/>
-    <field name="rightsholder_subject"/>
+<form string="Creation Right">
+    <label name="rightsobject"/>
+    <field name="rightsobject"/>
+    <label name="rightsholder"/>
+    <field name="rightsholder"/>
     <label name="valid_from"/>
     <field name="valid_from"/>
     <label name="valid_to"/>
@@ -14,8 +14,8 @@
     <field name="predecessor"/>
     <label name="successor"/>
     <field name="successor"/>
-    <label name="right"/>
-    <field name="right"/>
+    <label name="type_of_right"/>
+    <field name="type_of_right"/>
     <label name="contribution"/>
     <field name="contribution"/>
     <label name="country"/>

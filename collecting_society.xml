@@ -1223,35 +1223,35 @@
                   id="menu_identifiers_release_identifier_space"/>
 
         <!-- Menue: Releases / Rightsholders  -->
-        <record model="ir.ui.view" id="release_rightsholder_form">
-            <field name="model">release.rightsholder</field>
+        <record model="ir.ui.view" id="release_right_form">
+            <field name="model">release.right</field>
             <field name="type">form</field>
-            <field name="name">release_rightsholder_form</field>
+            <field name="name">release_right_form</field>
         </record>
-        <record model="ir.ui.view" id="release_rightsholder_list">
-            <field name="model">release.rightsholder</field>
+        <record model="ir.ui.view" id="release_right_list">
+            <field name="model">release.right</field>
             <field name="type">tree</field>
-            <field name="name">release_rightsholder_list</field>
+            <field name="name">release_right_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_release_rightsholder">
+        <record model="ir.action.act_window" id="act_release_right">
             <field name="name">Release Rightsholder</field>
-            <field name="res_model">release.rightsholder</field>
+            <field name="res_model">release.right</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_rightsholder_list">
+                id="act_release_right_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="release_rightsholder_list"/>
-            <field name="act_window" ref="act_release_rightsholder"/>
+            <field name="view" ref="release_right_list"/>
+            <field name="act_window" ref="act_release_right"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_release_rightsholder_form">
+                id="act_release_right_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="release_rightsholder_form"/>
-            <field name="act_window" ref="act_release_rightsholder"/>
+            <field name="view" ref="release_right_form"/>
+            <field name="act_window" ref="act_release_right"/>
         </record>
         <menuitem name="Rightsholders" parent="menu_release" sequence="20"
-                  id="menu_release_rightsholder"
-                  action="act_release_rightsholder"/>
+                  id="menu_release_right"
+                  action="act_release_right"/>
 
         <!-- Menue: Releases / Tracks -->
         <record model="ir.ui.view" id="release_track_form">
@@ -1442,66 +1442,66 @@
                   id="menu_identifiers_creation_identifier_space"/>
 
         <!-- Menue: Creations / Rightsholders  -->
-        <record model="ir.ui.view" id="creation_rightsholder_form">
-            <field name="model">creation.rightsholder</field>
+        <record model="ir.ui.view" id="creation_right_form">
+            <field name="model">creation.right</field>
             <field name="type">form</field>
-            <field name="name">creation_rightsholder_form</field>
+            <field name="name">creation_right_form</field>
         </record>
-        <record model="ir.ui.view" id="creation_rightsholder_list">
-            <field name="model">creation.rightsholder</field>
+        <record model="ir.ui.view" id="creation_right_list">
+            <field name="model">creation.right</field>
             <field name="type">tree</field>
-            <field name="name">creation_rightsholder_list</field>
+            <field name="name">creation_right_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_creation_rightsholder">
+        <record model="ir.action.act_window" id="act_creation_right">
             <field name="name">Creation Rightsholder</field>
-            <field name="res_model">creation.rightsholder</field>
+            <field name="res_model">creation.right</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_rightsholder_list">
+                id="act_creation_right_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_rightsholder_list"/>
-            <field name="act_window" ref="act_creation_rightsholder"/>
+            <field name="view" ref="creation_right_list"/>
+            <field name="act_window" ref="act_creation_right"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_rightsholder_form">
+                id="act_creation_right_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_rightsholder_form"/>
-            <field name="act_window" ref="act_creation_rightsholder"/>
+            <field name="view" ref="creation_right_form"/>
+            <field name="act_window" ref="act_creation_right"/>
         </record>
         <menuitem name="Rightsholders" parent="menu_creation" sequence="20"
-                  action="act_creation_rightsholder"
-                  id="menu_creation_rightsholder"/>
+                  action="act_creation_right"
+                  id="menu_creation_right"/>
 
         <!-- Menue: Creations / Rightsholders / Instruments -->
-        <record model="ir.ui.view" id="creation_rightsholder_instrument_form">
+        <record model="ir.ui.view" id="creation_right_instrument_form">
             <field name="model">instrument</field>
             <field name="type">form</field>
-            <field name="name">creation_rightsholder_instrument_form</field>
+            <field name="name">creation_right_instrument_form</field>
         </record>
-        <record model="ir.ui.view" id="creation_rightsholder_instrument_list">
+        <record model="ir.ui.view" id="creation_right_instrument_list">
             <field name="model">instrument</field>
             <field name="type">tree</field>
-            <field name="name">creation_rightsholder_instrument_list</field>
+            <field name="name">creation_right_instrument_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_creation_rightsholder_instrument">
+        <record model="ir.action.act_window" id="act_creation_right_instrument">
             <field name="name">Instrument</field>
             <field name="res_model">instrument</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_rightsholder__instrument_list">
+                id="act_creation_right__instrument_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_rightsholder_instrument_list"/>
-            <field name="act_window" ref="act_creation_rightsholder_instrument"/>
+            <field name="view" ref="creation_right_instrument_list"/>
+            <field name="act_window" ref="act_creation_right_instrument"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_rightsholder_instrument_form">
+                id="act_creation_right_instrument_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_rightsholder_instrument_form"/>
-            <field name="act_window" ref="act_creation_rightsholder_instrument"/>
+            <field name="view" ref="creation_right_instrument_form"/>
+            <field name="act_window" ref="act_creation_right_instrument"/>
         </record>
-        <menuitem name="Instruments" parent="menu_creation_rightsholder" sequence="20"
-                  action="act_creation_rightsholder_instrument"
-                  id="menu_creation_rightsholder_instrument"/>
+        <menuitem name="Instruments" parent="menu_creation_right" sequence="20"
+                  action="act_creation_right_instrument"
+                  id="menu_creation_right_instrument"/>
 
         <!-- Menue: Creations / Tariff Category -->
         <record model="ir.ui.view" id="creation_tariff_category_form">
