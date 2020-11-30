@@ -2485,7 +2485,7 @@ class CreationRight(ModelSQL, ModelView, MixinRight, PublicApi):
         }, depends=['contribution'],
         help='Instrument the rightsholder performed with')
 
-    @fields.depends('right')
+    @fields.depends('type_of_right')
     def get_contribution(self):
         if self.type_of_right == 'copyright':
             return [
@@ -2854,7 +2854,7 @@ class ReleaseRight(ModelSQL, ModelView, MixinRight):
     _history = True
     rightsholder = fields.Many2One(
         'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
-    rightsobject = fields.Many2One(        
+    rightsobject = fields.Many2One(
         'release', 'Release', required=True, select=True, ondelete='CASCADE')
     contribution = fields.Function(
         fields.Char('Contribution Right'),
