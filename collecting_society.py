@@ -14,7 +14,8 @@ import hurry.filesize
 
 from trytond.model import ModelView, ModelSQL, fields
 from trytond.model.fields import Field
-from trytond.wizard import Wizard, StateView, Button, StateTransition
+from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
+    StateAction
 from trytond.exceptions import UserError, UserWarning
 
 from trytond.transaction import Transaction
@@ -46,6 +47,7 @@ __all__ = [
     'TariffRelevance',
     'Tariff',
     'Allocation',
+    'InvoiceAllocation',
     'Distribution',
     'DistributionPlan',
     'DistributeStart',
@@ -480,6 +482,14 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         'Relevance Categories',
         states=STATES, depends=DEPENDS,
         help='The relevance categories applicable for the tariff category')
+    administration_product = fields.Many2One(
+        'product.product', 'Administration Product', required=True,
+        help="The product which represents the administration amount of the "
+        "tariff.")
+    distribution_product = fields.Many2One(
+        'product.product', 'Distribution Product', required=True,
+        help="The product which represents the distribution amount of the "
+        "tariff.")
 
     # creations = fields.Many2Many(
     #     'creation-tariff_category', 'category', 'Creations',
@@ -708,9 +718,10 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 # --- Allocation --------------------------------------------------------------
 
-class Allocation(ModelSQL, ModelView, CurrencyDigits):
+class Allocation(ModelSQL, ModelView):
     'Allocation'
     __name__ = 'distribution.allocation'
+    company = fields.Many2One('company.company', 'Company', required=True)
     distribution = fields.Many2One(
         'distribution', 'Distribution', required=True,
         help='The distribution of the allocation')
@@ -745,8 +756,84 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         cls._order.insert(2, ('party', 'ASC'))
 
     @staticmethod
+    def default_company():
+        return Transaction().context.get('company')
+
+    @staticmethod
     def default_type():
         return 'pocket2hats'
+
+    def _get_invoice(self):
+        pool = Pool()
+        Invoice = pool.get('account.invoice')
+        Journal = pool.get('account.journal')
+
+        journals = Journal.search([
+            ('type', '=', 'revenue'),
+        ], limit=1)
+        if journals:
+            journal, = journals
+        else:
+            journal = None
+
+        data = {
+            'company': self.company,
+            'type': 'out_invoice',
+            'journal': journal,
+            'party': self.party,
+            'invoice_address': self.party.address_get('invoice'),
+            'currency': self.company.currency,
+            'account': self.party.account_receivable,
+            'payment_term': self.party.customer_payment_term,
+            'description': self.distribution.rec_name,
+            'invoice_date': self.distribution.date,
+        }
+        return Invoice(**data)
+
+    def create_invoice(self):
+        '''
+        Creates and returns an invoice
+        '''
+        pool = Pool()
+        Invoice = pool.get('account.invoice')
+
+        if not self.party.account_receivable:
+            self.raise_user_error('missing_account_receivable',
+                (self.party.rec_name,))
+
+        invoice_lines = []
+        for utilisation in self.utilisations:
+            invoice_lines += utilisation._get_invoice_lines()
+        if not invoice_lines:
+            return
+        invoice = self._get_invoice()
+        invoice.lines = invoice_lines
+        invoice.save()
+        Invoice.update_taxes([invoice])
+        return invoice
+
+
+class InvoiceAllocation(Wizard):
+    'Invoice Allocation'
+    __name__ = 'distribution.allocation.invoice'
+    start_state = 'invoice'
+    invoice = StateAction('account_invoice.act_invoice_form')
+
+    def do_invoice(self, action):
+        pool = Pool()
+        Allocation = pool.get('distribution.allocation')
+
+        allocations = Allocation.browse(Transaction().context['active_ids'])
+        invoices = []
+        for allocation in allocations:
+            invoice = Allocation.create_invoice(allocation)
+            if invoice:
+                invoices.append(invoice)
+
+        data = {'res_id': [i.id for i in invoices]}
+        if len(invoices) == 1:
+            action['views'].reverse()
+        return action, data
 
 
 # --- Distribution ------------------------------------------------------------
@@ -1303,7 +1390,7 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         help='The amount for administration')
     distribution_amount = fields.Numeric(
         'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        states={'readonly': True}, depends=['currency_digits'],
+        states={'readonly': False}, depends=['currency_digits'],
         help='The amount to distribute')
 
 
@@ -4336,6 +4423,7 @@ class DeviceMessageUsagereport(ModelSQL, ModelView, CurrencyDigits):
 # --- Declaration ------------------------------------------------------------
 
 context_list = [
+    (None, ''),
     ('event', 'Event'),
     ('location', 'Location'),
     ('website', 'Website'),
@@ -4564,6 +4652,12 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
              'The code of the utilisation must be unique.')
         ]
         cls._order.insert(1, ('start', 'ASC'))
+        cls._error_messages.update({
+            'missing_account_revenue': 'Product "%(product)s" misses a '
+            'revenue account.',
+            'missing_tariff_product': 'Tariff category "%(tariff_category)s" '
+            'is missing a distribution product or administration product.',
+        })
 
     @staticmethod
     def default_state():
@@ -4594,6 +4688,65 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         default = default.copy()
         default['code'] = None
         return super(Utilisation, cls).copy(utilisations, default=default)
+
+    def _get_invoice_lines(self):
+        '''
+        Returns invoice lines for each utilisation
+        '''
+        pool = Pool()
+        InvoiceLine = pool.get('account.invoice.line')
+
+        if self.state != 'confirmed':
+            return []
+
+        distribution_product = self.tariff.category.distribution_product
+        administration_product = self.tariff.category.administration_product
+        if not all([distribution_product, administration_product]):
+            self.raise_user_error('missing_tariff_product', {
+                'tariff_category': self.tariff.category.rec_name})
+
+        distribution_invoice_line = InvoiceLine()
+        distribution_invoice_line.product = distribution_product
+        distribution_invoice_line.account =  \
+            distribution_product.account_revenue_used
+        if not distribution_invoice_line.account:
+            self.raise_user_error('missing_account_revenue', {
+                'product': distribution_product.rec_name,
+            })
+        distribution_invoice_line.type = 'line'
+        distribution_invoice_line.description = '{}: {}'.format(
+            'Distribution', self.code)
+        distribution_invoice_line.origin = self
+        distribution_invoice_line.quantity = 1
+        distribution_invoice_line.unit = distribution_product.default_uom
+        distribution_invoice_line.unit_price = (
+            self.confirmed_distribution_amount
+            or distribution_product.list_price)
+        distribution_invoice_line.taxes = distribution_product.customer_taxes
+        distribution_invoice_line.invoice_type = 'out_invoice'
+
+        administration_invoice_line = InvoiceLine()
+        administration_invoice_line.product = administration_product
+        administration_invoice_line.account =  \
+            administration_product.account_revenue_used
+        if not administration_invoice_line.account:
+            self.raise_user_error('missing_account_revenue', {
+                'product': administration_product.rec_name,
+            })
+        administration_invoice_line.type = 'line'
+        administration_invoice_line.description = '{}: {}'.format(
+            'Administration', self.code)
+        administration_invoice_line.origin = self
+        administration_invoice_line.quantity = 1
+        administration_invoice_line.unit = administration_product.default_uom
+        administration_invoice_line.unit_price = (
+            self.confirmed_administration_amount
+            or administration_product.list_price)
+        administration_invoice_line.taxes =  \
+            administration_product.customer_taxes
+        administration_invoice_line.invoice_type = 'out_invoice'
+
+        return [distribution_invoice_line, administration_invoice_line]
 
 
 class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits):

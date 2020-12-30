@@ -13,6 +13,11 @@
     <label name="code"/>
     <field name="code"/>
     <newline/>
+    <label name="administration_product"/>
+    <field name="administration_product"/>
+    <label name="distribution_product"/>
+    <field name="distribution_product"/>
+    <newline/>
     <label name="description" colspan="6"/>
     <field name="description" colspan="6"/>
 </form>

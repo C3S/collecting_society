@@ -865,7 +865,28 @@
                   action="act_allocation"
                   id="menu_allocation"/>
 
+        <record model="ir.action.wizard" id="invoice_allocation">
+            <field name="name">Invoice</field>
+            <field name="wiz_name">distribution.allocation.invoice</field>
+            <field name="model">distribution.allocation</field>
+        </record>
+        <record model="ir.action.keyword" id="invoice_allocation_keyword">
+            <field name="keyword">form_action</field>
+            <field name="model">distribution.allocation,-1</field>
+            <field name="action" ref="invoice_allocation"/>
+        </record>
 
+        <record model="ir.action.act_window" id="act_invoice_form">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="domain">[('lines.origin.allocation', 'in', Eval('active_ids'), 'utilisation')]</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_open_invoice_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">distribution.allocation,-1</field>
+            <field name="action" ref="act_invoice_form"/>
+        </record>
         <!-- Menue: Distribution -->
         <record model="ir.ui.view" id="distribution_form">
             <field name="model">distribution</field>
