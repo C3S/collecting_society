@@ -718,7 +718,7 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 # --- Allocation --------------------------------------------------------------
 
-class Allocation(ModelSQL, ModelView):
+class Allocation(ModelSQL, ModelView, CurrencyDigits):
     'Allocation'
     __name__ = 'distribution.allocation'
     company = fields.Many2One('company.company', 'Company', required=True)
