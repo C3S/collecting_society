@@ -14,20 +14,23 @@ import time
 import random
 import hashlib
 
+
 def _get_hash():
     sha = hashlib.sha256()
     sha.update(str(random.random()))
     sha.update(str(time.time()))
     return sha
 
+
 def gen_client_id():
     return _get_hash().hexdigest()
 
+
 def gen_client_secret():
     return _get_hash().hexdigest()
+
 
 def gen_token(client):
     sha = _get_hash()
     sha.update(client.client_id)
     return sha.hexdigest()
-

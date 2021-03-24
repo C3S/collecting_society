@@ -34,9 +34,10 @@ def suite():
     suite = trytond.tests.test_tryton.suite()
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(
         CollectingSocietyTestCase))
-    suite.addTests(doctest.DocFileSuite('scenario_collecting_society.rst',
-            setUp=doctest_setup, tearDown=doctest_teardown, encoding='utf-8',
-            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE | doctest.ELLIPSIS))
+    suite.addTests(doctest.DocFileSuite(
+        'scenario_collecting_society.rst',
+        setUp=doctest_setup, tearDown=doctest_teardown, encoding='utf-8',
+        optionflags=doctest.REPORT_ONLY_FIRST_FAILURE | doctest.ELLIPSIS))
     return suite
 
 

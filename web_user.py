@@ -3,14 +3,8 @@
 import uuid
 import string
 import random
-from decimal import Decimal
-
-from sql.aggregate import Sum
-from sql.conditionals import Coalesce
-from sql.operators import Mul
 
 from trytond.model import ModelView, ModelSQL, fields
-from trytond.transaction import Transaction
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Greater
 from trytond.rpc import RPC
