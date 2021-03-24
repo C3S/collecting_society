@@ -4,6 +4,7 @@ from trytond.pool import Pool
 from .bank import *
 from .collecting_society import *
 from .account import *
+from .account_invoice import *
 from .party import *
 from .web_user import *
 from .configuration import *
@@ -26,6 +27,7 @@ def register():
         ArtistIdentifier,
         AccountMove,
         AccountMoveLine,
+        InvoiceLine,
         WebUserRole,
         WebUser,
         WebUserResUser,
@@ -130,4 +132,5 @@ def register():
         Distribute,
         DeviceMessageFingerprintMatch,
         DeviceMessageFingerprintMerge,
+        InvoiceAllocation,
         module='collecting_society', type_='wizard')
