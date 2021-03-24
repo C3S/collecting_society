@@ -798,8 +798,8 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         Invoice = pool.get('account.invoice')
 
         if not self.party.account_receivable:
-            self.raise_user_error('missing_account_receivable',
-                (self.party.rec_name,))
+            self.raise_user_error(
+                'missing_account_receivable', (self.party.rec_name,))
 
         invoice_lines = []
         for utilisation in self.utilisations:
