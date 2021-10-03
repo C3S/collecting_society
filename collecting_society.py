@@ -4596,13 +4596,17 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         help='Start of the period of utilisation, if setter is used')
     start = fields.Function(
         fields.DateTime(
-            'Start', depends=DEPENDS + ['start_override'], states={
+            'Start', depends=DEPENDS, states={
                 'required': True,
             }, help='Start of the period of utilisation'),
         'get_start', 'set_start')
-    end = fields.DateTime(
-        'End', states=STATES, depends=DEPENDS,
-        help='End of the period of utilisation')
+    end_override = fields.DateTime(
+        'End',
+        help='End of the period of utilisation, if setter is used')
+    end = fields.Function(
+        fields.DateTime(
+            'End', help='End of the period of utilisation'),
+        'get_end', 'set_end')
     confirmation = fields.Selection(
         [
             (None, ''),
@@ -4714,20 +4718,11 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         default['code'] = None
         return super(Utilisation, cls).copy(utilisations, default=default)
 
-    #@classmethod -- replaced by instance method below, for now
-    #def get_start(self, utilisations, names=None):
-    #    retlist = {
-    #        'start': {}
-    #    }
-    #    for utilisation in utilisations:
-    #        retlist['start'][utilisation.id] = utilisation.start_override
-    #    return retlist
-
     @classmethod
     def set_start(cls, utilisations, name, start):
         for utilisation in utilisations:
-            #if utilisation.context is not None:
-            #    return None
+            # if utilisation.context is not None:
+            #     return None
             utilisation.start_override = start
             utilisation.save()
 
@@ -4744,6 +4739,29 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
 
         # all other tariffs get the start date from a manually entered date
         return self.start_override
+
+    @classmethod
+    def set_end(cls, utilisations, name, end):
+        for utilisation in utilisations:
+            # if utilisation.context is not None:
+            #     return None
+            utilisation.end_override = end
+            utilisation.save()
+
+    def get_end(self, name=None):
+        if self.context:
+            if self.tariff.category.code == 'C':  # reproduction
+                if self.context.production_date is not None:  # return proddate
+                    return datetime.datetime.combine(         # + 1
+                        self.context.production_date + datetime.timedelta(
+                            days=1),
+                        datetime.time(0, 0, 0, 0)
+                    )
+            if self.tariff.category.code == 'L':  # live
+                return self.context.end  # event end date
+
+        # all other tariffs get the end date from a manually entered date
+        return self.end_override
 
     def _get_invoice_lines(self):
         '''
