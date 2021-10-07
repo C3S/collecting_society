@@ -1876,18 +1876,14 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     @fields.depends('payee')
     def on_change_payee(self):
         if self.payee:
-            self.payee_acceptances = {
-                'remove': [
-                    a.id for a in self.payee_acceptances]}
+            self.payee_acceptances = ()
             self.valid_payee = False
             self.payee_proposal = None
 
     @fields.depends('payee_proposal')
     def on_change_payee_proposal(self):
         if self.payee_proposal:
-            self.payee_acceptances = {
-                'remove': [
-                    a.id for a in self.payee_acceptances]}
+            self.payee_acceptances = ()
             self.valid_payee = False
 
     @classmethod
