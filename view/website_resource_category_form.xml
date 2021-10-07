@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Website Resource Category" col="6">
+<form col="6">
     <label name="name"/>
     <field name="name"/>
     <label name="code"/>
@@ -16,8 +16,8 @@
     <field name="description" colspan="5"/>
 
     <notebook colspan="6">
-        <page string="Resources" id="resources" col="1">
-            <field name="resources"/>
+        <page string="Resources" id="website_resources" col="1">
+            <field name="website_resources"/>
         </page>
         <page string="Website Categories" id="website_categories" col="1">
             <field name="website_categories"/>

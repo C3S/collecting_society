@@ -24,11 +24,11 @@ Create database::
 
 Install collecting_society::
 
-    >>> Module = Model.get('ir.module.module')
+    >>> Module = Model.get('ir.module')
     >>> module, = Module.find(
     ...     [('name', '=', 'collecting_society')])
-    >>> Module.install([module.id], config.context)
-    >>> Wizard('ir.module.module.install_upgrade').execute('upgrade')
+    >>> Module.activate([module.id], config.context)
+    >>> Wizard('ir.module.activate_upgrade').execute('upgrade')
 
 Get some defaults::
 
@@ -55,7 +55,7 @@ Create company::
     >>> _ = party.addresses.pop()
     >>> party_address = party.addresses.new(
     ...     street='Rochusstraße 44',
-    ...     zip='40479',
+    ...     postal_code='40479',
     ...     city='Düsseldorf',
     ...     country=germany)
     >>> party.save()
@@ -321,7 +321,7 @@ Add an address::
     >>> licenser.party.addresses.append(
     ...     Address(
     ...         street='Berliner Strasse 123',
-    ...         zip='51063',
+    ...         postal_code='51063',
     ...         city='Köln',
     ...         country=germany))
 

@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Checksums">
+<tree>
     <field name="origin" expand="1"/>
     <field name="algorithm"/>
-    <field name="timestamp"/>
+    <field name="timestamp" widget="date"/>
+    <field name="timestamp" widget="time"/>
     <field name="begin"/>
     <field name="end"/>
     <field name="code" expand="1"/>

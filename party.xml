@@ -13,84 +13,84 @@
         <field name="inherit" ref="party.party_view_form"/>
         <field name="name">party_form</field>
     </record>
-	<!-- Identifiers -->
-	<record model="party.identifier.space"
-		    id="party_identifier_space_ipi">
-	    <field name="name">IPI</field>
-	    <field name="version">1</field>
+    <!-- Identifiers -->
+    <record model="party.cs_identifier.space"
+            id="party_cs_identifier_space_ipi">
+        <field name="name">IPI</field>
+        <field name="version">1</field>
     </record>
-	<record model="party.identifier.space"
-		    id="party_identifier_space_isni">
-	    <field name="name">ISNI</field>
-	    <field name="version">1</field>
+    <record model="party.cs_identifier.space"
+            id="party_cs_identifier_space_isni">
+        <field name="name">ISNI</field>
+        <field name="version">1</field>
     </record>
-	<record model="party.identifier.space"
-		    id="party_identifier_space_dpid">
-	    <field name="name">DDEX Party Identifier</field>
-	    <field name="version">1</field>
+    <record model="party.cs_identifier.space"
+            id="party_cs_identifier_space_dpid">
+        <field name="name">DDEX Party Identifier</field>
+        <field name="version">1</field>
     </record>
 
-	<!-- Menue: Parties / Identifiers  -->
-	<record model="ir.ui.view" id="party_identifier_form">
-        <field name="model">party.identifier</field>
+    <!-- Menue: Parties / Identifiers  -->
+    <record model="ir.ui.view" id="party_cs_identifier_form">
+        <field name="model">party.cs_identifier</field>
         <field name="type">form</field>
-        <field name="name">party_identifier_form</field>
+        <field name="name">party_cs_identifier_form</field>
     </record>
-    <record model="ir.ui.view" id="party_identifier_list">
-        <field name="model">party.identifier</field>
+    <record model="ir.ui.view" id="party_cs_identifier_list">
+        <field name="model">party.cs_identifier</field>
         <field name="type">tree</field>
-        <field name="name">party_identifier_list</field>
+        <field name="name">party_cs_identifier_list</field>
     </record>
-    <record model="ir.action.act_window" id="act_party_identifier">
+    <record model="ir.action.act_window" id="act_party_cs_identifier">
         <field name="name">Party Identifier</field>
-        <field name="res_model">party.identifier</field>
+        <field name="res_model">party.cs_identifier</field>
     </record>
-	<record model="ir.action.act_window.view"
-            id="act_party_identifier_list">
-        <field name="sequence" eval="10"/>
-        <field name="view" ref="party_identifier_list"/>
-        <field name="act_window" ref="act_party_identifier"/>
-	</record>
     <record model="ir.action.act_window.view"
-            id="act_party_identifier_form">
-        <field name="sequence" eval="20"/>
-        <field name="view" ref="party_identifier_form"/>
-        <field name="act_window" ref="act_party_identifier"/>
+            id="act_party_cs_identifier_list">
+        <field name="sequence" eval="10"/>
+        <field name="view" ref="party_cs_identifier_list"/>
+        <field name="act_window" ref="act_party_cs_identifier"/>
     </record>
-    <menuitem name="Identifiers" id="menu_party_identifiers"
-              parent="party.menu_party" sequence="0" 
-	          action="act_party_identifier"/>
+    <record model="ir.action.act_window.view"
+            id="act_party_cs_identifier_form">
+        <field name="sequence" eval="20"/>
+        <field name="view" ref="party_cs_identifier_form"/>
+        <field name="act_window" ref="act_party_cs_identifier"/>
+    </record>
+    <menuitem name="Identifiers" id="menu_party_cs_identifiers"
+              parent="party.menu_party" sequence="0"
+              action="act_party_cs_identifier"/>
 
-	<!-- Menue: Parties / Identifier Names -->
-	<record model="ir.ui.view" id="party_identifier_space_form">
-        <field name="model">party.identifier.space</field>
+    <!-- Menue: Parties / Identifier Names -->
+    <record model="ir.ui.view" id="party_cs_identifier_space_form">
+        <field name="model">party.cs_identifier.space</field>
         <field name="type">form</field>
-        <field name="name">party_identifier_space_form</field>
+        <field name="name">party_cs_identifier_space_form</field>
     </record>
-    <record model="ir.ui.view" id="party_identifier_space_list">
-        <field name="model">party.identifier.space</field>
+    <record model="ir.ui.view" id="party_cs_identifier_space_list">
+        <field name="model">party.cs_identifier.space</field>
         <field name="type">tree</field>
-        <field name="name">party_identifier_space_list</field>
+        <field name="name">party_cs_identifier_space_list</field>
     </record>
-    <record model="ir.action.act_window" id="act_party_identifier_space">
+    <record model="ir.action.act_window" id="act_party_cs_identifier_space">
         <field name="name">Party Identifier Space</field>
-        <field name="res_model">party.identifier.space</field>
+        <field name="res_model">party.cs_identifier.space</field>
     </record>
-	<record model="ir.action.act_window.view"
-            id="act_party_identifier_space_list">
-        <field name="sequence" eval="10"/>
-        <field name="view" ref="party_identifier_space_list"/>
-        <field name="act_window" ref="act_party_identifier_space"/>
-	</record>
     <record model="ir.action.act_window.view"
-            id="act_party_identifier_space_form">
-        <field name="sequence" eval="20"/>
-        <field name="view" ref="party_identifier_space_form"/>
-        <field name="act_window" ref="act_party_identifier_space"/>
+            id="act_party_cs_identifier_space_list">
+        <field name="sequence" eval="10"/>
+        <field name="view" ref="party_cs_identifier_space_list"/>
+        <field name="act_window" ref="act_party_cs_identifier_space"/>
     </record>
-    <menuitem name="Spaces" parent="menu_party_identifiers"
-              action="act_party_identifier_space"
-              id="menu_identifiers_party_identifier_space"/>
+    <record model="ir.action.act_window.view"
+            id="act_party_cs_identifier_space_form">
+        <field name="sequence" eval="20"/>
+        <field name="view" ref="party_cs_identifier_space_form"/>
+        <field name="act_window" ref="act_party_cs_identifier_space"/>
+    </record>
+    <menuitem name="Spaces" parent="menu_party_cs_identifiers"
+              action="act_party_cs_identifier_space"
+              id="menu_cs_identifiers_party_cs_identifier_space"/>
 
     </data>
 </tryton>

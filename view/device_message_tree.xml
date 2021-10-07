@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Device Messages">
+<tree>
     <field name="uuid" expand="1"/>
     <field name="device" expand="1"/>
-    <field name="timestamp" expand="1"/>
+    <field name="timestamp" widget="date" expand="1"/>
+    <field name="timestamp" widget="time" expand="1"/>
     <field name="direction" expand="1"/>
     <field name="category" expand="1"/>
 </tree>

@@ -2,14 +2,9 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <data>
-    <xpath expr="/form/field[@name='parties']"
-        position="replace">
-    </xpath>
     <xpath
-            expr="/form/field[@name='password']"
+            expr="/form/field[@name='secondary_parties']"
             position="after">
-        <label name="party"/>
-        <field name="party"/>
         <label name="nickname"/>
         <field name="nickname"/>
         <label name="user"/>
@@ -23,7 +18,6 @@
             <group id="avatar">
                 <field name="picture_data" widget="image"
                     height="200" width="200" readonly="1"
-                    img_width="200" img_height="200"
                     yexpand="0" xexpand="0"/>
                 <newline/>
                 <field name="picture_data" xexpand="0"/>
