@@ -2,7 +2,6 @@
 # Repository: https://github.com/C3S/collecting_society
 
 import uuid
-from decimal import Decimal
 from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import PoolMeta
 from collecting_society import MixinIdentifier

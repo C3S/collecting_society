@@ -1,7 +1,7 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
 from trytond.model import ModelView, ModelSQL, ModelSingleton, fields
-from trytond.model import MultiValueMixin, ValueMixin
+from trytond.model import MultiValueMixin
 from trytond.pool import Pool
 from trytond.pyson import Id
 
