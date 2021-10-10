@@ -2,8 +2,7 @@
 # Repository: https://github.com/C3S/collecting_society
 
 import uuid
-from decimal import Decimal
-from trytond.model import ModelView, ModelSQL, fields
+from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import PoolMeta
 from collecting_society import MixinIdentifier
 
@@ -16,10 +15,9 @@ __all__ = [
     'Category',
     'Address'
 ]
-__metaclass__ = PoolMeta
 
 
-class Party:
+class Party(metaclass=PoolMeta):
     __name__ = 'party.party'
     _history = True
 
@@ -41,8 +39,8 @@ class Party:
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
              'exposure of implementation details to the users.')
-    identifiers = fields.One2Many(
-        'party.identifier', 'party', '3rd-Party Identifier',
+    cs_identifiers = fields.One2Many(
+        'party.cs_identifier', 'party', '3rd-Party Identifier',
         help='The identifiers of the party')
     legal_person = fields.Boolean('Legal Person')
     common_public_interest = fields.Selection(
@@ -56,9 +54,10 @@ class Party:
     @classmethod
     def __setup__(cls):
         super(Party, cls).__setup__()
+        table = cls.__table__()
         cls._sql_constraints += [
-            ('uuid_oid', 'UNIQUE(oid)',
-                'The OID of the client must be unique.'),
+            ('uuid_oid', Unique(table, table.oid),
+             'The OID of the client must be unique.'),
         ]
 
     @staticmethod
@@ -69,17 +68,13 @@ class Party:
     def default_common_public_interest():
         return 'no'
 
-    @staticmethod
-    def default_pocket_budget():
-        return Decimal('0')
-
 
 class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
     'Party Identifier'
-    __name__ = 'party.identifier'
+    __name__ = 'party.cs_identifier'
     _history = True
     space = fields.Many2One(
-        'party.identifier.space', 'Party Identifier Name',
+        'party.cs_identifier.space', 'Party Identifier Name',
         required=True, select=True, ondelete='CASCADE')
     party = fields.Many2One(
         'party.party', 'Party',
@@ -88,27 +83,27 @@ class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
 
 class PartyIdentifierSpace(ModelSQL, ModelView):
     'Party Identifier Space'
-    __name__ = 'party.identifier.space'
+    __name__ = 'party.cs_identifier.space'
     _history = True
     name = fields.Char('Name of the ID space')
     version = fields.Char('Version')
 
 
-class PartyCategory():
+class PartyCategory(metaclass=PoolMeta):
     __name__ = 'party.party-party.category'
     _history = True
 
 
-class ContactMechanism():
+class ContactMechanism(metaclass=PoolMeta):
     __name__ = 'party.contact_mechanism'
     _history = True
 
 
-class Category():
+class Category(metaclass=PoolMeta):
     __name__ = 'party.category'
     _history = True
 
 
-class Address():
+class Address(metaclass=PoolMeta):
     __name__ = 'party.address'
     _history = True

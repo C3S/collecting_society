@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Access">
+<tree>
     <field name="web_user" expand="1"/>
     <field name="party" expand="1"/>
     <field name="entity" expand="1"/>

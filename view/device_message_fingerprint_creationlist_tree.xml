@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Fingerprint Creation Lists">
+<tree>
     <field name="id"/>
     <field name="context" expand="1"/>
-    <field name="start" expand="1"/>
-    <field name="end" expand="1"/>
+    <field name="start" widget="date" expand="1"/>
+    <field name="start" widget="time" expand="1"/>
+    <field name="end" widget="date" expand="1"/>
+    <field name="end" widget="time" expand="1"/>
     <field name="utilisation_creationlist" expand="1"/>
     <field name="items"/>
     <field name="confirmed"/>

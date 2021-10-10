@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Utilisation">
+<tree>
     <field name="code" expand="1"/>
     <field name="declaration" expand="1"/>
-    <field name="start" expand="1"/>
+    <field name="start" widget="date" expand="1"/>
+    <field name="start" widget="time" expand="1"/>
     <field name="licensee" expand="1"/>
     <field name="tariff" expand="1"/>
     <field name="confirmation" expand="1"/>

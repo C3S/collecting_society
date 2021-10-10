@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Fingerprint Creation List Item" col="4">
+<form col="4">
     <label name="creation_list"/>
     <field name="creation_list"/>
     <label name="timestamp"/>

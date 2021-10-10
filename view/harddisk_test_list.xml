@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<tree string="Harddisktests">
+<tree>
     <field name="harddisk" expand="1"/>
     <field name="status" expand="1"/>
-    <field name="timestamp"/>
+    <field name="timestamp" widget="date"/>
+    <field name="timestamp" widget="time"/>
 </tree>

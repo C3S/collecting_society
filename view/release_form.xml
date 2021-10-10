@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Release" col="8">
+<form col="8">
     <label name="title"/>
     <field name="title"/>
     <label name="code"/>
@@ -24,7 +24,6 @@
                 <separator string="Picture" id="picture" xexpand="0"/>
                 <field name="picture_data" widget="image"
                     height="200" width="200" readonly="1"
-                    img_width="200" img_height="200"
                     yexpand="0" xexpand="0"/>
                 <field name="picture_data" xexpand="0"/>
             </group>
@@ -36,7 +35,7 @@
             <field name="styles" colspan="2" yexpand="1"/>
         </page>
         <page string="IDs" id="identifiers">
-            <field name="identifiers" string="Identifiers"/>
+            <field name="cs_identifiers" string="Identifiers"/>
         </page>
         <page string="Tracks" id="tracks">
             <field name="tracks" string="Tracks" />

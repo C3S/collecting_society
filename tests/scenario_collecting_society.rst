@@ -12,27 +12,26 @@ Imports::
     >>> import datetime
     >>> from dateutil.relativedelta import relativedelta
     >>> from decimal import Decimal
+
     >>> from proteus import config, Model, Wizard
+    >>> from trytond.tests.tools import activate_modules
+    >>> from trytond.modules.company.tests.tools import create_company, \
+    ...     get_company
+    >>> from trytond.modules.account.tests.tools import create_fiscalyear, \
+    ...     create_chart, get_accounts, create_tax, create_tax_code
+    >>> from trytond.modules.account_invoice.tests.tools import \
+    ...     set_fiscalyear_invoice_sequences
+
     >>> today = datetime.date.today()
     >>> now = datetime.datetime.now()
     >>> #import interlude; interlude.interact(locals())
 
-Create database::
+Activate modules::
 
-    >>> config = config.set_trytond()
-    >>> config.pool.test = True
-
-Install collecting_society::
-
-    >>> Module = Model.get('ir.module.module')
-    >>> module, = Module.find(
-    ...     [('name', '=', 'collecting_society')])
-    >>> Module.install([module.id], config.context)
-    >>> Wizard('ir.module.module.install_upgrade').execute('upgrade')
+    >>> config = activate_modules('collecting_society')
 
 Get some defaults::
 
-    >>> #import interlude; interlude.interact(locals())
     >>> Country = Model.get('country.country')
     >>> Currency = Model.get('currency.currency')
     >>> Language = Model.get('ir.lang')
@@ -44,133 +43,65 @@ Get some defaults::
 
 Setup Collecting Society Company
 --------------------------------
+
 Create company::
 
-    >>> Company = Model.get('company.company')
     >>> Party = Model.get('party.party')
-
-    >>> party = Party(
-    ...     name='C3S SCE')
-
+    >>> party = Party(name='C3S SCE')
     >>> _ = party.addresses.pop()
     >>> party_address = party.addresses.new(
     ...     street='Rochusstraße 44',
-    ...     zip='40479',
+    ...     postal_code='40479',
     ...     city='Düsseldorf',
     ...     country=germany)
-    >>> party.save()
-
-    >>> company_config = Wizard('company.company.config')
-    >>> company_config.execute('company')
-    >>> company = company_config.form
-    >>> company.party = party
-    >>> company.currency = euro
-    >>> company_config.execute('add')
-    >>> company, = Company.find()
-
-Reload context::
-
-    >>> User = Model.get('res.user')
-    >>> config._context = User.get_preferences(True, config.context)
-
-Create payment term::
-
-    >>> PaymentTerm = Model.get('account.invoice.payment_term')
-    >>> PaymentTermLine = Model.get('account.invoice.payment_term.line')
-    >>> payment_term = PaymentTerm(name='Term')
-    >>> payment_term_line = PaymentTermLine(type='remainder', days=14)
-    >>> payment_term.lines.append(payment_term_line)
-    >>> payment_term.save()
+    >>> tax_identifier = party.identifiers.new()
+    >>> tax_identifier.type = 'eu_vat'
+    >>> tax_identifier.code = 'BE0897290877'
+    >>> _ = create_company(party=party, currency=euro)
+    >>> company = get_company()
 
 Create fiscal year::
 
-    >>> FiscalYear = Model.get('account.fiscalyear')
-    >>> Sequence = Model.get('ir.sequence')
-    >>> SequenceStrict = Model.get('ir.sequence.strict')
-    >>> fiscalyear = FiscalYear(name='%s' % today.year)
-    >>> fiscalyear.start_date = today + relativedelta(month=1, day=1)
-    >>> fiscalyear.end_date = today + relativedelta(month=12, day=31)
-    >>> fiscalyear.company = company
-    >>> post_move_sequence = Sequence(name='%s' % today.year,
-    ...     code='account.move', company=company)
-    >>> post_move_sequence.save()
-    >>> fiscalyear.post_move_sequence = post_move_sequence
-    >>> invoice_seq = SequenceStrict(name=str(today.year),
-    ...     code='account.invoice', company=company)
-    >>> invoice_seq.save()
-    >>> fiscalyear.out_invoice_sequence = invoice_seq
-    >>> fiscalyear.in_invoice_sequence = invoice_seq
-    >>> fiscalyear.out_credit_note_sequence = invoice_seq
-    >>> fiscalyear.in_credit_note_sequence = invoice_seq
-    >>> fiscalyear.save()
-    >>> FiscalYear.create_period([fiscalyear.id], config.context)
+    >>> fiscalyear = set_fiscalyear_invoice_sequences(
+    ...     create_fiscalyear(company))
+    >>> fiscalyear.click('create_period')
+    >>> period = fiscalyear.periods[0]
+    >>> period_ids = [p.id for p in fiscalyear.periods]
 
 Create chart of accounts::
 
-    >>> AccountTemplate = Model.get('account.account.template')
-    >>> Account = Model.get('account.account')
-    >>> account_template, = AccountTemplate.find([('parent', '=', None)])
-    >>> create_chart = Wizard('account.create_chart')
-    >>> create_chart.execute('account')
-    >>> create_chart.form.account_template = account_template
-    >>> create_chart.form.company = company
-    >>> create_chart.execute('create_account')
-    >>> receivable, = Account.find([
-    ...         ('kind', '=', 'receivable'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> payable, = Account.find([
-    ...         ('kind', '=', 'payable'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> revenue, = Account.find([
-    ...         ('kind', '=', 'revenue'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> expense, = Account.find([
-    ...         ('kind', '=', 'expense'),
-    ...         ('company', '=', company.id),
-    ...         ])
-    >>> cash, = Account.find([
-    ...         ('kind', '=', 'other'),
-    ...         ('company', '=', company.id),
-    ...         ('name', '=', 'Main Cash'),
-    ...         ])
-    >>> account_tax, = Account.find([
-    ...         ('kind', '=', 'other'),
-    ...         ('company', '=', company.id),
-    ...         ('name', '=', 'Main Tax'),
-    ...         ])
-
-    >>> create_chart.form.account_receivable = receivable
-    >>> create_chart.form.account_payable = payable
-    >>> create_chart.execute('create_properties')
-
+    >>> _ = create_chart(company)
+    >>> accounts = get_accounts(company)
+    >>> receivable = accounts['receivable']
+    >>> revenue = accounts['revenue']
+    >>> expense = accounts['expense']
+    >>> account_tax = accounts['tax']
+    >>> account_cash = accounts['cash']
 
 Create tax::
 
     >>> TaxCode = Model.get('account.tax.code')
-    >>> Tax = Model.get('account.tax')
-    >>> tax = Tax()
-    >>> tax.name = '19% Mehrwertsteuer'
-    >>> tax.description = '19% Mehrwertsteuer'
-    >>> tax.type = 'percentage'
-    >>> tax.rate = Decimal('.19')
-    >>> tax.invoice_account = account_tax
-    >>> tax.credit_note_account = account_tax
-    >>> invoice_base_code = TaxCode(name='invoice base')
-    >>> invoice_base_code.save()
-    >>> tax.invoice_base_code = invoice_base_code
-    >>> invoice_tax_code = TaxCode(name='invoice tax')
-    >>> invoice_tax_code.save()
-    >>> tax.invoice_tax_code = invoice_tax_code
-    >>> credit_note_base_code = TaxCode(name='credit note base')
-    >>> credit_note_base_code.save()
-    >>> tax.credit_note_base_code = credit_note_base_code
-    >>> credit_note_tax_code = TaxCode(name='credit note tax')
-    >>> credit_note_tax_code.save()
-    >>> tax.credit_note_tax_code = credit_note_tax_code
+    >>> tax = create_tax(Decimal('.19'))
     >>> tax.save()
+    >>> invoice_base_code = create_tax_code(tax, 'base', 'invoice')
+    >>> invoice_base_code.save()
+    >>> invoice_tax_code = create_tax_code(tax, 'tax', 'invoice')
+    >>> invoice_tax_code.save()
+    >>> credit_note_base_code = create_tax_code(tax, 'base', 'credit')
+    >>> credit_note_base_code.save()
+    >>> credit_note_tax_code = create_tax_code(tax, 'tax', 'credit')
+    >>> credit_note_tax_code.save()
+
+Create payment term::
+
+    >>> PaymentTerm = Model.get('account.invoice.payment_term')
+    >>> payment_term = PaymentTerm(name='Term')
+    >>> line = payment_term.lines.new(type='percent', ratio=Decimal('.5'))
+    >>> delta, = line.relativedeltas
+    >>> delta.days = 20
+    >>> line = payment_term.lines.new(type='remainder')
+    >>> delta = line.relativedeltas.new(days=40)
+    >>> payment_term.save()
 
 Create Transitory account::
 
@@ -180,24 +111,24 @@ Create Transitory account::
     >>> transit_account_type = AccountType(
     ...     name='Transit',
     ...     parent=root_account_type,
-    ...     balance_sheet=True,
+    ...     statement='balance',
     ...     company=company)
     >>> transit_account_type.save()
+    >>> Account = Model.get('account.account')
     >>> root_account, = Account.find([('name', '=', 'Minimal Account Chart')])
     >>> transit_account = Account(
     ...     name='Main Transit',
     ...     type=transit_account_type,
-    ...     kind='other',
     ...     parent=root_account,
     ...     company=company)
     >>> transit_account.save()
+    >>> Sequence = Model.get('ir.sequence')
+    >>> sequence_journal, = Sequence.find([('name', '=', 'Default Account Journal')])
     >>> AccountJournal = Model.get('account.journal')
-    >>> sequence_journal, = Sequence.find([('code', '=', 'account.journal')])
     >>> journal = AccountJournal(
     ...     name='Transit', code='TRANS', type='general',
     ...     sequence=sequence_journal)
     >>> journal.save()
-    >>> #import interlude; interlude.interact(locals())
 
 Create separate escrow bank account and journal for colleting money which is
 not owned by C3S::
@@ -207,12 +138,12 @@ not owned by C3S::
     >>> escrow_account_type = AccountType(
     ...     name='Escrow',
     ...     parent=current_account_type,
+    ...     statement=current_account_type.statement,
     ...     company=company)
     >>> escrow_account_type.save()
     >>> escrow_account = Account(
     ...     name='Main Escrow',
     ...     type=current_account_type,
-    ...     kind='other',
     ...     deferral=True,
     ...     parent=root_account,
     ...     company=company)
@@ -221,11 +152,8 @@ not owned by C3S::
     ...     name='Escrow',
     ...     code='ESCR',
     ...     type='cash',
-    ...     debit_account=escrow_account,
-    ...     credit_account=escrow_account,
     ...     sequence=sequence_journal)
     >>> escrow_journal.save()
-
 
 
 Web-User Scenario
@@ -242,7 +170,7 @@ Create a web user::
 Set login credentials and other essentials::
 
     >>> web_user.email = 'wilbert_webuser@c3s.cc'
-    >>> web_user.password = 'wu'
+    >>> web_user.password = 'password123'
     >>> web_user.nickname = 'wil'
     >>> web_user.save()
 
@@ -282,7 +210,7 @@ result is the authenticated web user object::
 
     >>> logged_in_web_user = WebUser.authenticate(
     ...     'wilbert_webuser@c3s.cc',
-    ...     'wu',
+    ...     'password123',
     ...     config.context)
     >>> assert(logged_in_web_user)
     >>> logged_in_web_user
@@ -299,7 +227,7 @@ A valid licenser web user. See Web-User Scenario for details::
 
     >>> licenser = WebUser()
     >>> licenser.email='cres_licenser@c3s.cc'
-    >>> licenser.password='cc'
+    >>> licenser.password='password123'
     >>> web_user.nickname = 'wil'
     >>> licenser.opt_in_state = 'opted-in'
     >>> licenser.save()
@@ -321,7 +249,7 @@ Add an address::
     >>> licenser.party.addresses.append(
     ...     Address(
     ...         street='Berliner Strasse 123',
-    ...         zip='51063',
+    ...         postal_code='51063',
     ...         city='Köln',
     ...         country=germany))
 
@@ -414,7 +342,7 @@ A newly created web user named 'meik' ...::
 
     >>> meik = WebUser()
     >>> meik.email = 'meik@c3s.cc'
-    >>> meik.password = 'meik'
+    >>> meik.password = 'password123'
     >>> meik.nickname = 'm.'
     >>> meik.opt_in_state = 'opted-in'
     >>> meik.save()
@@ -490,7 +418,7 @@ tobi::
 
     >>> tobi = WebUser()
     >>> tobi.email = 'tobi@c3s.cc'
-    >>> tobi.password = 'tobi'
+    >>> tobi.password = 'password123'
     >>> tobi.nickname = 'Rettich'
     >>> tobi.opt_in_state = 'opted-in'
     >>> tobi.save()
@@ -561,7 +489,7 @@ The proposed payee is accepted, when every web user party in the
 access parties list accepts the new payee::
 
     >>> angstalt.payee_acceptances.append(tobi.party)
-    >>> sorted(angstalt.payee_acceptances) == sorted(angstalt.access_parties)
+    >>> set(angstalt.payee_acceptances) == set(angstalt.access_parties)
     True
 
 In case everyone accepts the new payee, the payee field is updated::
@@ -616,7 +544,7 @@ Create a web user for this scenario::
 Set login credentials and other essentials and opt-in::
 
     >>> web_user.email = 'max_repertoire@c3s.cc'
-    >>> web_user.password = 'mr'
+    >>> web_user.password = 'password123'
     >>> web_user.nickname = 'maxr'
     >>> web_user.opt_in_state = 'opted-in'
     >>> web_user.save()
@@ -626,7 +554,7 @@ Get required objects and login user::
     >>> Content = Model.get('content')
     >>> content = Content()
     >>> web_user_max = WebUser.authenticate(
-    ... 'max_repertoire@c3s.cc','mr',config.context)
+    ... 'max_repertoire@c3s.cc','password123',config.context)
     >>> web_user_max = WebUser(web_user_max.id)
 
 Create valid content::
@@ -644,7 +572,7 @@ Create valid content::
     >>> content.category = 'audio'
     >>> content.post_ingest_excerpt_score = 0
     >>> content.processing_hostname = '4f7dd1c466d6'
-    >>> content.lenght = 1
+    >>> content.length = 1
     >>> content.sample_width = 16
     >>> content.mime_type = 'audio/x-wav'
     >>> content.processing_state = 'dropped'
@@ -668,7 +596,7 @@ Create format error content::
     >>> content.category = 'audio'
     >>> content.post_ingest_excerpt_score = 0
     >>> content.processing_hostname = '4f7dd1c466d6'
-    >>> content.lenght = 1
+    >>> content.length = 1
     >>> content.sample_width = 16
     >>> content.mime_type = 'application/pdf'
     >>> content.processing_state = 'rejected'
@@ -693,7 +621,7 @@ Create lossy compression content::
     >>> content.category = 'audio'
     >>> content.post_ingest_excerpt_score = 0
     >>> content.processing_hostname = '4f7dd1c466d6'
-    >>> content.lenght = 1
+    >>> content.length = 1
     >>> content.sample_width = 16
     >>> content.mime_type = 'audio/x-mpeg'
     >>> content.processing_state = 'rejected'

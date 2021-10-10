@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Tariffs" col="6">
+<form col="6">
     <label name="code"/>
     <field name="code"/>
     <group col="20" colspan="2" id="checkboxes">
