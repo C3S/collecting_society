@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Role" col="8">
+<form col="8">
     <label name="name"/>
     <field name="name" colspan="7"/>
     <separator name="description" colspan="8"/>

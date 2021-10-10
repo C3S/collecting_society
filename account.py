@@ -2,10 +2,9 @@
 # Repository: https://github.com/C3S/collecting_society
 from trytond.model import fields
 from trytond.pool import PoolMeta
-
+from trytond.exceptions import UserError
 
 __all__ = ['AccountMove', 'AccountMoveLine']
-__metaclass__ = PoolMeta
 
 
 # class AccountTemplate:
@@ -26,7 +25,7 @@ __metaclass__ = PoolMeta
 #         cls.kind.selection += [('hat', 'Hat'), ('pocket', 'Pocket')]
 
 
-class AccountMove():
+class AccountMove(metaclass=PoolMeta):
     __name__ = 'account.move'
 
     @classmethod
@@ -36,7 +35,7 @@ class AccountMove():
             + ['distribution.allocation'])
 
 
-class AccountMoveLine():
+class AccountMoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
     artist = fields.Many2One('artist', 'Artist', select=True)
@@ -51,8 +50,8 @@ class AccountMoveLine():
     # of this method from module account
     def check_account(self):
         if self.account.kind in ('view',):
-            self.raise_user_error(
+            raise UserError(
                 'move_view_account', (self.account.rec_name,))
         if not self.account.active:
-            self.raise_user_error(
+            raise UserError(
                 'move_inactive_account', (self.account.rec_name,))
