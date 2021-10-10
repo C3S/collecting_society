@@ -4487,6 +4487,29 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The utilisations created for the declaration')
 
+    @classmethod
+    def create(cls, vlist):
+        DistributionPlan = Pool().get('distribution.plan')
+        most_recent_distribution_plan = DistributionPlan.search(
+            [], 0, 1, [('id', 'DESC')])
+        if not most_recent_distribution_plan:
+            raise UserError('no_distribution_plan',
+                            'No distribution plan available for utilisation.')
+
+        elist = super(Declaration, cls).create(vlist)
+        Utilisation = Pool().get('utilisation')
+        for entry in elist:
+            utilisation = Utilisation()
+            utilisation.declaration = entry
+            utilisation.licensee = entry.licensee
+            utilisation.state = entry.state
+            utilisation.start = entry.creation_time
+            utilisation.tariff = entry.tariff
+            utilisation.context = entry.context
+            utilisation.distribution_plan = most_recent_distribution_plan[0].id
+            utilisation.save()
+        return elist
+
 
 class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
     'Declaration Group'
@@ -4562,15 +4585,22 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         '*Invoiced*: An invoice for the utilisation was created.\n'
         '*Payed*: The invoice amount was received.\n'
         '*Distributed*: The distribution amount was distributed.')
-    start = fields.DateTime(
-        'Start', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='Start of the period of utilisation')
-    end = fields.DateTime(
-        'End', states=STATES, depends=DEPENDS,
-        help='End of the period of utilisation')
+    start_override = fields.DateTime(
+        'Start',
+        help='Start of the period of utilisation, if setter is used')
+    start = fields.Function(
+        fields.DateTime(
+            'Start', depends=DEPENDS, states={
+                'required': True,
+            }, help='Start of the period of utilisation'),
+        'get_start', 'set_start')
+    end_override = fields.DateTime(
+        'End',
+        help='End of the period of utilisation, if setter is used')
+    end = fields.Function(
+        fields.DateTime(
+            'End', help='End of the period of utilisation'),
+        'get_end', 'set_end')
     confirmation = fields.Selection(
         [
             (None, ''),
@@ -4681,6 +4711,51 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         default = default.copy()
         default['code'] = None
         return super().copy(utilisations, default=default)
+
+    @classmethod
+    def set_start(cls, utilisations, name, start):
+        for utilisation in utilisations:
+            # if utilisation.context is not None:
+            #     return None
+            utilisation.start_override = start
+            utilisation.save()
+
+    def get_start(self, name=None):
+        if self.context:
+            if self.tariff.category.code == 'C':  # reproduction
+                if self.context.production_date is not None:  # return proddate
+                    return datetime.datetime.combine(
+                        self.context.production_date,
+                        datetime.time(0, 0, 0, 0)
+                    )
+            if self.tariff.category.code == 'L':  # live
+                return self.context.start  # event start date
+
+        # all other tariffs get the start date from a manually entered date
+        return self.start_override
+
+    @classmethod
+    def set_end(cls, utilisations, name, end):
+        for utilisation in utilisations:
+            # if utilisation.context is not None:
+            #     return None
+            utilisation.end_override = end
+            utilisation.save()
+
+    def get_end(self, name=None):
+        if self.context:
+            if self.tariff.category.code == 'C':  # reproduction
+                if self.context.production_date is not None:  # return proddate
+                    return datetime.datetime.combine(         # + 1
+                        self.context.production_date + datetime.timedelta(
+                            days=1),
+                        datetime.time(0, 0, 0, 0)
+                    )
+            if self.tariff.category.code == 'L':  # live
+                return self.context.end  # event end date
+
+        # all other tariffs get the end date from a manually entered date
+        return self.end_override
 
     def _get_invoice_lines(self):
         '''
