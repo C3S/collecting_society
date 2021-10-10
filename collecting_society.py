@@ -4676,7 +4676,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('code_uniq', Unique(table, table.code),
              'The code of the utilisation must be unique.')
         ]
-        cls._order.insert(1, ('start', 'ASC'))
+        # cls._order.insert(1, ('start', 'ASC'))
         # cls._error_messages.update({
         #     'missing_account_revenue': 'Product "%(product)s" misses a '
         #     'revenue account.',
