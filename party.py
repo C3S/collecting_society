@@ -4,7 +4,7 @@
 import uuid
 from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import PoolMeta
-from collecting_society import MixinIdentifier
+from .collecting_society import MixinIdentifier
 
 __all__ = [
     'Party',
