@@ -1506,7 +1506,9 @@ class IndicatorsMeta(ModelMeta):
                 value = getattr(indicators, attribute_name)
                 if isinstance(value, tuple):
                     return [entry.id for entry in value]
-                return getattr(indicators, attribute_name)
+                if isinstance(value, ModelSQL):
+                    return value.id
+                return value
         return get_value
 
     @staticmethod
