@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
-from setuptools import setup
+from setuptools import find_packages, setup
 import re
 import os
 import configparser
@@ -48,10 +48,10 @@ setup(
     author_email='info@virtual-things.biz',
     url='http://www.virtual-things.biz',
     package_dir={'trytond.modules.%s' % MODULE: '.'},
-    packages=[
-        'trytond.modules.%s' % MODULE,
-        'trytond.modules.%s.tests' % MODULE,
-    ],
+    packages=(
+        ['trytond.modules.%s' % MODULE]
+        + ['trytond.modules.%s.%s' % (MODULE, p) for p in find_packages()]
+    ),
     package_data={
         'trytond.modules.%s' % MODULE: (
             info.get('xml', []) + [
@@ -76,12 +76,12 @@ setup(
     ],
     license='AGPL-3',
     install_requires=requires,
+    extras_require={
+        'test': tests_require,
+        },
     zip_safe=False,
     entry_points="""
     [trytond.modules]
     %s = trytond.modules.%s
     """ % (MODULE, MODULE),
-    test_suite='tests',
-    test_loader='trytond.test_loader:Loader',
-    tests_require=tests_require,
 )
