@@ -4134,7 +4134,10 @@ class DeviceMessageFingerprintMergeStart(ModelView):
         'Context', [
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
-        ], domain=[('messages', '!=', None)],  # TODO: fingerprints searcher
+        ], domain={
+            'location.space': [('messages', '!=', None)],
+            'website.resource': [('messages', '!=', None)],
+        },  # TODO: fingerprints searcher
         states={'required': True}, help='The context')
     states = fields.Boolean(
         'All States', help="Include fingerprints with all states")
