@@ -30,10 +30,10 @@ class UserRole(ModelSQL, ModelView):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, translate=True,
+        'Name', required=True, translate=True,
         help='The display name of role.')
     code = fields.Char(
-        'Code', required=True, select=True,
+        'Code', required=True,
         help='The internal or programmatical name of the role.')
 
 
@@ -173,10 +173,9 @@ class UserResUser(ModelSQL):
     'Web User - Tryton User'
     __name__ = 'web.user-res.user'
     web_user = fields.Many2One(
-        'web.user', 'Web User', ondelete='CASCADE', select=True, required=True)
+        'web.user', 'Web User', ondelete='CASCADE', required=True)
     res_user = fields.Many2One(
-        'res.user', 'Tryton User', ondelete='CASCADE', select=True,
-        required=True)
+        'res.user', 'Tryton User', ondelete='CASCADE', required=True)
 
     @classmethod
     def __setup__(cls):
@@ -200,10 +199,9 @@ class UserUserRole(ModelSQL, ModelView):
     _history = True
 
     user = fields.Many2One(
-        'web.user', 'User', ondelete='CASCADE', select=True, required=True)
+        'web.user', 'User', ondelete='CASCADE', required=True)
     role = fields.Many2One(
-        'web.user.role', 'Role', ondelete='CASCADE', select=True,
-        required=True)
+        'web.user.role', 'Role', ondelete='CASCADE', required=True)
 
 
 class UserParty(ModelSQL):
@@ -212,9 +210,9 @@ class UserParty(ModelSQL):
     _history = True
 
     user = fields.Many2One(
-        'web.user', 'User', ondelete='CASCADE', select=True, required=True)
+        'web.user', 'User', ondelete='CASCADE', required=True)
     party = fields.Many2One(
-        'party.party', 'Party', ondelete='CASCADE', select=True, required=True)
+        'party.party', 'Party', ondelete='CASCADE', required=True)
 
     @classmethod
     def __setup__(cls):
