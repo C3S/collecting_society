@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="location"/>
+    <field name="location"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="description"/>
+    <field name="description"/>
+    <field name="performances" colspan="4"/>
+
+    <notebook colspan="6">
+        <page string="Indicators" id="indicators" col="4">
+            <separator string="Estimated" id="estimated" colspan="2"/>
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="estimated_start"/>
+            <field name="estimated_start"/>
+            <label name="confirmed_start"/>
+            <field name="confirmed_start"/>
+
+            <label name="estimated_end"/>
+            <field name="estimated_end"/>
+            <label name="confirmed_end"/>
+            <field name="confirmed_end"/>
+
+            <label name="estimated_attendants"/>
+            <field name="estimated_attendants"/>
+            <label name="confirmed_attendants"/>
+            <field name="confirmed_attendants"/>
+
+            <label name="estimated_turnover_tickets"/>
+            <field name="estimated_turnover_tickets"/>
+            <label name="confirmed_turnover_tickets"/>
+            <field name="confirmed_turnover_tickets"/>
+            
+            <label name="estimated_turnover_benefit"/>
+            <field name="estimated_turnover_benefit"/>
+            <label name="confirmed_turnover_benefit"/>
+            <field name="confirmed_turnover_benefit"/>
+            
+            <label name="estimated_expenses_musicians"/>
+            <field name="estimated_expenses_musicians"/>
+            <label name="confirmed_expenses_musicians"/>
+            <field name="confirmed_expenses_musicians"/>
+            
+            <label name="estimated_expenses_production"/>
+            <field name="estimated_expenses_production"/>
+            <label name="confirmed_expenses_production"/>
+            <field name="confirmed_expenses_production"/>
+        </page>
+    </notebook>
+</form>

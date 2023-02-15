@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Creation" col="8">
+<form col="8">
     <label name="title"/>
     <field name="title" xexpand="1"/>
     <label name="code"/>
@@ -23,13 +23,17 @@
         <page string="Contributions" id="contributions">
             <field name="contributions"/>
         </page>
+        <page string="IDs" id="identifiers">
+            <field name="cs_identifiers" string="Identifiers"/>
+        </page>
         <page string="Derivatives" id="derivatives" col="1">
             <field name="original_relations" string="Originals"/>
             <field name="derivative_relations" string="Derivatives"/>
         </page>
-        <page string="Content" id="content" col="1">
-            <field name="content"/>
-            <field name="identifiers"/>
+        <page string="Content" id="content" col="2">
+            <label name="duration"/>
+            <field name="duration"/>
+            <field name="content" colspan="2"/>
         </page>
         <page string="Releases" id="releases" col="1">
             <field name="releases"/>
@@ -47,8 +51,6 @@
         </page>
         <page string="Access" id="access" col="6">
             <field name="acl" colspan="6"/>
-            <label name="entity_origin"/>
-            <field name="entity_origin" colspan="5"/>
             <label name="entity_creator"/>
             <field name="entity_creator" colspan="5"/>
             <label name="claim_state"/>

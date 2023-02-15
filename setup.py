@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
-from setuptools import setup
+from setuptools import find_packages, setup
 import re
 import os
-import ConfigParser
+import configparser
 
 MODULE = 'collecting_society'
 PREFIX = 'c3s'
-MODULE2PREFIX = {
-    'web_user': 'virtualthings'}
+MODULE2PREFIX = {}
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-config = ConfigParser.ConfigParser()
+config = configparser.ConfigParser()
 config.readfp(open('tryton.cfg'))
 info = dict(config.items('tryton'))
 for key in ('depends', 'extras_depend', 'xml'):
@@ -49,10 +48,10 @@ setup(
     author_email='info@virtual-things.biz',
     url='http://www.virtual-things.biz',
     package_dir={'trytond.modules.%s' % MODULE: '.'},
-    packages=[
-        'trytond.modules.%s' % MODULE,
-        'trytond.modules.%s.tests' % MODULE,
-    ],
+    packages=(
+        ['trytond.modules.%s' % MODULE]
+        + ['trytond.modules.%s.%s' % (MODULE, p) for p in find_packages()]
+    ),
     package_data={
         'trytond.modules.%s' % MODULE: (
             info.get('xml', []) + [
@@ -77,12 +76,12 @@ setup(
     ],
     license='AGPL-3',
     install_requires=requires,
+    extras_require={
+        'test': tests_require,
+        },
     zip_safe=False,
     entry_points="""
     [trytond.modules]
     %s = trytond.modules.%s
     """ % (MODULE, MODULE),
-    test_suite='tests',
-    test_loader='trytond.test_loader:Loader',
-    tests_require=tests_require,
 )

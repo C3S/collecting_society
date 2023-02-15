@@ -8,16 +8,15 @@ __all__ = [
     'BankAccount',
     'BankAccountNumber',
 ]
-__metaclass__ = PoolMeta
 
 
-class BankAccount():
+class BankAccount(metaclass=PoolMeta):
     __name__ = 'bank.account'
     _history = True
     owner = fields.One2One(
         'bank.account-party.party', 'account', 'owner', 'Owner')
 
 
-class BankAccountNumber():
+class BankAccountNumber(metaclass=PoolMeta):
     __name__ = 'bank.account.number'
     _history = True

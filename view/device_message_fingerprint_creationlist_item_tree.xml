@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree>
+    <field name="creation_list" expand="1"/>
+    <field name="creation" expand="1"/>
+    <field name="order" expand="1"/>
+</tree>

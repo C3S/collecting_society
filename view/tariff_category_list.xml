@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree>
+    <field name="name"/>
+    <field name="code"/>
+    <field name="administration_product"/>
+    <field name="distribution_product"/>
+    <field name="active" tree_invisible="1"/>
+</tree>

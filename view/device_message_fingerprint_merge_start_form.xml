@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="2">
+    <label name="context"/>
+    <field name="context"/>
+    <label name="states"/>
+    <field name="states"/>
+    <label name="keep_state"/>
+    <field name="keep_state"/>
+    <label name="start"/>
+    <field name="start"/>
+    <label name="end"/>
+    <field name="end"/>
+</form>

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="4">
+    <label name="context"/>
+    <field name="context"/>
+    <label name="utilisation_creationlist"/>
+    <field name="utilisation_creationlist"/>
+
+    <label name="start"/>
+    <field name="start"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="confirmed"/>
+        <field name="confirmed" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="end"/>
+    <field name="end"/>
+    <label name="period"/>
+    <field name="period"/>
+
+    <label name="identified_percentage"/>
+    <field name="identified_percentage"/>
+    <label name="identified_period"/>
+    <field name="identified_period"/>
+
+    <label name="unidentified_percentage"/>
+    <field name="unidentified_percentage"/>
+    <label name="unidentified_period"/>
+    <field name="unidentified_period"/>
+
+    <field name="items" colspan="4"/>
+</form>

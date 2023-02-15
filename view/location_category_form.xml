@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="code"/>
+    <field name="code"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="description"/>
+    <field name="description" colspan="5"/>
+    
+    <notebook colspan="6">
+        <page string="Locations" id="locations" col="1">
+            <field name="locations"/>
+        </page>
+    </notebook>
+</form>

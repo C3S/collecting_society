@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="playlist"/>
+    <field name="playlist"/>
+    <label name="creation"/>
+    <field name="creation"/>
+    <label name="position"/>
+    <field name="position"/>
+
+    <notebook colspan="6">
+        <page string="Access" id="access" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+        </page>
+    </notebook>
+</form>

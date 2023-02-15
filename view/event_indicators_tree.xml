@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree>
+    <field name="start" widget="date" expand="1"/>
+    <field name="start" widget="time" expand="1"/>
+    <field name="end" widget="date" expand="1"/>
+    <field name="end" widget="time" expand="1"/>
+    <field name="attendants" expand="1"/>
+    <field name="turnover_tickets" expand="1"/>
+    <field name="turnover_benefit" expand="1"/>
+    <field name="expenses_musicians" expand="1"/>
+    <field name="expenses_production" expand="1"/>
+</tree>

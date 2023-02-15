@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form>
+    <label name="type_of_right"/>
+    <field name="type_of_right"/>
+    <label name="valid_from"/>
+    <field name="valid_from"/>
+    <label name="valid_to"/>
+    <field name="valid_to"/>
+    <label name="country"/>
+    <field name="country"/>
+    <label name="collecting_society"/>
+    <field name="collecting_society"/>
+    <label name="rightsholder"/>
+    <field name="rightsholder"/>
+    <label name="rightsobject"/>
+    <field name="rightsobject"/>
+    <label name="contribution"/>
+    <field name="contribution"/>
+    <label name="successor"/>
+    <field name="successor"/>
+</form>

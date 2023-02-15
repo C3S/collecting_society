@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Release" col="8">
+<form col="8">
     <label name="title"/>
     <field name="title"/>
     <label name="code"/>
@@ -14,12 +14,8 @@
     </group>
     <label name="type"/>
     <field name="type"/>
-    <label name="isrc_code"/>
-    <field name="isrc_code"/>
     <label name="label_catalog_number"/>
     <field name="label_catalog_number"/>
-    <label name="ean_upc_code"/>
-    <field name="ean_upc_code"/>
 
     <notebook colspan="8">
         <page string="Metadata" id="metadata" col="4">
@@ -28,7 +24,6 @@
                 <separator string="Picture" id="picture" xexpand="0"/>
                 <field name="picture_data" widget="image"
                     height="200" width="200" readonly="1"
-                    img_width="200" img_height="200"
                     yexpand="0" xexpand="0"/>
                 <field name="picture_data" xexpand="0"/>
             </group>
@@ -38,6 +33,9 @@
             </group>
             <field name="genres" colspan="2" yexpand="1"/>
             <field name="styles" colspan="2" yexpand="1"/>
+        </page>
+        <page string="IDs" id="identifiers">
+            <field name="cs_identifiers" string="Identifiers"/>
         </page>
         <page string="Tracks" id="tracks">
             <field name="tracks" string="Tracks" />
@@ -69,6 +67,12 @@
             <field name="publisher"/>
             <newline/>
             <field name="neighbouring_rights_societies" colspan="4"/>
+        </page>
+        <page string="Indicators" id="indicators" col="2">
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="confirmed_copies"/>
+            <field name="confirmed_copies"/>
         </page>
         <page string="Access" id="access" col="6">
             <field name="acl" colspan="6"/>

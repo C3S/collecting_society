@@ -11,7 +11,6 @@
         <!-- Sequence: Artist -->
         <record model="ir.sequence.type" id="sequence_type_artist">
             <field name="name">Artist</field>
-            <field name="code">artist</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_artist_group_admin">
@@ -20,7 +19,7 @@
         </record>
         <record model="ir.sequence" id="sequence_artist">
             <field name="name">Artist</field>
-            <field name="code">artist</field>
+            <field name="sequence_type" ref="sequence_type_artist"/>
             <field name="prefix">A</field>
             <field name="padding">10</field>
         </record>
@@ -28,7 +27,6 @@
         <!-- Sequence: Release -->
         <record model="ir.sequence.type" id="sequence_type_release">
             <field name="name">Release</field>
-            <field name="code">release</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_release_group_admin">
@@ -37,15 +35,14 @@
         </record>
         <record model="ir.sequence" id="sequence_release">
             <field name="name">Release</field>
-            <field name="code">release</field>
+            <field name="sequence_type" ref="sequence_type_release"/>
             <field name="prefix">R</field>
             <field name="padding">10</field>
         </record>
-        
+
         <!-- Sequence: Creation -->
         <record model="ir.sequence.type" id="sequence_type_creation">
             <field name="name">Creation</field>
-            <field name="code">creation</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_creation_group_admin">
@@ -54,7 +51,7 @@
         </record>
         <record model="ir.sequence" id="sequence_creation">
             <field name="name">Creation</field>
-            <field name="code">creation</field>
+            <field name="sequence_type" ref="sequence_type_creation"/>
             <field name="prefix">C</field>
             <field name="padding">10</field>
         </record>
@@ -62,7 +59,6 @@
         <!-- Sequence: Content -->
         <record model="ir.sequence.type" id="sequence_type_content">
             <field name="name">Content</field>
-            <field name="code">content</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_content_group_admin">
@@ -71,7 +67,7 @@
         </record>
         <record model="ir.sequence" id="sequence_content">
             <field name="name">Content</field>
-            <field name="code">content</field>
+            <field name="sequence_type" ref="sequence_type_content"/>
             <field name="prefix">D</field>
             <field name="padding">10</field>
         </record>
@@ -79,7 +75,6 @@
         <!-- Sequence: Tariff System -->
         <record model="ir.sequence.type" id="sequence_type_tariff_system">
             <field name="name">Tariff System</field>
-            <field name="code">tariff_system</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_tariff_system_group_admin">
@@ -88,45 +83,30 @@
         </record>
         <record model="ir.sequence" id="sequence_tariff_system">
             <field name="name">Tariff System</field>
-            <field name="code">tariff_system</field>
+            <field name="sequence_type" ref="sequence_type_tariff_system"/>
             <field name="prefix">T</field>
             <field name="padding">10</field>
         </record>
-        
-        <!-- Sequence: Harddisk Label -->
-        <record model="ir.sequence.type" id="sequence_type_harddisk_label">
-            <field name="name">Harddisk Label</field>
-            <field name="code">harddisk.label</field>
+
+        <!-- Sequence: Declaration -->
+        <record model="ir.sequence.type" id="sequence_type_declaration">
+            <field name="name">Declaration</field>
         </record>
         <record model="ir.sequence.type-res.group"
-                id="sequence_type_harddisk_label_group_admin">
-            <field name="sequence_type" ref="sequence_type_harddisk_label"/>
+                id="sequence_type_declaration_group_admin">
+            <field name="sequence_type" ref="sequence_type_declaration"/>
             <field name="group" ref="res.group_admin"/>
         </record>
-        <record model="ir.sequence" id="sequence_harddisk_label">
-            <field name="name">Harddisk Label</field>
-            <field name="code">harddisk.label</field>
-        </record>
-        
-        <!-- Sequence: Filesystem Label -->
-        <record model="ir.sequence.type" id="sequence_type_filesystem_label">
-            <field name="name">Filesystem Label</field>
-            <field name="code">harddisk.filesystem.label</field>
-        </record>
-        <record model="ir.sequence.type-res.group"
-                id="sequence_type_filesystem_label_group_admin">
-            <field name="sequence_type" ref="sequence_type_filesystem_label"/>
-            <field name="group" ref="res.group_admin"/>
-        </record>
-        <record model="ir.sequence" id="sequence_filesystem_label">
-            <field name="name">Filesystem Label</field>
-            <field name="code">harddisk.filesystem.label</field>
+        <record model="ir.sequence" id="sequence_declaration">
+            <field name="name">Declaration</field>
+            <field name="sequence_type" ref="sequence_type_declaration"/>
+            <field name="prefix">DECL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Utilisation -->
         <record model="ir.sequence.type" id="sequence_type_utilisation">
             <field name="name">Utilisation</field>
-            <field name="code">creation.utilisation</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_utilisation_group_admin">
@@ -135,13 +115,14 @@
         </record>
         <record model="ir.sequence" id="sequence_utilisation">
             <field name="name">Utilisation</field>
-            <field name="code">creation.utilisation</field>
+            <field name="sequence_type" ref="sequence_type_utilisation"/>
+            <field name="prefix">UTIL</field>
+            <field name="padding">10</field>
         </record>
 
         <!-- Sequence: Distribution -->
         <record model="ir.sequence.type" id="sequence_type_distribution">
             <field name="name">Distribution</field>
-            <field name="code">distribution</field>
         </record>
         <record model="ir.sequence.type-res.group"
                 id="sequence_type_distribution_group_admin">
@@ -150,7 +131,53 @@
         </record>
         <record model="ir.sequence" id="sequence_distribution">
             <field name="name">Distribution</field>
-            <field name="code">distribution</field>
+            <field name="sequence_type" ref="sequence_type_distribution"/>
+            <field name="prefix">DIST</field>
+            <field name="padding">10</field>
+        </record>
+
+        <!-- Sequence: Distribution Plan -->
+        <record model="ir.sequence.type" id="sequence_type_distribution_plan">
+            <field name="name">Distribution Plan</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+                id="sequence_type_distribution_plan_group_admin">
+            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_distribution_plan">
+            <field name="name">Distribution Plan</field>
+            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
+            <field name="prefix">P</field>
+            <field name="padding">10</field>
+        </record>
+
+        <!-- Sequence: Harddisk Label -->
+        <record model="ir.sequence.type" id="sequence_type_harddisk_label">
+            <field name="name">Harddisk Label</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+                id="sequence_type_harddisk_label_group_admin">
+            <field name="sequence_type" ref="sequence_type_harddisk_label"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_harddisk_label">
+            <field name="name">Harddisk Label</field>
+            <field name="sequence_type" ref="sequence_type_harddisk_label"/>
+        </record>
+
+        <!-- Sequence: Filesystem Label -->
+        <record model="ir.sequence.type" id="sequence_type_filesystem_label">
+            <field name="name">Filesystem Label</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+                id="sequence_type_filesystem_label_group_admin">
+            <field name="sequence_type" ref="sequence_type_filesystem_label"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_filesystem_label">
+            <field name="sequence_type" ref="sequence_type_filesystem_label"/>
+            <field name="name">Filesystem Label</field>
         </record>
 
 
@@ -162,6 +189,43 @@
         <record model="ir.ui.icon" id="c3s_icon">
             <field name="name">tryton-c3s-logo</field>
             <field name="path">icons/c3s-flame-small.svg</field>
+        </record>
+
+        <!-- Data: Identifier Names -->
+        <record model="release.cs_identifier.space"
+            id="release_cs_identifier_space_grid">
+            <field name="name">GRid</field>
+            <field name="version">1</field>
+        </record>
+        <record model="release.cs_identifier.space"
+            id="release_cs_identifier_space_ean_upc">
+            <field name="name">EAN/UPC</field>
+            <field name="version">1</field>
+        </record>
+        <record model="artist.cs_identifier.space"
+            id="artist_cs_identifier_space_ipn">
+            <field name="name">IPN</field>
+            <field name="version">1</field>
+        </record>
+        <record model="creation.cs_identifier.space"
+            id="creation_cs_identifier_space_hfa">
+            <field name="name">HFA Song Code</field>
+            <field name="version">1</field>
+        </record>
+        <record model="creation.cs_identifier.space"
+            id="creation_cs_identifier_space_isrc">
+            <field name="name">ISRC</field>
+            <field name="version">1</field>
+        </record>
+        <record model="creation.cs_identifier.space"
+            id="creation_cs_identifier_space_iswc">
+            <field name="name">ISWC</field>
+            <field name="version">1</field>
+        </record>
+        <record model="creation.cs_identifier.space"
+            id="creation_cs_identifier_space_cwr">
+            <field name="name">CWR</field>
+            <field name="version">1</field>
         </record>
 
         <!-- Data: Artist Permissions -->
@@ -358,186 +422,136 @@
         <!-- Data: Administrator Role Permissions -->
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_artist')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_artist"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_artist')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_artist"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_artist')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_artist"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_creation">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_creation')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_creation"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_creation">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_creation')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_creation"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_creation">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_creation')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_creation"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_release">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_release')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_release"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_release">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_release')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_release"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_release">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_release')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_release"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_content"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_content"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_content"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_creations">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_artist_creations')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_artist_creations"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_creations">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_artist_creations')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_artist_creations"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_creations">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_artist_creations')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_artist_creations"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_releases">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_artist_releases')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_artist_releases"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_releases">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_artist_releases')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_artist_releases"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_releases">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_artist_releases')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_artist_releases"/>
         </record>
 
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_view_artist_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_artist_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_view_artist_content"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_edit_artist_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_edit_artist_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_edit_artist_content"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_administrator_permission_delete_artist_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_administrator')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_delete_artist_content')"/>
+            <field name="role" ref="ace_role_administrator"/>
+            <field name="permission" ref="ace_permission_delete_artist_content"/>
         </record>
 
         <!-- Data: Stakeholder Role Permissions -->
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_artist">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_artist')"/>
+            <field name="role" ref="ace_role_stakeholder"/>
+            <field name="permission" ref="ace_permission_view_artist"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_creation">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_creation')"/>
+            <field name="role" ref="ace_role_stakeholder"/>
+            <field name="permission" ref="ace_permission_view_creation"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_release">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_release')"/>
+            <field name="role" ref="ace_role_stakeholder"/>
+            <field name="permission" ref="ace_permission_view_release"/>
         </record>
         <record model="ace.role-ace.permission"
                 id="ace_role_stakeholder_permission_view_content">
-            <field name="role" model="ace.role" 
-                   eval="ref('ace_role_stakeholder')"/>
-            <field name="permission" model="ace.permission" 
-                   eval="ref('ace_permission_view_content')"/>
+            <field name="role" ref="ace_role_stakeholder"/>
+            <field name="permission" ref="ace_permission_view_content"/>
         </record>
 
 
@@ -555,11 +569,9 @@
 
         <!-- Menue: Configuration -->
         <menuitem name="Configuration" id="menu_configuration"
-                  parent="menu_collecting_society" sequence="0" 
-                  icon="tryton-preferences"/>
+                  parent="menu_collecting_society" sequence="0"
+                  icon="tryton-settings"/>
 
-
-        <!-- Menue: Society -->
         <record model="ir.ui.view" id="collecting_society_form">
             <field name="model">collecting_society</field>
             <field name="type">form</field>
@@ -570,10 +582,12 @@
             <field name="type">tree</field>
             <field name="name">collecting_society_list</field>
         </record>
+
+
+        <!-- Menue: Society -->
         <record model="ir.action.act_window" id="act_collecting_society">
-            <field name="name">Society</field>
+            <field name="name">Societies</field>
             <field name="res_model">collecting_society</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -592,8 +606,39 @@
                   action="act_collecting_society"
                   id="menu_collecting_society_society"/>
 
+        <!-- Menue: Tariff -->
+        <record model="ir.ui.view" id="tariff_form">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">form</field>
+            <field name="name">tariff_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_list">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff">
+            <field name="name">Tariffs</field>
+            <field name="res_model">tariff_system.tariff</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_list"/>
+            <field name="act_window" ref="act_tariff"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_form"/>
+            <field name="act_window" ref="act_tariff"/>
+        </record>
+        <menuitem parent="menu_collecting_society" sequence="20"
+                  action="act_tariff"
+                  id="menu_tariff"/>
 
-        <!-- Menue: Tariffsystem -->
+        <!-- Menue: Tariff / System -->
         <record model="ir.ui.view" id="tariff_system_form">
             <field name="model">tariff_system</field>
             <field name="type">form</field>
@@ -605,9 +650,8 @@
             <field name="name">tariff_system_list</field>
         </record>
         <record model="ir.action.act_window" id="act_tariff_system">
-            <field name="name">Tariffsystem</field>
+            <field name="name">Systems</field>
             <field name="res_model">tariff_system</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_tariff_system_list">
@@ -620,110 +664,162 @@
             <field name="view" ref="tariff_system_form"/>
             <field name="act_window" ref="act_tariff_system"/>
         </record>
-        <menuitem parent="menu_collecting_society" sequence="20"
-                  action="act_tariff_system"
-                  id="menu_tariff"/>
-
-        <!-- Menue: Tariffsystem / Category -->
-        <record model="ir.ui.view" id="tariff_system_category_form">
-            <field name="model">tariff_system.category</field>
-            <field name="type">form</field>
-            <field name="name">tariff_system_category_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_system_category_list">
-            <field name="model">tariff_system.category</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_system_category_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff_system_category">
-            <field name="name">Category</field>
-            <field name="res_model">tariff_system.category</field>
-            <field name="domain">[]</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_system_category_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_system_category_list"/>
-            <field name="act_window" ref="act_tariff_system_category"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_system_category_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_system_category_form"/>
-            <field name="act_window" ref="act_tariff_system_category"/>
-        </record>
         <menuitem parent="menu_tariff" sequence="10"
-                  action="act_tariff_system_category"
-                  id="menu_tariff_system_category"/>
+                  action="act_tariff_system"
+                  id="menu_tariff_system"/>
 
-        <!-- Menue: Tariffsystem / Tariff -->
-        <record model="ir.ui.view" id="tariff_system_tariff_form">
-            <field name="model">tariff_system.tariff</field>
+        <!-- Menue: Tariff / Category -->
+        <record model="ir.ui.view" id="tariff_category_form">
+            <field name="model">tariff_system.category</field>
             <field name="type">form</field>
-            <field name="name">tariff_system_tariff_form</field>
+            <field name="name">tariff_category_form</field>
         </record>
-        <record model="ir.ui.view" id="tariff_system_tariff_list">
-            <field name="model">tariff_system.tariff</field>
+        <record model="ir.ui.view" id="tariff_category_list">
+            <field name="model">tariff_system.category</field>
             <field name="type">tree</field>
-            <field name="name">tariff_system_tariff_list</field>
+            <field name="name">tariff_category_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_tariff_system_tariff">
-            <field name="name">Tariff</field>
-            <field name="res_model">tariff_system.tariff</field>
-            <field name="domain">[]</field>
+        <record model="ir.action.act_window" id="act_tariff_category">
+            <field name="name">Categories</field>
+            <field name="res_model">tariff_system.category</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_tariff_system_tariff_list">
+                id="act_tariff_category_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_system_tariff_list"/>
-            <field name="act_window" ref="act_tariff_system_tariff"/>
+            <field name="view" ref="tariff_category_list"/>
+            <field name="act_window" ref="act_tariff_category"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_tariff_system_tariff_form">
+                id="act_tariff_category_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_system_tariff_form"/>
-            <field name="act_window" ref="act_tariff_system_tariff"/>
+            <field name="view" ref="tariff_category_form"/>
+            <field name="act_window" ref="act_tariff_category"/>
         </record>
         <menuitem parent="menu_tariff" sequence="20"
-                  action="act_tariff_system_tariff"
-                  id="menu_tariff_system_tariff"/>
+                  action="act_tariff_category"
+                  id="menu_tariff_category"/>
+
+        <!-- Menue: Tariff / Adjustments -->
+        <record model="ir.ui.view" id="tariff_adjustment_form">
+            <field name="model">tariff_system.tariff.adjustment.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_adjustment_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_adjustment_tree">
+            <field name="model">tariff_system.tariff.adjustment.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_adjustment_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_adjustment">
+            <field name="name">Adjustments</field>
+            <field name="res_model">tariff_system.tariff.adjustment.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_adjustment_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_adjustment_tree"/>
+            <field name="act_window" ref="act_tariff_adjustment"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_adjustment_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_adjustment_form"/>
+            <field name="act_window" ref="act_tariff_adjustment"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="30"
+                  action="act_tariff_adjustment"
+                  id="menu_tariff_adjustment"/>
+
+        <!-- Menue: Tariff / Relevances -->
+        <record model="ir.ui.view" id="tariff_relevance_form">
+            <field name="model">tariff_system.tariff.relevance.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_relevance_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_relevance_tree">
+            <field name="model">tariff_system.tariff.relevance.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_relevance_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_relevance">
+            <field name="name">Relevances</field>
+            <field name="res_model">tariff_system.tariff.relevance.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_relevance_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_relevance_tree"/>
+            <field name="act_window" ref="act_tariff_relevance"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_relevance_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_relevance_form"/>
+            <field name="act_window" ref="act_tariff_relevance"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="40"
+                  action="act_tariff_relevance"
+                  id="menu_tariff_relevance"/>
 
 
         <!-- Menue: Allocation -->
-        <record model="ir.ui.view" id="distribution_allocation_form">
+        <record model="ir.ui.view" id="allocation_form">
             <field name="model">distribution.allocation</field>
             <field name="type">form</field>
-            <field name="name">distribution_allocation_form</field>
+            <field name="name">allocation_form</field>
         </record>
-        <record model="ir.ui.view" id="distribution_allocation_tree">
+        <record model="ir.ui.view" id="allocation_tree">
             <field name="model">distribution.allocation</field>
             <field name="type">tree</field>
-            <field name="name">distribution_allocation_tree</field>
+            <field name="name">allocation_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_distribution_allocation">
-            <field name="name">Allocation</field>
+        <record model="ir.action.act_window" id="act_allocation">
+            <field name="name">Allocations</field>
             <field name="res_model">distribution.allocation</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_distribution_allocation_tree">
+                id="act_allocation_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="distribution_allocation_tree"/>
-            <field name="act_window" ref="act_distribution_allocation"/>
+            <field name="view" ref="allocation_tree"/>
+            <field name="act_window" ref="act_allocation"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_distribution_allocation_form">
+                id="act_allocation_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="distribution_allocation_form"/>
-            <field name="act_window" ref="act_distribution_allocation"/>
+            <field name="view" ref="allocation_form"/>
+            <field name="act_window" ref="act_allocation"/>
         </record>
-        <menuitem parent="menu_collecting_society" sequence="30"
-                  action="act_distribution_allocation"
-                  id="menu_distribution_allocation"/>
+        <menuitem parent="menu_collecting_society" sequence="40"
+                  action="act_allocation"
+                  id="menu_allocation"/>
 
+        <record model="ir.action.wizard" id="invoice_allocation">
+            <field name="name">Invoice</field>
+            <field name="wiz_name">distribution.allocation.invoice</field>
+            <field name="model">distribution.allocation</field>
+        </record>
+        <record model="ir.action.keyword" id="invoice_allocation_keyword">
+            <field name="keyword">form_action</field>
+            <field name="model">distribution.allocation,-1</field>
+            <field name="action" ref="invoice_allocation"/>
+        </record>
+
+        <record model="ir.action.act_window" id="act_invoice_form">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="domain" pyson="1"
+                   eval="[('lines.origin.allocation', 'in', Eval('active_ids'), 'utilisation')]"/>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_open_invoice_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">distribution.allocation,-1</field>
+            <field name="action" ref="act_invoice_form"/>
+        </record>
 
         <!-- Menue: Distribution -->
         <record model="ir.ui.view" id="distribution_form">
@@ -737,9 +833,8 @@
             <field name="name">distribution_list</field>
         </record>
         <record model="ir.action.act_window" id="act_distribution">
-            <field name="name">Distribution</field>
+            <field name="name">Distributions</field>
             <field name="res_model">distribution</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -754,9 +849,41 @@
             <field name="view" ref="distribution_form"/>
             <field name="act_window" ref="act_distribution"/>
         </record>
-        <menuitem parent="menu_collecting_society" sequence="40"
+        <menuitem parent="menu_collecting_society" sequence="50"
                   action="act_distribution"
                   id="menu_distribution"/>
+
+         <!-- Menue: Distributions / Plans -->
+        <record model="ir.ui.view" id="distribution_plan_form">
+            <field name="model">distribution.plan</field>
+            <field name="type">form</field>
+            <field name="name">distribution_plan_form</field>
+        </record>
+        <record model="ir.ui.view" id="distribution_plan_tree">
+            <field name="model">distribution.plan</field>
+            <field name="type">tree</field>
+            <field name="name">distribution_plan_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_distribution_plan">
+            <field name="name">Plans</field>
+            <field name="res_model">distribution.plan</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_plan_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="distribution_plan_tree"/>
+            <field name="act_window" ref="act_distribution_plan"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_distribution_plan_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="distribution_plan_form"/>
+            <field name="act_window" ref="act_distribution_plan"/>
+        </record>
+        <menuitem parent="menu_distribution" sequence="10"
+                  action="act_distribution_plan"
+                  id="menu_distribution_plan"/>
 
         <!-- Menue: Distribution / Distribute -->
         <record model="ir.action.wizard" id="act_distribution_distribute">
@@ -812,7 +939,6 @@
         <record model="ir.action.act_window" id="act_artist">
             <field name="name">Artists</field>
             <field name="res_model">artist</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_artist_view_list">
@@ -827,68 +953,132 @@
         </record>
         <menuitem parent="menu_licenser" sequence="10"
                   action="act_artist"
-                  id="menu_artist" />
+                  id="menu_artist"/>
 
-        <!-- Menue: Artist / Artists -->
-        <!--
-        <record model="ir.action.act_window" id="act_artist_tree">
-            <field name="name">Artists</field>
-            <field name="res_model">artist</field>
-            <field name="domain">[]</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_artist_tree_view_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_tree"/>
-            <field name="act_window" ref="act_artist_tree"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_artist_tree_view_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="artist_form"/>
-            <field name="act_window" ref="act_artist_tree"/>
-        </record>
-        <menuitem parent="menu_artist" sequence="10"
-                  action="act_artist_tree"
-                  id="menu_artist_tree"/>
-        -->
-
-        <!-- Views: Artist Releases -->
-        <!-- <record model="ir.ui.view" id="artist_release_form">
-            <field name="model">artist-release</field>
+        <!-- Menue: Artists / Identifiers  -->
+        <record model="ir.ui.view" id="artist_cs_identifier_form">
+            <field name="model">artist.cs_identifier</field>
             <field name="type">form</field>
-            <field name="name">artist_release_form</field>
+            <field name="name">artist_cs_identifier_form</field>
         </record>
-        <record model="ir.ui.view" id="artist_release_list">
-            <field name="model">artist-release</field>
+        <record model="ir.ui.view" id="artist_cs_identifier_list">
+            <field name="model">artist.cs_identifier</field>
             <field name="type">tree</field>
-            <field name="name">artist_release_list</field>
+            <field name="name">artist_cs_identifier_list</field>
         </record>
-        <record model="ir.ui.view" id="artist_release_tree">
-            <field name="model">artist_release</field>
+        <record model="ir.action.act_window" id="act_artist_cs_identifier">
+            <field name="name">Artist Identifiers</field>
+            <field name="res_model">artist.cs_identifier</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_cs_identifier_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_cs_identifier_list"/>
+            <field name="act_window" ref="act_artist_cs_identifier"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_cs_identifier_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_cs_identifier_form"/>
+            <field name="act_window" ref="act_artist_cs_identifier"/>
+        </record>
+        <menuitem name="Identifiers" parent="menu_artist" sequence="10"
+                  action="act_artist_cs_identifier"
+                  id="menu_artist_cs_identifiers"/>
+
+        <!-- Menue: Artists / Identifier / Spaces -->
+        <record model="ir.ui.view" id="artist_cs_identifier_space_form">
+            <field name="model">artist.cs_identifier.space</field>
+            <field name="type">form</field>
+            <field name="name">artist_cs_identifier_space_form</field>
+        </record>
+        <record model="ir.ui.view" id="artist_cs_identifier_space_list">
+            <field name="model">artist.cs_identifier.space</field>
             <field name="type">tree</field>
-            <field name="name">artist_release_tree</field>
+            <field name="name">artist_cs_identifier_space_list</field>
         </record>
-        <record model="ir.action.act_window" id="act_artist_release">
-            <field name="name">Releases</field>
-            <field name="res_model">artist-release</field>
-            <field name="domain">[]</field>
+        <record model="ir.action.act_window" id="act_artist_cs_identifier_space">
+            <field name="name">Artist Identifier Spaces</field>
+            <field name="res_model">artist.cs_identifier.space</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_artist_release_view_list">
+                id="act_artist_cs_identifier_space_list">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="artist_release_list"/>
-            <field name="act_window" ref="act_artist_release"/>
+            <field name="view" ref="artist_cs_identifier_space_list"/>
+            <field name="act_window" ref="act_artist_cs_identifier_space"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_artist_release_view_form">
+                id="act_artist_cs_identifier_space_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="artist_release_form"/>
-            <field name="act_window" ref="act_artist_release"/>
-        </record> -->
+            <field name="view" ref="artist_cs_identifier_space_form"/>
+            <field name="act_window" ref="act_artist_cs_identifier_space"/>
+        </record>
+        <menuitem name="Spaces" parent="menu_artist_cs_identifiers" sequence="10"
+                  action="act_artist_cs_identifier_space"
+                  id="menu_cs_identifiers_artist_cs_identifier_space"/>
 
+        <!-- Menue: Artists / Playlists  -->
+        <record model="ir.ui.view" id="artist_playlist_form">
+            <field name="model">artist.playlist</field>
+            <field name="type">form</field>
+            <field name="name">artist_playlist_form</field>
+        </record>
+        <record model="ir.ui.view" id="artist_playlist_tree">
+            <field name="model">artist.playlist</field>
+            <field name="type">tree</field>
+            <field name="name">artist_playlist_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_artist_playlist">
+            <field name="name">Playlists</field>
+            <field name="res_model">artist.playlist</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_playlist_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_playlist_tree"/>
+            <field name="act_window" ref="act_artist_playlist"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_playlist_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_playlist_form"/>
+            <field name="act_window" ref="act_artist_playlist"/>
+        </record>
+        <menuitem parent="menu_artist" sequence="20"
+                  action="act_artist_playlist"
+                  id="menu_artist_playlist"/>
+
+        <!-- Menue: Artists / Playlists / Items  -->
+        <record model="ir.ui.view" id="artist_playlist_item_form">
+            <field name="model">artist.playlist.item</field>
+            <field name="type">form</field>
+            <field name="name">artist_playlist_item_form</field>
+        </record>
+        <record model="ir.ui.view" id="artist_playlist_item_tree">
+            <field name="model">artist.playlist.item</field>
+            <field name="type">tree</field>
+            <field name="name">artist_playlist_item_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_artist_playlist_item">
+            <field name="name">Items</field>
+            <field name="res_model">artist.playlist.item</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_playlist_item_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_playlist_item_tree"/>
+            <field name="act_window" ref="act_artist_playlist_item"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_artist_playlist_item_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_playlist_item_form"/>
+            <field name="act_window" ref="act_artist_playlist_item"/>
+        </record>
+        <menuitem parent="menu_artist_playlist" sequence="10"
+                  action="act_artist_playlist_item"
+                  id="menu_artist_playlist_item"/>
 
         <!-- Menue: Releases -->
         <record model="ir.ui.view" id="release_form">
@@ -904,7 +1094,6 @@
         <record model="ir.action.act_window" id="act_release">
             <field name="name">Releases</field>
             <field name="res_model">release</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_release_list">
@@ -921,6 +1110,99 @@
                   action="act_release"
                   id="menu_release"/>
 
+        <!-- Menue: Releases / Identifiers  -->
+        <record model="ir.ui.view" id="release_cs_identifier_form">
+            <field name="model">release.cs_identifier</field>
+            <field name="type">form</field>
+            <field name="name">release_cs_identifier_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_cs_identifier_list">
+            <field name="model">release.cs_identifier</field>
+            <field name="type">tree</field>
+            <field name="name">release_cs_identifier_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_cs_identifier">
+            <field name="name">Release Identifiers</field>
+            <field name="res_model">release.cs_identifier</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_cs_identifier_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_cs_identifier_list"/>
+            <field name="act_window" ref="act_release_cs_identifier"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_cs_identifier_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_cs_identifier_form"/>
+            <field name="act_window" ref="act_release_cs_identifier"/>
+        </record>
+        <menuitem name="Identifiers" parent="menu_release" sequence="10"
+                  action="act_release_cs_identifier"
+                  id="menu_release_cs_identifiers"/>
+
+        <!-- Menue: Releases / Identifier Names -->
+        <record model="ir.ui.view" id="release_cs_identifier_space_form">
+            <field name="model">release.cs_identifier.space</field>
+            <field name="type">form</field>
+            <field name="name">release_cs_identifier_space_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_cs_identifier_space_list">
+            <field name="model">release.cs_identifier.space</field>
+            <field name="type">tree</field>
+            <field name="name">release_cs_identifier_space_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_cs_identifier_space">
+            <field name="name">Release Identifier Spaces</field>
+            <field name="res_model">release.cs_identifier.space</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_cs_identifier_space_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_cs_identifier_space_list"/>
+            <field name="act_window" ref="act_release_cs_identifier_space"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_cs_identifier_space_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_cs_identifier_space_form"/>
+            <field name="act_window" ref="act_release_cs_identifier_space"/>
+        </record>
+        <menuitem name="Spaces" parent="menu_release_cs_identifiers" sequence="10"
+                  action="act_release_cs_identifier_space"
+                  id="menu_cs_identifiers_release_cs_identifier_space"/>
+
+        <!-- Menue: Releases / Rightsholders  -->
+        <record model="ir.ui.view" id="release_right_form">
+            <field name="model">release.right</field>
+            <field name="type">form</field>
+            <field name="name">release_right_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_right_list">
+            <field name="model">release.right</field>
+            <field name="type">tree</field>
+            <field name="name">release_right_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_right">
+            <field name="name">Release Rightsholder</field>
+            <field name="res_model">release.right</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_right_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_right_list"/>
+            <field name="act_window" ref="act_release_right"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_release_right_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_right_form"/>
+            <field name="act_window" ref="act_release_right"/>
+        </record>
+        <menuitem name="Rightsholders" parent="menu_release" sequence="20"
+                  id="menu_release_right"
+                  action="act_release_right"/>
+
         <!-- Menue: Releases / Tracks -->
         <record model="ir.ui.view" id="release_track_form">
             <field name="model">release.track</field>
@@ -935,7 +1217,6 @@
         <record model="ir.action.act_window" id="act_release_track">
             <field name="name">Tracks</field>
             <field name="res_model">release.track</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -950,7 +1231,7 @@
             <field name="view" ref="release_track_form"/>
             <field name="act_window" ref="act_release_track"/>
         </record>
-        <menuitem parent="menu_release" sequence="10"
+        <menuitem parent="menu_release" sequence="30"
                   action="act_release_track"
                   id="menu_release_track"/>
 
@@ -968,7 +1249,6 @@
         <record model="ir.action.act_window" id="act_release_genre">
             <field name="name">Genres</field>
             <field name="res_model">genre</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_release_genre_list">
@@ -981,7 +1261,7 @@
             <field name="view" ref="release_genre_form"/>
             <field name="act_window" ref="act_release_genre"/>
         </record>
-        <menuitem parent="menu_release" sequence="20"
+        <menuitem parent="menu_release" sequence="40"
                   action="act_release_genre"
                   id="menu_release_genre"/>
 
@@ -999,7 +1279,6 @@
         <record model="ir.action.act_window" id="act_release_style">
             <field name="name">Styles</field>
             <field name="res_model">style</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_release_style_list">
@@ -1012,7 +1291,7 @@
             <field name="view" ref="release_style_form"/>
             <field name="act_window" ref="act_release_style"/>
         </record>
-        <menuitem parent="menu_release" sequence="30"
+        <menuitem parent="menu_release" sequence="50"
                   action="act_release_style"
                   id="menu_release_style"/>
 
@@ -1031,7 +1310,6 @@
         <record model="ir.action.act_window" id="act_creation">
             <field name="name">Creations</field>
             <field name="res_model">creation</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_creation_tree">
@@ -1048,6 +1326,129 @@
                   action="act_creation"
                   id="menu_creation"/>
 
+        <!-- Menue: Creations / Identifiers  -->
+        <record model="ir.ui.view" id="creation_cs_identifier_form">
+            <field name="model">creation.cs_identifier</field>
+            <field name="type">form</field>
+            <field name="name">creation_cs_identifier_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_cs_identifier_list">
+            <field name="model">creation.cs_identifier</field>
+            <field name="type">tree</field>
+            <field name="name">creation_cs_identifier_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_cs_identifier">
+            <field name="name">Creation Identifiers</field>
+            <field name="res_model">creation.cs_identifier</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_cs_identifier_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_cs_identifier_list"/>
+            <field name="act_window" ref="act_creation_cs_identifier"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_cs_identifier_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_cs_identifier_form"/>
+            <field name="act_window" ref="act_creation_cs_identifier"/>
+        </record>
+        <menuitem name="Identifiers" parent="menu_creation" sequence="10"
+                  action="act_creation_cs_identifier"
+                  id="menu_creation_cs_identifiers"/>
+
+        <!-- Menue: Creations / Identifier / Spaces -->
+        <record model="ir.ui.view" id="creation_cs_identifier_space_form">
+            <field name="model">creation.cs_identifier.space</field>
+            <field name="type">form</field>
+            <field name="name">creation_cs_identifier_space_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_cs_identifier_space_list">
+            <field name="model">creation.cs_identifier.space</field> <field name="type">tree</field>
+            <field name="name">creation_cs_identifier_space_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_cs_identifier_space">
+            <field name="name">Creation Identifier Spaces</field>
+            <field name="res_model">creation.cs_identifier.space</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_cs_identifier_space_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_cs_identifier_space_list"/>
+            <field name="act_window" ref="act_creation_cs_identifier_space"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_cs_identifier_space_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_cs_identifier_space_form"/>
+            <field name="act_window" ref="act_creation_cs_identifier_space"/>
+        </record>
+        <menuitem name="Spaces" parent="menu_creation_cs_identifiers" sequence="10"
+                  action="act_creation_cs_identifier_space"
+                  id="menu_cs_identifiers_creation_cs_identifier_space"/>
+
+        <!-- Menue: Creations / Rightsholders  -->
+        <record model="ir.ui.view" id="creation_right_form">
+            <field name="model">creation.right</field>
+            <field name="type">form</field>
+            <field name="name">creation_right_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_right_list">
+            <field name="model">creation.right</field>
+            <field name="type">tree</field>
+            <field name="name">creation_right_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_right">
+            <field name="name">Creation Rightsholder</field>
+            <field name="res_model">creation.right</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_right_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_right_list"/>
+            <field name="act_window" ref="act_creation_right"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_right_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_right_form"/>
+            <field name="act_window" ref="act_creation_right"/>
+        </record>
+        <menuitem name="Rightsholders" parent="menu_creation" sequence="20"
+                  action="act_creation_right"
+                  id="menu_creation_right"/>
+
+        <!-- Menue: Creations / Rightsholders / Instruments -->
+        <record model="ir.ui.view" id="creation_right_instrument_form">
+            <field name="model">instrument</field>
+            <field name="type">form</field>
+            <field name="name">creation_right_instrument_form</field>
+        </record>
+        <record model="ir.ui.view" id="creation_right_instrument_list">
+            <field name="model">instrument</field>
+            <field name="type">tree</field>
+            <field name="name">creation_right_instrument_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_creation_right_instrument">
+            <field name="name">Instrument</field>
+            <field name="res_model">instrument</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_right__instrument_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="creation_right_instrument_list"/>
+            <field name="act_window" ref="act_creation_right_instrument"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_creation_right_instrument_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="creation_right_instrument_form"/>
+            <field name="act_window" ref="act_creation_right_instrument"/>
+        </record>
+        <menuitem name="Instruments" parent="menu_creation_right" sequence="20"
+                  action="act_creation_right_instrument"
+                  id="menu_creation_right_instrument"/>
+
         <!-- Menue: Creations / Tariff Category -->
         <record model="ir.ui.view" id="creation_tariff_category_form">
             <field name="model">creation-tariff_category</field>
@@ -1060,9 +1461,8 @@
             <field name="name">creation_tariff_category_list</field>
         </record>
         <record model="ir.action.act_window" id="act_creation_tariff_category">
-            <field name="name">Tariff Category</field>
+            <field name="name">Tariffcategories</field>
             <field name="res_model">creation-tariff_category</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1077,7 +1477,7 @@
             <field name="view" ref="creation_tariff_category_form"/>
             <field name="act_window" ref="act_creation_tariff_category"/>
         </record>
-        <menuitem parent="menu_creation" sequence="10"
+        <menuitem parent="menu_creation" sequence="30"
                   action="act_creation_tariff_category"
                   id="menu_creation_tariff_category"/>
 
@@ -1095,7 +1495,6 @@
         <record model="ir.action.act_window" id="act_creation_derivative">
             <field name="name">Derivatives</field>
             <field name="res_model">creation.original.derivative</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1110,7 +1509,7 @@
             <field name="view" ref="creation_derivative_form"/>
             <field name="act_window" ref="act_creation_derivative"/>
         </record>
-        <menuitem parent="menu_creation" sequence="20"
+        <menuitem parent="menu_creation" sequence="40"
                   action="act_creation_derivative"
                   id="menu_creation_derivative"/>
 
@@ -1128,7 +1527,6 @@
         <record model="ir.action.act_window" id="act_creation_contribution">
             <field name="name">Contributions</field>
             <field name="res_model">creation.contribution</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1143,7 +1541,7 @@
             <field name="view" ref="creation_contribution_form"/>
             <field name="act_window" ref="act_creation_contribution"/>
         </record>
-        <menuitem parent="menu_creation" sequence="30"
+        <menuitem parent="menu_creation" sequence="50"
                   action="act_creation_contribution"
                   id="menu_creation_contribution"/>
 
@@ -1162,7 +1560,6 @@
                 id="act_creation_contribution_role">
             <field name="name">Roles</field>
             <field name="res_model">creation.role</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1177,7 +1574,7 @@
             <field name="view" ref="creation_contribution_role_form"/>
             <field name="act_window" ref="act_creation_contribution_role"/>
         </record>
-        <menuitem parent="menu_creation" sequence="40"
+        <menuitem parent="menu_creation" sequence="60"
                   action="act_creation_contribution_role"
                   id="menu_creation_contribution_role"/>
 
@@ -1196,7 +1593,6 @@
         <record model="ir.action.act_window" id="act_release_track_license">
             <field name="name">Licenses</field>
             <field name="res_model">license</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1229,7 +1625,6 @@
         <record model="ir.action.act_window" id="act_label">
             <field name="name">Labels</field>
             <field name="res_model">label</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_label_list">
@@ -1261,7 +1656,6 @@
         <record model="ir.action.act_window" id="act_publisher">
             <field name="name">Publishers</field>
             <field name="res_model">publisher</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_publisher_list">
@@ -1289,159 +1683,922 @@
             <field name="icon">tryton-c3s-logo</field>
         </record>
 
-
-        <!-- Menue: Identifications -->
-        <record model="ir.ui.view" id="creation_identification_form">
-            <field name="model">creation.identification</field>
+        <!-- Menue: Events -->
+        <record model="ir.ui.view" id="event_form">
+            <field name="model">event</field>
             <field name="type">form</field>
-            <field name="name">creation_identification_form</field>
+            <field name="name">event_form</field>
         </record>
-        <record model="ir.ui.view" id="creation_identification_tree">
-            <field name="model">creation.identification</field>
+        <record model="ir.ui.view" id="event_tree">
+            <field name="model">event</field>
             <field name="type">tree</field>
-            <field name="name">creation_identification_tree</field>
+            <field name="name">event_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_creation_identification">
-            <field name="name">Identifications</field>
-            <field name="res_model">creation.identification</field>
-            <field name="domain">[]</field>
+        <record model="ir.action.act_window" id="act_event">
+            <field name="name">Events</field>
+            <field name="res_model">event</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_identification_tree">
+        <record model="ir.action.act_window.view" id="act_event_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_identification_tree"/>
-            <field name="act_window" ref="act_creation_identification"/>
+            <field name="view" ref="event_tree"/>
+            <field name="act_window" ref="act_event"/>
         </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_identification_form">
+        <record model="ir.action.act_window.view" id="act_event_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_identification_form"/>
-            <field name="act_window" ref="act_creation_identification"/>
+            <field name="view" ref="event_form"/>
+            <field name="act_window" ref="act_event"/>
         </record>
         <menuitem parent="menu_licensee" sequence="10"
-                  action="act_creation_identification"
-                  id="menu_creation_identification"/>
+                  action="act_event"
+                  id="menu_event"/>
 
-        <!-- Menue: Identifications / Identifiers -->
-        <record model="ir.ui.view"
-                id="creation_identification_identifier_form">
-            <field name="model">creation.identification.identifier</field>
+        <!-- Menue: Events / Performances -->
+        <record model="ir.ui.view" id="event_performance_form">
+            <field name="model">event.performance</field>
             <field name="type">form</field>
-            <field name="name">creation_identification_identifier_form</field>
+            <field name="name">event_performance_form</field>
         </record>
-        <record model="ir.ui.view"
-                id="creation_identification_identifier_tree">
-            <field name="model">creation.identification.identifier</field>
+        <record model="ir.ui.view" id="event_performance_tree">
+            <field name="model">event.performance</field>
             <field name="type">tree</field>
-            <field name="name">creation_identification_identifier_tree</field>
+            <field name="name">event_performance_tree</field>
         </record>
-        <record model="ir.action.act_window"
-                id="act_creation_identification_identifier">
-            <field name="name">Identifiers</field>
-            <field name="res_model">creation.identification.identifier</field>
-            <field name="domain">[]</field>
+        <record model="ir.action.act_window" id="act_event_performance">
+            <field name="name">Performances</field>
+            <field name="res_model">event.performance</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_event_performance_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="event_performance_tree"/>
+            <field name="act_window" ref="act_event_performance"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_event_performance_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="event_performance_form"/>
+            <field name="act_window" ref="act_event_performance"/>
+        </record>
+        <menuitem parent="menu_event" sequence="10"
+                  action="act_event_performance"
+                  id="menu_event_performance"/>
+
+        <!-- Menue: Events / Performances / Playlists  -->
+        <record model="ir.action.act_window" id="act_event_performance_playlist">
+            <field name="name">Playlists</field>
+            <field name="res_model">artist.playlist</field>
+            <field name="domain" pyson="1"
+                   eval="[('template', '=', False)]"/>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_identification_identifier_tree">
+                id="act_event_performance_playlist_list">
             <field name="sequence" eval="10"/>
-            <field name="view"
-                   ref="creation_identification_identifier_tree"/>
-            <field name="act_window"
-                   ref="act_creation_identification_identifier"/>
+            <field name="view" ref="artist_playlist_tree"/>
+            <field name="act_window" ref="act_event_performance_playlist"/>
         </record>
         <record model="ir.action.act_window.view"
-                id="act_creation_identification_identifier_form">
+                id="act_event_performance_playlist_form">
             <field name="sequence" eval="20"/>
-            <field name="view"
-                   ref="creation_identification_identifier_form"/>
-            <field name="act_window"
-                   ref="act_creation_identification_identifier"/>
+            <field name="view" ref="artist_playlist_form"/>
+            <field name="act_window" ref="act_event_performance_playlist"/>
         </record>
-        <menuitem parent="menu_creation_identification" sequence="10"
-                  action="act_creation_identification_identifier"
-                  id="menu_creation_identification_identifier"/>
+        <menuitem parent="menu_event_performance" sequence="10"
+                  action="act_event_performance_playlist"
+                  id="menu_event_performance_playlist"/>
 
-        <!-- Menue: Identifications / Fingerprints -->
-        <record model="ir.ui.view" id="content_fingerprintlog_form">
-            <field name="model">content.fingerprintlog</field>
+        <!-- Menue: Events / Performances / Playlists / Items  -->
+        <record model="ir.action.act_window" id="act_event_performance_playlist_item">
+            <field name="name">Items</field>
+            <field name="res_model">artist.playlist.item</field>
+            <field name="domain" pyson="1"
+                   eval="[('playlist.template', '=', False)]"/>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_item_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="artist_playlist_item_tree"/>
+            <field name="act_window" ref="act_event_performance_playlist_item"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_event_performance_playlist_item_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="artist_playlist_item_form"/>
+            <field name="act_window" ref="act_event_performance_playlist_item"/>
+        </record>
+        <menuitem parent="menu_event_performance_playlist" sequence="10"
+                  action="act_event_performance_playlist_item"
+                  id="menu_event_performance_playlist_item"/>
+
+        <!-- Menue: Events / Indicators -->
+        <record model="ir.ui.view" id="event_indicators_form">
+            <field name="model">event.indicators</field>
             <field name="type">form</field>
-            <field name="name">content_fingerprintlog_form</field>
+            <field name="name">event_indicators_form</field>
         </record>
-        <record model="ir.ui.view" id="content_fingerprintlog_list">
-            <field name="model">content.fingerprintlog</field>
+        <record model="ir.ui.view" id="event_indicators_tree">
+            <field name="model">event.indicators</field>
             <field name="type">tree</field>
-            <field name="name">content_fingerprintlog_list</field>
+            <field name="name">event_indicators_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_content_fingerprintlog">
+        <record model="ir.action.act_window" id="act_event_indicators">
+            <field name="name">Event Indicators</field>
+            <field name="res_model">event.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_event_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="event_indicators_tree"/>
+            <field name="act_window" ref="act_event_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_event_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="event_indicators_form"/>
+            <field name="act_window" ref="act_event_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_event" sequence="20"
+                  action="act_event_indicators"
+                  id="menu_event_indicators"/>
+
+        <!-- Menue: Locations -->
+        <record model="ir.ui.view" id="location_form">
+            <field name="model">location</field>
+            <field name="type">form</field>
+            <field name="name">location_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_tree">
+            <field name="model">location</field>
+            <field name="type">tree</field>
+            <field name="name">location_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location">
+            <field name="name">Locations</field>
+            <field name="res_model">location</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_tree"/>
+            <field name="act_window" ref="act_location"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_form"/>
+            <field name="act_window" ref="act_location"/>
+        </record>
+        <menuitem parent="menu_licensee" sequence="20"
+                  action="act_location"
+                  id="menu_location"/>
+
+        <!-- Menue: Locations / Categories -->
+        <record model="ir.ui.view" id="location_category_form">
+            <field name="model">location.category</field>
+            <field name="type">form</field>
+            <field name="name">location_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_category_tree">
+            <field name="model">location.category</field>
+            <field name="type">tree</field>
+            <field name="name">location_category_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_category">
+            <field name="name">Location Categories</field>
+            <field name="res_model">location.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_category_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_category_tree"/>
+            <field name="act_window" ref="act_location_category"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_category_form"/>
+            <field name="act_window" ref="act_location_category"/>
+        </record>
+        <menuitem name="Categories" parent="menu_location" sequence="10"
+                  action="act_location_category"
+                  id="menu_location_category"/>
+
+        <!-- Menue: Locations / Spaces -->
+        <record model="ir.ui.view" id="location_space_form">
+            <field name="model">location.space</field>
+            <field name="type">form</field>
+            <field name="name">location_space_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_space_tree">
+            <field name="model">location.space</field>
+            <field name="type">tree</field>
+            <field name="name">location_space_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_space">
+            <field name="name">Location Spaces</field>
+            <field name="res_model">location.space</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_space_tree"/>
+            <field name="act_window" ref="act_location_space"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_space_form"/>
+            <field name="act_window" ref="act_location_space"/>
+        </record>
+        <menuitem name="Spaces" parent="menu_location" sequence="20"
+                  action="act_location_space"
+                  id="menu_location_space"/>
+
+        <!-- Menue: Locations / Spaces / Categories -->
+        <record model="ir.ui.view" id="location_space_category_form">
+            <field name="model">location.space.category</field>
+            <field name="type">form</field>
+            <field name="name">location_space_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_space_category_tree">
+            <field name="model">location.space.category</field>
+            <field name="type">tree</field>
+            <field name="name">location_space_category_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_space_category">
+            <field name="name">Location Space Categories</field>
+            <field name="res_model">location.space.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_category_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_space_category_tree"/>
+            <field name="act_window" ref="act_location_space_category"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_space_category_form"/>
+            <field name="act_window" ref="act_location_space_category"/>
+        </record>
+        <menuitem name="Categories" parent="menu_location_space" sequence="10"
+                  action="act_location_space_category"
+                  id="menu_location_space_category"/>
+
+        <!-- Menue: Locations / Spaces / Indicators -->
+        <record model="ir.ui.view" id="location_space_indicators_form">
+            <field name="model">location.space.indicators</field>
+            <field name="type">form</field>
+            <field name="name">location_space_indicators_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_space_indicators_tree">
+            <field name="model">location.space.indicators</field>
+            <field name="type">tree</field>
+            <field name="name">location_space_indicators_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_space_indicators">
+            <field name="name">Location Space Indicators</field>
+            <field name="res_model">location.space.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_space_indicators_tree"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_space_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_space_indicators_form"/>
+            <field name="act_window" ref="act_location_space_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_location_space" sequence="20"
+                  action="act_location_space_indicators"
+                  id="menu_location_space_indicators"/>
+
+        <!-- Menue: Locations / Indicators -->
+        <record model="ir.ui.view" id="location_indicators_form">
+            <field name="model">location.indicators</field>
+            <field name="type">form</field>
+            <field name="name">location_indicators_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_indicators_tree">
+            <field name="model">location.indicators</field>
+            <field name="type">tree</field>
+            <field name="name">location_indicators_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_indicators">
+            <field name="name">Location Indicators</field>
+            <field name="res_model">location.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_indicators_tree"/>
+            <field name="act_window" ref="act_location_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_location_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_indicators_form"/>
+            <field name="act_window" ref="act_location_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_location" sequence="30"
+                  action="act_location_indicators"
+                  id="menu_location_indicators"/>
+
+        <!-- Menue: Locations / Indicators / Periods -->
+        <record model="ir.ui.view" id="location_indicators_period_form">
+            <field name="model">location.indicators.period</field>
+            <field name="type">form</field>
+            <field name="name">location_indicators_period_form</field>
+        </record>
+        <record model="ir.ui.view" id="location_indicators_period_tree">
+            <field name="model">location.indicators.period</field>
+            <field name="type">tree</field>
+            <field name="name">location_indicators_period_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_location_indicators_period">
+            <field name="name">Periods</field>
+            <field name="res_model">location.indicators.period</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="location_indicators_period_tree"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_location_indicators_period_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="location_indicators_period_form"/>
+            <field name="act_window" ref="act_location_indicators_period"/>
+        </record>
+        <menuitem parent="menu_location_indicators" sequence="10"
+                  action="act_location_indicators_period"
+                  id="menu_location_indicators_period"/>
+
+        <!-- Menue: Websites -->
+        <record model="ir.ui.view" id="website_form">
+            <field name="model">website</field>
+            <field name="type">form</field>
+            <field name="name">website_form</field>
+        </record>
+        <record model="ir.ui.view" id="website_tree">
+            <field name="model">website</field>
+            <field name="type">tree</field>
+            <field name="name">website_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_website">
+            <field name="name">Websites</field>
+            <field name="res_model">website</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="website_tree"/>
+            <field name="act_window" ref="act_website"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="website_form"/>
+            <field name="act_window" ref="act_website"/>
+        </record>
+        <menuitem parent="menu_licensee" sequence="30"
+                  action="act_website"
+                  id="menu_website"/>
+
+        <!-- Menue: Websites / Categories -->
+        <record model="ir.ui.view" id="website_category_form">
+            <field name="model">website.category</field>
+            <field name="type">form</field>
+            <field name="name">website_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="website_category_tree">
+            <field name="model">website.category</field>
+            <field name="type">tree</field>
+            <field name="name">website_category_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_website_category">
+            <field name="name">Website Categories</field>
+            <field name="res_model">website.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_category_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="website_category_tree"/>
+            <field name="act_window" ref="act_website_category"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="website_category_form"/>
+            <field name="act_window" ref="act_website_category"/>
+        </record>
+        <menuitem name="Categories" parent="menu_website" sequence="10"
+                  action="act_website_category"
+                  id="menu_website_category"/>
+
+        <!-- Menue: Websites / Resources -->
+        <record model="ir.ui.view" id="website_resource_form">
+            <field name="model">website.resource</field>
+            <field name="type">form</field>
+            <field name="name">website_resource_form</field>
+        </record>
+        <record model="ir.ui.view" id="website_resource_tree">
+            <field name="model">website.resource</field>
+            <field name="type">tree</field>
+            <field name="name">website_resource_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_website_resource">
+            <field name="name">Website Resources</field>
+            <field name="res_model">website.resource</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="website_resource_tree"/>
+            <field name="act_window" ref="act_website_resource"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="website_resource_form"/>
+            <field name="act_window" ref="act_website_resource"/>
+        </record>
+        <menuitem name="Resources" parent="menu_website" sequence="20"
+                  action="act_website_resource"
+                  id="menu_website_resource"/>
+
+        <!-- Menue: Websites / Resources / Categories -->
+        <record model="ir.ui.view" id="website_resource_category_form">
+            <field name="model">website.resource.category</field>
+            <field name="type">form</field>
+            <field name="name">website_resource_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="website_resource_category_tree">
+            <field name="model">website.resource.category</field>
+            <field name="type">tree</field>
+            <field name="name">website_resource_category_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_website_resource_category">
+            <field name="name">Website Resource Categories</field>
+            <field name="res_model">website.resource.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_category_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="website_resource_category_tree"/>
+            <field name="act_window" ref="act_website_resource_category"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="website_resource_category_form"/>
+            <field name="act_window" ref="act_website_resource_category"/>
+        </record>
+        <menuitem name="Categories" parent="menu_website_resource" sequence="10"
+                  action="act_website_resource_category"
+                  id="menu_website_resource_category"/>
+
+        <!-- Menue: Websites / Resources / Indicators -->
+        <record model="ir.ui.view" id="website_resource_indicators_form">
+            <field name="model">website.resource.indicators</field>
+            <field name="type">form</field>
+            <field name="name">website_resource_indicators_form</field>
+        </record>
+        <record model="ir.ui.view" id="website_resource_indicators_tree">
+            <field name="model">website.resource.indicators</field>
+            <field name="type">tree</field>
+            <field name="name">website_resource_indicators_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_website_resource_indicators">
+            <field name="name">Website Resource Indicators</field>
+            <field name="res_model">website.resource.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="website_resource_indicators_tree"/>
+            <field name="act_window" ref="act_website_resource_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_website_resource_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="website_resource_indicators_form"/>
+            <field name="act_window" ref="act_website_resource_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_website_resource" sequence="20"
+                  action="act_website_resource_indicators"
+                  id="menu_website_resource_indicators"/>
+
+        <!-- Menue: Releases -->
+        <record model="ir.action.act_window" id="act_licensee_release">
+            <field name="name">Releases</field>
+            <field name="res_model">release</field>
+            <field name="domain" pyson="1"
+                   eval="[('confirmed_copies', '!=', None)]"/>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_licensee_release_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_list"/>
+            <field name="act_window" ref="act_licensee_release"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_licensee_release_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_form"/>
+            <field name="act_window" ref="act_licensee_release"/>
+        </record>
+        <menuitem parent="menu_licensee" sequence="40"
+                  action="act_licensee_release"
+                  id="menu_licensee_release"/>
+
+        <!-- Menue: Releases / Indicators -->
+        <record model="ir.ui.view" id="release_indicators_form">
+            <field name="model">release.indicators</field>
+            <field name="type">form</field>
+            <field name="name">release_indicators_form</field>
+        </record>
+        <record model="ir.ui.view" id="release_indicators_tree">
+            <field name="model">release.indicators</field>
+            <field name="type">tree</field>
+            <field name="name">release_indicators_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_release_indicators">
+            <field name="name">Release Indicators</field>
+            <field name="res_model">release.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_release_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="release_indicators_tree"/>
+            <field name="act_window" ref="act_release_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_release_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="release_indicators_form"/>
+            <field name="act_window" ref="act_release_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_licensee_release" sequence="10"
+                  action="act_release_indicators"
+                  id="menu_release_indicators"/>
+
+        <!-- Menue: Devices -->
+        <record model="ir.ui.view" id="device_form">
+            <field name="model">device</field>
+            <field name="type">form</field>
+            <field name="name">device_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_tree">
+            <field name="model">device</field>
+            <field name="type">tree</field>
+            <field name="name">device_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device">
+            <field name="name">Devices</field>
+            <field name="res_model">device</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="device_tree"/>
+            <field name="act_window" ref="act_device"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="device_form"/>
+            <field name="act_window" ref="act_device"/>
+        </record>
+        <menuitem parent="menu_licensee" sequence="100"
+                  action="act_device"
+                  id="menu_device"/>
+
+        <!-- Menue: Devices / Assignments -->
+        <record model="ir.ui.view" id="device_assignment_form">
+            <field name="model">device.assignment</field>
+            <field name="type">form</field>
+            <field name="name">device_assignment_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_assignment_tree">
+            <field name="model">device.assignment</field>
+            <field name="type">tree</field>
+            <field name="name">device_assignment_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device_assignment">
+            <field name="name">Assignments</field>
+            <field name="res_model">device.assignment</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_assignment_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="device_assignment_tree"/>
+            <field name="act_window" ref="act_device_assignment"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_assignment_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="device_assignment_form"/>
+            <field name="act_window" ref="act_device_assignment"/>
+        </record>
+        <menuitem parent="menu_device" sequence="10"
+                  action="act_device_assignment"
+                  id="menu_device_assignment"/>
+
+        <!-- Menue: Devices / Messages -->
+        <record model="ir.ui.view" id="device_message_form">
+            <field name="model">device.message</field>
+            <field name="type">form</field>
+            <field name="name">device_message_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_message_tree">
+            <field name="model">device.message</field>
+            <field name="type">tree</field>
+            <field name="name">device_message_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device_message">
+            <field name="name">Messages</field>
+            <field name="res_model">device.message</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="device_message_tree"/>
+            <field name="act_window" ref="act_device_message"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="device_message_form"/>
+            <field name="act_window" ref="act_device_message"/>
+        </record>
+        <menuitem parent="menu_device" sequence="20"
+                  action="act_device_message"
+                  id="menu_device_message"/>
+
+        <!-- Menue: Devices / Messages / Fingerprints -->
+        <record model="ir.ui.view" id="device_message_fingerprint_form">
+            <field name="model">device.message.fingerprint</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_message_fingerprint_tree">
+            <field name="model">device.message.fingerprint</field>
+            <field name="type">tree</field>
+            <field name="name">device_message_fingerprint_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device_message_fingerprint">
             <field name="name">Fingerprints</field>
-            <field name="res_model">content.fingerprintlog</field>
-            <field name="domain">[]</field>
+            <field name="res_model">device.message.fingerprint</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view"
-                id="act_content_fingerprintlog_list">
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="content_fingerprintlog_list"/>
-            <field name="act_window" ref="act_content_fingerprintlog"/>
+            <field name="view" ref="device_message_fingerprint_tree"/>
+            <field name="act_window" ref="act_device_message_fingerprint"/>
         </record>
-        <record model="ir.action.act_window.view"
-                id="act_content_fingerprintlog_form">
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="content_fingerprintlog_form"/>
-            <field name="act_window" ref="act_content_fingerprintlog"/>
+            <field name="view" ref="device_message_fingerprint_form"/>
+            <field name="act_window" ref="act_device_message_fingerprint"/>
         </record>
-        <menuitem parent="menu_creation_identification" sequence="20"
-                  action="act_content_fingerprintlog"
-                  id="menu_content_fingerprintlog"/>
+        <menuitem parent="menu_device_message" sequence="10"
+                  action="act_device_message_fingerprint"
+                  id="menu_device_message_fingerprint"/>
 
-        <!-- Menue: Identifications / Clients -->
-        <record model="ir.ui.view" id="client_form">
-            <field name="model">client</field>
+        <!-- Menue: Devices / Messages / Fingerprints / Match -->
+        <record model="ir.action.wizard" id="act_device_message_fingerprint_match">
+            <field name="name">Match</field>
+            <field name="wiz_name">device.message.fingerprint.match</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_device_message_fingerprint_match_keyword1">
+            <field name="action" ref="act_device_message_fingerprint_match"/>
+            <field name="keyword">form_action</field>
+            <field name="model">device.message.fingerprint,-1</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_match_start_view_form">
+            <field name="model">device.message.fingerprint.match.start</field>
             <field name="type">form</field>
-            <field name="name">client_form</field>
+            <field name="name">device_message_fingerprint_match_start_form</field>
         </record>
-        <record model="ir.ui.view" id="client_list">
-            <field name="model">client</field>
+        <menuitem name="Match" parent="menu_device_message_fingerprint" sequence="10"
+                  action="act_device_message_fingerprint_match"
+                  id="menu_device_message_fingerprint_match"/>
+
+        <!-- Menue: Devices / Messages / Fingerprints / Merge -->
+        <record model="ir.action.wizard" id="act_device_message_fingerprint_merge">
+            <field name="name">Merge</field>
+            <field name="wiz_name">device.message.fingerprint.merge</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_device_message_fingerprint_merge_keyword1">
+            <field name="action" ref="act_device_message_fingerprint_merge"/>
+            <field name="keyword">form_action</field>
+            <field name="model">device.message.fingerprint,-1</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_merge_start_view_form">
+            <field name="model">device.message.fingerprint.merge.start</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_merge_start_form</field>
+        </record>
+        <record model="ir.ui.view"
+                id="device_message_fingerprint_merge_select_view_form">
+            <field name="model">device.message.fingerprint.merge.select</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_merge_select_form</field>
+        </record>
+        <menuitem name="Merge" parent="menu_device_message_fingerprint" sequence="20"
+                  action="act_device_message_fingerprint_merge"
+                  id="menu_device_message_fingerprint_merge"/>
+
+        <!-- Menue: Devices / Messages / Fingerprints / Creation Lists -->
+        <record model="ir.ui.view" id="device_message_fingerprint_creationlist_form">
+            <field name="model">device.message.fingerprint.creationlist</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_creationlist_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_message_fingerprint_creationlist_tree">
+            <field name="model">device.message.fingerprint.creationlist</field>
             <field name="type">tree</field>
-            <field name="name">client_list</field>
+            <field name="name">device_message_fingerprint_creationlist_tree</field>
         </record>
-        <record model="ir.action.act_window" id="act_client">
-            <field name="name">Clients</field>
-            <field name="res_model">client</field>
-            <field name="domain">[]</field>
+        <record model="ir.action.act_window" id="act_device_message_fingerprint_creationlist">
+            <field name="name">Fingerprint Creationlists</field>
+            <field name="res_model">device.message.fingerprint.creationlist</field>
             <field name="search_value">[]</field>
         </record>
-        <record model="ir.action.act_window.view" id="act_client_list">
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_creationlist_tree">
             <field name="sequence" eval="10"/>
-            <field name="view" ref="client_list"/>
-            <field name="act_window" ref="act_client"/>
+            <field name="view" ref="device_message_fingerprint_creationlist_tree"/>
+            <field name="act_window" ref="act_device_message_fingerprint_creationlist"/>
         </record>
-        <record model="ir.action.act_window.view" id="act_client_form">
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_creationlist_form">
             <field name="sequence" eval="20"/>
-            <field name="view" ref="client_form"/>
-            <field name="act_window" ref="act_client"/>
+            <field name="view" ref="device_message_fingerprint_creationlist_form"/>
+            <field name="act_window" ref="act_device_message_fingerprint_creationlist"/>
         </record>
-        <menuitem parent="menu_creation_identification" sequence="30"
-                  action="act_client"
-                  id="menu_client"/>
+        <menuitem name="Creationlists" parent="menu_device_message_fingerprint" sequence="30"
+                  action="act_device_message_fingerprint_creationlist"
+                  id="menu_device_message_fingerprint_creationlist"/>
+
+        <!-- Menue: Devices / Messages / Fingerprints / Creation Lists / Items -->
+        <record model="ir.ui.view" id="device_message_fingerprint_creationlist_item_form">
+            <field name="model">device.message.fingerprint.creationlist.item</field>
+            <field name="type">form</field>
+            <field name="name">device_message_fingerprint_creationlist_item_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_message_fingerprint_creationlist_item_tree">
+            <field name="model">device.message.fingerprint.creationlist.item</field>
+            <field name="type">tree</field>
+            <field name="name">device_message_fingerprint_creationlist_item_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device_message_fingerprint_creationlist_item">
+            <field name="name">Fingerprint Creationlist Items</field>
+            <field name="res_model">device.message.fingerprint.creationlist.item</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_creationlist_item_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="device_message_fingerprint_creationlist_item_tree"/>
+            <field name="act_window" ref="act_device_message_fingerprint_creationlist_item"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_fingerprint_creationlist_item_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="device_message_fingerprint_creationlist_item_form"/>
+            <field name="act_window" ref="act_device_message_fingerprint_creationlist_item"/>
+        </record>
+        <menuitem name="Items" parent="menu_device_message_fingerprint_creationlist" sequence="10"
+                  action="act_device_message_fingerprint_creationlist_item"
+                  id="menu_device_message_fingerprint_creationlist_item"/>
+
+        <!-- Menue: Devices / Messages / Usage Reports -->
+        <record model="ir.ui.view" id="device_message_usagereport_form">
+            <field name="model">device.message.usagereport</field>
+            <field name="type">form</field>
+            <field name="name">device_message_usagereport_form</field>
+        </record>
+        <record model="ir.ui.view" id="device_message_usagereport_tree">
+            <field name="model">device.message.usagereport</field>
+            <field name="type">tree</field>
+            <field name="name">device_message_usagereport_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_device_message_usagereport">
+            <field name="name">Usage Reports</field>
+            <field name="res_model">device.message.usagereport</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_usagereport_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="device_message_usagereport_tree"/>
+            <field name="act_window" ref="act_device_message_usagereport"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_device_message_usagereport_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="device_message_usagereport_form"/>
+            <field name="act_window" ref="act_device_message_usagereport"/>
+        </record>
+        <menuitem parent="menu_device_message" sequence="20"
+                  action="act_device_message_usagereport"
+                  id="menu_device_message_usagereport"/>
+
+
+        <!-- Menue: Declarations -->
+        <record model="ir.ui.view" id="declaration_form">
+            <field name="model">declaration</field>
+            <field name="type">form</field>
+            <field name="name">declaration_form</field>
+        </record>
+        <record model="ir.ui.view" id="declaration_tree">
+            <field name="model">declaration</field>
+            <field name="type">tree</field>
+            <field name="name">declaration_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_declaration">
+            <field name="name">Declarations</field>
+            <field name="res_model">declaration</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="declaration_tree"/>
+            <field name="act_window" ref="act_declaration"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="declaration_form"/>
+            <field name="act_window" ref="act_declaration"/>
+        </record>
+        <menuitem parent="menu_licensee" sequence="110"
+                  action="act_declaration"
+                  id="menu_declaration"/>
+
+        <!-- Menue: Declarations / Groups -->
+        <record model="ir.ui.view" id="declaration_group_form">
+            <field name="model">declaration.group</field>
+            <field name="type">form</field>
+            <field name="name">declaration_group_form</field>
+        </record>
+        <record model="ir.ui.view" id="declaration_group_tree">
+            <field name="model">declaration.group</field>
+            <field name="type">tree</field>
+            <field name="name">declaration_group_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_declaration_group">
+            <field name="name">Declaration Groups</field>
+            <field name="res_model">declaration.group</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_group_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="declaration_group_tree"/>
+            <field name="act_window" ref="act_declaration_group"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_group_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="declaration_group_form"/>
+            <field name="act_window" ref="act_declaration_group"/>
+        </record>
+        <menuitem name="Groups" parent="menu_declaration" sequence="10"
+                  action="act_declaration_group"
+                  id="menu_declaration_group"/>
+
+        <!-- Menue: Declarations / Collections -->
+        <record model="ir.ui.view" id="declaration_collection_form">
+            <field name="model">declaration.collection</field>
+            <field name="type">form</field>
+            <field name="name">declaration_collection_form</field>
+        </record>
+        <record model="ir.ui.view" id="declaration_collection_tree">
+            <field name="model">declaration.collection</field>
+            <field name="type">tree</field>
+            <field name="name">declaration_collection_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_declaration_collection">
+            <field name="name">Declaration Collections</field>
+            <field name="res_model">declaration.collection</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_collection_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="declaration_collection_tree"/>
+            <field name="act_window" ref="act_declaration_collection"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_declaration_collection_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="declaration_collection_form"/>
+            <field name="act_window" ref="act_declaration_collection"/>
+        </record>
+        <menuitem name="Collections" parent="menu_declaration" sequence="20"
+                  action="act_declaration_collection"
+                  id="menu_declaration_collection"/>
+
 
         <!-- Menue: Utilisations -->
         <record model="ir.ui.view" id="utilisation_form">
-            <field name="model">creation.utilisation</field>
+            <field name="model">utilisation</field>
             <field name="type">form</field>
             <field name="name">utilisation_form</field>
         </record>
         <record model="ir.ui.view" id="utilisation_tree">
-            <field name="model">creation.utilisation</field>
+            <field name="model">utilisation</field>
             <field name="type">tree</field>
             <field name="name">utilisation_tree</field>
         </record>
         <record model="ir.action.act_window" id="act_utilisation">
             <field name="name">Utilisations</field>
-            <field name="res_model">creation.utilisation</field>
-            <field name="domain">[]</field>
+            <field name="res_model">utilisation</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_utilisation_tree">
@@ -1454,9 +2611,159 @@
             <field name="view" ref="utilisation_form"/>
             <field name="act_window" ref="act_utilisation"/>
         </record>
-        <menuitem parent="menu_licensee" sequence="20"
+        <menuitem parent="menu_licensee" sequence="120"
                   action="act_utilisation"
                   id="menu_utilisation"/>
+
+        <!-- Menue: Utilisations / Creationslist -->
+        <record model="ir.ui.view" id="utilisation_creationlist_form">
+            <field name="model">utilisation.creationlist</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_creationlist_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_creationlist_tree">
+            <field name="model">utilisation.creationlist</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_creationlist_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_creationlist">
+            <field name="name">Utilisation Creationlists</field>
+            <field name="res_model">utilisation.creationlist</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_creationlist_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_creationlist_tree"/>
+            <field name="act_window" ref="act_utilisation_creationlist"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_creationlist_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_creationlist_form"/>
+            <field name="act_window" ref="act_utilisation_creationlist"/>
+        </record>
+        <menuitem name="Creationlists" parent="menu_utilisation" sequence="10"
+                  action="act_utilisation_creationlist"
+                  id="menu_utilisation_creationlist"/>
+
+        <!-- Menue: Utilisations / Creationslist / Items -->
+        <record model="ir.ui.view" id="utilisation_creationlist_item_form">
+            <field name="model">utilisation.creationlist.item</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_creationlist_item_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_creationlist_item_tree">
+            <field name="model">utilisation.creationlist.item</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_creationlist_item_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_creationlist_item">
+            <field name="name">Utilisation Creationlist Items</field>
+            <field name="res_model">utilisation.creationlist.item</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_creationlist_item_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_creationlist_item_tree"/>
+            <field name="act_window" ref="act_utilisation_creationlist_item"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_creationlist_item_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_creationlist_item_form"/>
+            <field name="act_window" ref="act_utilisation_creationlist_item"/>
+        </record>
+        <menuitem name="Items" parent="menu_utilisation_creationlist" sequence="10"
+                  action="act_utilisation_creationlist_item"
+                  id="menu_utilisation_creationlist_item"/>
+
+        <!-- Menue: Utilisations / Indicators -->
+        <record model="ir.ui.view" id="utilisation_indicators_form">
+            <field name="model">utilisation.indicators</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_indicators_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_indicators_tree">
+            <field name="model">utilisation.indicators</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_indicators_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_indicators">
+            <field name="name">Utilisation Indicators</field>
+            <field name="res_model">utilisation.indicators</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_indicators_tree"/>
+            <field name="act_window" ref="act_utilisation_indicators"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_indicators_form"/>
+            <field name="act_window" ref="act_utilisation_indicators"/>
+        </record>
+        <menuitem name="Indicators" parent="menu_utilisation" sequence="20"
+                  action="act_utilisation_indicators"
+                  id="menu_utilisation_indicators"/>
+
+        <!-- Menue: Utilisations / Indicators / Adjustments -->
+        <record model="ir.ui.view" id="utilisation_indicators_adjustment_form">
+            <field name="model">tariff_system.tariff.adjustment</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_indicators_adjustment_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_indicators_adjustment_tree">
+            <field name="model">tariff_system.tariff.adjustment</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_indicators_adjustment_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_indicators_adjustment">
+            <field name="name">Adjustments</field>
+            <field name="res_model">tariff_system.tariff.adjustment</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_adjustment_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_indicators_adjustment_tree"/>
+            <field name="act_window" ref="act_utilisation_indicators_adjustment"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_adjustment_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_indicators_adjustment_form"/>
+            <field name="act_window" ref="act_utilisation_indicators_adjustment"/>
+        </record>
+        <menuitem parent="menu_utilisation_indicators" sequence="10"
+                  action="act_utilisation_indicators_adjustment"
+                  id="menu_utilisation_indicators_adjustment"/>
+
+        <!-- Menue: Utilisations / Indicators / Relevance -->
+        <record model="ir.ui.view" id="utilisation_indicators_relevance_form">
+            <field name="model">tariff_system.tariff.relevance</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_indicators_relevance_form</field>
+        </record>
+        <record model="ir.ui.view" id="utilisation_indicators_relevance_tree">
+            <field name="model">tariff_system.tariff.relevance</field>
+            <field name="type">tree</field>
+            <field name="name">utilisation_indicators_relevance_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_utilisation_indicators_relevance">
+            <field name="name">Relevance</field>
+            <field name="res_model">tariff_system.tariff.relevance</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_relevance_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="utilisation_indicators_relevance_tree"/>
+            <field name="act_window" ref="act_utilisation_indicators_relevance"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_utilisation_indicators_relevance_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="utilisation_indicators_relevance_form"/>
+            <field name="act_window" ref="act_utilisation_indicators_relevance"/>
+        </record>
+        <menuitem parent="menu_utilisation_indicators" sequence="20"
+                  action="act_utilisation_indicators_relevance"
+                  id="menu_utilisation_indicators_relevance"/>
 
 
         <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1484,7 +2791,6 @@
         <record model="ir.action.act_window" id="act_ace">
             <field name="name">Access</field>
             <field name="res_model">ace</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_ace_list">
@@ -1515,7 +2821,6 @@
         <record model="ir.action.act_window" id="act_ace_role">
             <field name="name">Roles</field>
             <field name="res_model">ace.role</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_ace_role_list">
@@ -1546,7 +2851,6 @@
         <record model="ir.action.act_window" id="act_ace_permission">
             <field name="name">Permissions</field>
             <field name="res_model">ace.permission</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_ace_permission_list">
@@ -1563,7 +2867,7 @@
                   action="act_ace_permission"
                   id="menu_ace_permission"/>
 
-        
+
         <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                                     Archiving
         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
@@ -1589,7 +2893,6 @@
         <record model="ir.action.act_window" id="act_storehouse">
             <field name="name">Storehouses</field>
             <field name="res_model">storehouse</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_storehouse_list">
@@ -1621,7 +2924,6 @@
         <record model="ir.action.act_window" id="act_harddisk">
             <field name="name">Harddisks</field>
             <field name="res_model">harddisk</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_harddisk_list">
@@ -1652,7 +2954,6 @@
         <record model="ir.action.act_window" id="act_harddisk_label">
             <field name="name">Labels</field>
             <field name="res_model">harddisk.label</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_harddisk_label_list">
@@ -1683,7 +2984,6 @@
         <record model="ir.action.act_window" id="act_harddisk_test">
             <field name="name">Tests</field>
             <field name="res_model">harddisk.test</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_harddisk_test_list">
@@ -1715,7 +3015,6 @@
         <record model="ir.action.act_window" id="act_filesystem">
             <field name="name">Filesystems</field>
             <field name="res_model">harddisk.filesystem</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_filesystem_list">
@@ -1746,7 +3045,6 @@
         <record model="ir.action.act_window" id="act_filesystem_label">
             <field name="name">Labels</field>
             <field name="res_model">harddisk.filesystem.label</field>
-            <field name="domain">[]</field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1780,7 +3078,6 @@
         <record model="ir.action.act_window" id="act_content">
             <field name="name">Contents</field>
             <field name="res_model">content</field>
-            <field name="domain"></field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view" id="act_content_tree">
@@ -1811,7 +3108,6 @@
         <record model="ir.action.act_window" id="act_content_checksum">
             <field name="name">Checksums</field>
             <field name="res_model">checksum</field>
-            <field name="domain"></field>
             <field name="search_value">[]</field>
         </record>
         <record model="ir.action.act_window.view"
@@ -1829,6 +3125,38 @@
         <menuitem parent="menu_content" sequence="10"
                   action="act_content_checksum"
                   id="menu_content_checksum"/>
+
+        <!-- Menue: Contents / Fingerprints -->
+        <record model="ir.ui.view" id="content_fingerprintlog_form">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">form</field>
+            <field name="name">content_fingerprintlog_form</field>
+        </record>
+        <record model="ir.ui.view" id="content_fingerprintlog_list">
+            <field name="model">content.fingerprintlog</field>
+            <field name="type">tree</field>
+            <field name="name">content_fingerprintlog_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_content_fingerprintlog">
+            <field name="name">Fingerprints</field>
+            <field name="res_model">content.fingerprintlog</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_content_fingerprintlog_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="content_fingerprintlog_list"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_content_fingerprintlog_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="content_fingerprintlog_form"/>
+            <field name="act_window" ref="act_content_fingerprintlog"/>
+        </record>
+        <menuitem parent="menu_content" sequence="20"
+                  action="act_content_fingerprintlog"
+                  id="menu_content_fingerprintlog"/>
 
     </data>
 </tryton>

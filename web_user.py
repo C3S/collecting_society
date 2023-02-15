@@ -3,24 +3,18 @@
 import uuid
 import string
 import random
-from decimal import Decimal
 
-from sql.aggregate import Sum
-from sql.conditionals import Coalesce
-from sql.operators import Mul
-
-from trytond.model import ModelView, ModelSQL, fields
-from trytond.transaction import Transaction
+from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Eval, Greater
 from trytond.rpc import RPC
 
 __all__ = [
-    'WebUserRole',
-    'WebUser',
-    'WebUserResUser',
-    'WebUserWebUserRole',
-    'WebUserParty',
+    'UserRole',
+    'User',
+    'UserResUser',
+    'UserUserRole',
+    'UserParty',
 ]
 _OPT_IN_STATES = [
     ('new', 'New'),
@@ -30,21 +24,20 @@ _OPT_IN_STATES = [
 ]
 
 
-class WebUserRole(ModelSQL, ModelView):
+class UserRole(ModelSQL, ModelView):
     "Web User Role"
     __name__ = 'web.user.role'
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, translate=True,
+        'Name', required=True, translate=True,
         help='The display name of role.')
     code = fields.Char(
-        'Code', required=True, select=True,
+        'Code', required=True,
         help='The internal or programmatical name of the role.')
 
 
-class WebUser:
-    __metaclass__ = PoolMeta
+class User(metaclass=PoolMeta):
     __name__ = 'web.user'
     _history = True
     _rec_name = 'email'
@@ -54,11 +47,7 @@ class WebUser:
         'web.user-res.user', 'web_user', 'res_user', 'Tryton User',
         readonly=True, states={'required': Greater(Eval('active_id', -1), 0)},
         help='The Tryton user of the web user')
-    party = fields.One2One(
-        'web.user-party.party', 'user', 'party', 'Party',
-        states={'required': Greater(Eval('active_id', -1), 0)},
-        help='The party of the web user')
-    clients = fields.One2Many('client', 'web_user', 'Clients')
+    devices = fields.One2Many('device', 'web_user', 'Devices')
     roles = fields.Many2Many(
         'web.user-web.user.role', 'user', 'role', 'Roles')
     default_role = fields.Selection('get_roles', 'Default Role')
@@ -89,11 +78,16 @@ class WebUser:
 
     @classmethod
     def __setup__(cls):
-        super(WebUser, cls).__setup__()
+        super().__setup__()
+        cls.party = fields.One2One(
+            'web.user-party.party', 'user', 'party', 'Party',
+            states={'required': Greater(Eval('active_id', -1), 0)},
+            help='The party of the web user')
         cls.__rpc__.update(
             {'authenticate': RPC(check_access=False)})
+        table = cls.__table__()
         cls._sql_constraints += [
-            ('opt_in_uuid_uniq', 'UNIQUE(opt_in_uuid)',
+            ('opt_in_uuid_uniq', Unique(table, table.opt_in_uuid),
                 'The opt-in UUID of the Webuser must be unique.'),
         ]
 
@@ -117,8 +111,8 @@ class WebUser:
         User = pool.get('res.user')
         Party = pool.get('party.party')
         Artist = pool.get('artist')
-        WebUserRole = pool.get('web.user.role')
-        licenser = WebUserRole.search([('code', '=', 'licenser')])
+        UserRole = pool.get('web.user.role')
+        licenser = UserRole.search([('code', '=', 'licenser')])
         if licenser:
             licenser = licenser[0]
 
@@ -127,7 +121,7 @@ class WebUser:
             nickname = values.get('nickname')
             email = values.get('email')
             user_email = email + ':::' + ''.join(
-                random.sample(string.lowercase, 10))
+                random.sample(string.ascii_lowercase, 10))
 
             # autocreate party
             if not values.get('party'):
@@ -154,7 +148,7 @@ class WebUser:
                             'active': False,
                         }])[0].id
 
-        elist = super(WebUser, cls).create(vlist)
+        elist = super().create(vlist)
         for entry in elist:
             # autocreate first artist
             if licenser in entry.roles and entry.nickname:
@@ -175,56 +169,61 @@ class WebUser:
         return elist
 
 
-class WebUserResUser(ModelSQL):
+class UserResUser(ModelSQL):
     'Web User - Tryton User'
     __name__ = 'web.user-res.user'
     web_user = fields.Many2One(
-        'web.user', 'Web User', ondelete='CASCADE', select=True, required=True)
+        'web.user', 'Web User', ondelete='CASCADE', required=True)
     res_user = fields.Many2One(
-        'res.user', 'Tryton User', ondelete='CASCADE', select=True,
-        required=True)
+        'res.user', 'Tryton User', ondelete='CASCADE', required=True)
 
     @classmethod
     def __setup__(cls):
-        super(WebUserResUser, cls).__setup__()
+        super(UserResUser, cls).__setup__()
+        table = cls.__table__()
         cls._sql_constraints += [
-            ('web_user_uniq', 'UNIQUE("web_user")',
+            ('web_user_uniq', Unique(table, table.web_user),
                 'Error!\n'
                 'A web user can only be linked to one Tryton user.\n'
                 'The used web user is already linked to another Tryton user.'),
-            ('res_user_uniq', 'UNIQUE("res_user")',
+            ('res_user_uniq', Unique(table, table.res_user),
                 'Error!\n'
                 'A Tryton user can only be linked to one web user.\n'
                 'The used Tryton user is already linked to another web user.'),
         ]
 
 
-class WebUserWebUserRole(ModelSQL, ModelView):
+class UserUserRole(ModelSQL, ModelView):
     "Web User - Web User Role"
     __name__ = 'web.user-web.user.role'
     _history = True
 
     user = fields.Many2One(
-        'web.user', 'User', ondelete='CASCADE', select=True, required=True)
+        'web.user', 'User', ondelete='CASCADE', required=True)
     role = fields.Many2One(
-        'web.user.role', 'Role', ondelete='CASCADE', select=True,
-        required=True)
+        'web.user.role', 'Role', ondelete='CASCADE', required=True)
 
 
-class WebUserParty:
-    __metaclass__ = PoolMeta
+class UserParty(ModelSQL):
+    "Web User - Party"
     __name__ = 'web.user-party.party'
     _history = True
 
+    user = fields.Many2One(
+        'web.user', 'User', ondelete='CASCADE', required=True)
+    party = fields.Many2One(
+        'party.party', 'Party', ondelete='CASCADE', required=True)
+
     @classmethod
     def __setup__(cls):
-        super(WebUserParty, cls).__setup__()
+        super().__setup__()
+        table = cls.__table__()
         cls._sql_constraints += [
-            ('user_uniq', 'UNIQUE("user")',
+            ('user_uniq', Unique(table, table.user),
                 'Error!\n'
                 'A web user can only be linked to one party.\n'
                 'The used web user is already linked to another party.'),
-            ('party_uniq', 'UNIQUE(party)',
+            ('party_uniq', Unique(table, table.party),
                 'Error!\n'
                 'A party can only be linked to one web user.\n'
                 'The used party is already linked to another web user.'),

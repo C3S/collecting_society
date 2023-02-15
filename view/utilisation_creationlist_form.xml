@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="4">
+    <label name="context"/>
+    <field name="context"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="complete"/>
+        <field name="complete" xexpand="0" width="25"/>
+    </group>
+
+    <label name="start"/>
+    <field name="start"/>
+    <label name="end"/>
+    <field name="end"/>
+
+    <label name="known_ratio"/>
+    <field name="known_ratio"/>
+    <label name="represented_ratio"/>
+    <field name="represented_ratio"/>
+
+    <notebook colspan="4">
+        <page string="Items" id="items" col="1">
+            <field name="items"/>
+        </page>
+        <page string="Utilisations" id="utilisations" col="1">
+            <field name="utilisations"/>
+        </page>
+        <!-- TODO: visible only for context = EventPerformance -->
+        <page string="Performance" id="performance" col="2">
+            <label name="performer"/>
+            <field name="performer"/>
+        </page>
+        <!-- TODO: visible only for context = LocationSpace|WebiteResource -->
+        <page string="Fingerprint Creation List" id="fingerprint_creationlist">
+            <field name="fingerprint_creationlists"/>
+        </page>
+        <!-- TODO: visible only for context = WebiteResource -->
+        <page string="Usage Report Summary" id="usagereport_summary" col="2">
+            <separator string="Total" id="total" colspan="2"/>
+            <label name="total_streams"/>
+            <field name="total_streams"/>
+            <label name="total_downloads"/>
+            <field name="total_downloads"/>
+            <label name="total_turnover_ads"/>
+            <field name="total_turnover_ads"/>
+            <label name="total_turnover_sale"/>
+            <field name="total_turnover_sale"/>
+        </page>
+    </notebook>
+
+</form>

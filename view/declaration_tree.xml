@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree>
+    <field name="group" expand="1"/>
+    <field name="creation_time" widget="date" expand="1"/>
+    <field name="licensee" expand="1"/>
+    <field name="period" expand="1"/>
+    <field name="tariff" expand="1"/>
+    <field name="context" expand="1"/>
+    <field name="state"/>
+    <field name="active"/>
+</tree>

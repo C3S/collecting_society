@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="4">
+    <label name="turnover_gastronomy"/>
+    <field name="turnover_gastronomy"/>
+    <label name="opening_hours_duration"/>
+    <field name="opening_hours_duration"/>
+    
+    <field name="opening_hours" colspan="4"/>
+
+    <field name="estimated_locations" colspan="4"/>
+    <field name="confirmed_locations" colspan="4"/>
+</form>

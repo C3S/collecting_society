@@ -1,5 +1,6 @@
-Core Application
-================
+===============================================
+Collecting Society Core Module Copyright Notice
+===============================================
 
 ::
 
@@ -31,7 +32,7 @@ Redistributed Works
 
 Redistributes works are copyright and licensed as follows:
 
-- generators.py -- Copyright (c) Elliot Peele <elliot@bentlogic.net> licensed under MIT (http://www.opensource.org/licenses/mit-license.php).
+* generators.py -- Copyright (c) Elliot Peele <elliot@bentlogic.net> licensed under MIT (http://www.opensource.org/licenses/mit-license.php).
 
 
 License Text
@@ -39,5 +40,5 @@ License Text
 
 You should have received copies of the licenses along with this program:
 
-- GNU Affero General Public License (version 3): ``./LICENSE-AGPLv3.txt``
-- MIT License: ``./LICENSE-MIT.txt``
+* GNU Affero General Public License (version 3): ``./LICENSE-AGPLv3.txt``
+* MIT License: ``./LICENSE-MIT.txt``

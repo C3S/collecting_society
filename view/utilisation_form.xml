@@ -1,19 +1,93 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form string="Utilisation">
-    <label name="timestamp"/>
-    <field name="timestamp" xexpand="1"/>
+<form col="4">
     <label name="code"/>
     <field name="code"/>
-    <label name="party"/>
-    <field name="party"/>
-    <label name="creation"/>
-    <field name="creation"/>
-    <label name="allocation"/>
-    <field name="allocation"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="locked"/>
+        <field name="locked" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="licensee"/>
+    <field name="licensee"/>
+
+    <newline/>
+
+    <label name="start"/>
+    <field name="start"/>
+    <label name="end"/>
+    <field name="end"/>
+
     <label name="state"/>
     <field name="state"/>
-    <label name="origin"/>
-    <field name="origin"/>
+    <label name="confirmation"/>
+    <field name="confirmation"/>
+
+    <label name="declaration"/>
+    <field name="declaration"/>
+    <label name="declaration_collection"/>
+    <field name="declaration_collection"/>
+
+    <label name="tariff"/>
+    <field name="tariff"/>
+    <label name="context"/>
+    <field name="context"/>
+
+    <label name="distribution_plan"/>
+    <field name="distribution_plan"/>
+    <label name="allocation"/>
+    <field name="allocation"/>
+
+    <notebook colspan="4">
+        <page string="Indicators" id="indicators" col="4">
+            <separator string="Estimated" id="estimated" colspan="2"/>
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="estimated_base"/>
+            <field name="estimated_base"/>
+            <label name="confirmed_base"/>
+            <field name="confirmed_base"/>
+
+            <label name="estimated_relevance"/>
+            <field name="estimated_relevance"/>
+            <label name="confirmed_relevance"/>
+            <field name="confirmed_relevance"/>
+
+            <label name="estimated_adjustments"/>
+            <field name="estimated_adjustments"/>
+            <label name="confirmed_adjustments"/>
+            <field name="confirmed_adjustments"/>
+
+            <separator string="Estimated Calculation" id="estimated_calculation" colspan="2"/>
+            <separator string="Confirmed Calculation" id="confirmed_calculation" colspan="2"/>
+
+            <label name="estimated_invoice_amount"/>
+            <field name="estimated_invoice_amount"/>
+            <label name="confirmed_invoice_amount"/>
+            <field name="confirmed_invoice_amount"/>
+
+            <label name="estimated_administration_amount"/>
+            <field name="estimated_administration_amount"/>
+            <label name="confirmed_administration_amount"/>
+            <field name="confirmed_administration_amount"/>
+
+            <label name="estimated_distribution_amount"/>
+            <field name="estimated_distribution_amount"/>
+            <label name="confirmed_distribution_amount"/>
+            <field name="confirmed_distribution_amount"/>
+        </page>
+        <!-- TODO: visible only for context = Location -->
+        <page string="Location Indicators" id="location_indicators" col="2">
+            <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+            <label name="confirmed_location_indicators"/>
+            <field name="confirmed_location_indicators"/>
+            <label name="confirmed_location_space_indicators"/>
+            <field name="confirmed_location_space_indicators"/>
+        </page>
+    </notebook>
 </form>

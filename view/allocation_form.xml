@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form>
+    <label name="party"/>
+    <field name="party"/>
+    <label name="distribution"/>
+    <field name="distribution"/>
+    <label name="type"/>
+    <field name="type"/>
+    <label name="amount"/>
+    <field name="amount"/>
+    <label name="share_amount"/>
+    <field name="share_amount"/>
+    <label name="company"/>
+    <field name="company"/>
+    <field name="move_lines" colspan="4"/>
+    <field name="utilisations" colspan="4"/>
+</form>

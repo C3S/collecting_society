@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="uuid"/>
+    <field name="uuid"/>
+    <label name="web_user"/>
+    <field name="web_user"/>
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="blocked"/>
+        <field name="blocked" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <notebook colspan="8">
+        <page string="Metadata" id="metadata" col="4">
+            <label name="name"/>
+            <field name="name"/>
+            <label name="software_name"/>
+            <field name="software_name"/>
+            <label name="os_name"/>
+            <field name="os_name"/>
+            <label name="software_vendor"/>
+            <field name="software_vendor"/>
+            <label name="os_version"/>
+            <field name="os_version"/>
+            <label name="software_version"/>
+            <field name="software_version"/>
+        </page>
+        <page string="Assignments" id="assignments" col="6">
+            <field name="assignments"/>
+        </page>
+        <page string="Messages" id="messages" col="6">
+            <field name="messages"/>
+        </page>
+    </notebook>
+</form>

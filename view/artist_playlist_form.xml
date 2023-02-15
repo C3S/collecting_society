@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="artist"/>
+    <field name="artist"/>
+    <label name="performance"/>
+    <field name="performance"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="template"/>
+        <field name="template" xexpand="0" width="25"/>
+        <label name="public"/>
+        <field name="public" xexpand="0" width="25"/>
+    </group>
+
+    <notebook colspan="6">
+        <page string="Items" id="items" col="1">
+            <field name="items"/>
+        </page>
+        <page string="Access" id="access" col="6">
+            <label name="entity_origin"/>
+            <field name="entity_origin" colspan="5"/>
+            <label name="entity_creator"/>
+            <field name="entity_creator" colspan="5"/>
+        </page>
+    </notebook>
+</form>

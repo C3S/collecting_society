@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="id"/>
+    <field name="id"/>
+    <label name="device"/>
+    <field name="device"/>
+    <label name="state"/>
+    <field name="state"/>
+
+    <label name="matched_creation"/>
+    <field name="matched_creation"/>
+    <label name="merged_creation"/>
+    <field name="merged_creation"/>
+    <label name="matched_state"/>
+    <field name="matched_state"/>
+
+    <newline/>
+
+    <field name="message" yexpand="0" colspan="6"/>
+
+    <notebook colspan="6">
+        <page string="Data" id="data" col="6">
+            <label name="timestamp"/>
+            <field name="timestamp"/>
+            <label name="algorithm"/>
+            <field name="algorithm"/>
+            <label name="version"/>
+            <field name="version"/>
+
+            <field name="data" yexpand="1" colspan="6"/>
+        </page>
+    </notebook>
+</form>

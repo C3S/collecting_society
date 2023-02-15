@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<tree>
+    <field name="utilisation_indicators"/>
+    <field name="category" expand="1"/>
+    <field name="value" expand="1"/>
+    <field name="deviation" expand="1"/>
+</tree>

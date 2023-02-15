@@ -1,5 +1,6 @@
-Installing collecting_society
-=============================
+=============================================
+Installing the Collecting Society Core Module
+=============================================
 
 Prerequisites
 -------------
@@ -11,7 +12,7 @@ Installation
 ------------
 
 Once you've downloaded and unpacked the collecting_society
-source release, enter the directory where the archive was unpacked, and run:
+source release, enter the directory where the archive was unpacked, and run::
 
     python setup.py install
 
@@ -22,8 +23,8 @@ site-packages directory on your system.
 For advanced options, please refer to the easy_install and/or the distutils
 documentation:
 
-  http://peak.telecommunity.com/DevCenter/EasyInstall
-  http://docs.python.org/inst/inst.html
+  * http://peak.telecommunity.com/DevCenter/EasyInstall
+  * http://docs.python.org/inst/inst.html
 
 To use without installation, extract the archive into ``trytond/modules`` with
 the directory name collecting_society.

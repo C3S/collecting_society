@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="2">
+    <label name="utilisation_indicators"/>
+    <field name="utilisation_indicators"/>
+    <label name="category"/>
+    <field name="category"/>
+    <label name="status"/>
+    <field name="status"/>
+    <label name="value"/>
+    <field name="value"/>
+    <label name="deviation"/>
+    <field name="deviation"/>
+    <label name="deviation_reason"/>
+    <field name="deviation_reason"/>
+</form>

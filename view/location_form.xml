@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
+     Repository: https://github.com/C3S/collecting_society -->
+<form col="6">
+    <label name="name"/>
+    <field name="name"/>
+    <label name="category"/>
+    <field name="category"/>
+
+    <group col="20" colspan="2" id="checkboxes">
+        <label name="public"/>
+        <field name="public" xexpand="0" width="25"/>
+        <label name="active"/>
+        <field name="active" xexpand="0" width="25"/>
+    </group>
+
+    <label name="party"/>
+    <field name="party"/>
+    <label name="longitude"/>
+    <field name="longitude"/>
+    <label name="latitude"/>
+    <field name="latitude"/>
+
+    <field name="spaces" colspan="6"/>
+
+    <notebook colspan="6">
+        <page string="Indicators" id="indicators" col="8">
+            <separator string="Estimated" id="estimated" colspan="4"/>
+            <separator string="Confirmed" id="confirmed" colspan="4"/>
+
+            <field name="estimated_opening_hours" colspan="4"/>
+            <field name="confirmed_opening_hours" colspan="4"/>
+            
+            <label name="estimated_turnover_gastronomy"/>
+            <field name="estimated_turnover_gastronomy"/>
+            <label name="estimated_opening_hours_duration"/>
+            <field name="estimated_opening_hours_duration"/>
+            <label name="confirmed_turnover_gastronomy"/>
+            <field name="confirmed_turnover_gastronomy"/>
+            <label name="confirmed_opening_hours_duration"/>
+            <field name="confirmed_opening_hours_duration"/>
+        </page>
+    </notebook>
+</form>
