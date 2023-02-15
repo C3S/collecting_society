@@ -75,10 +75,10 @@ class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):
     _history = True
     space = fields.Many2One(
         'party.cs_identifier.space', 'Party Identifier Name',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     party = fields.Many2One(
         'party.party', 'Party',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class PartyIdentifierSpace(ModelSQL, ModelView):
