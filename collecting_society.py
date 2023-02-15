@@ -167,8 +167,9 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 
 
-class MixinRight(object):
+class MixinRight:
     'Mixin for the right a rightsholder claims on an rights object'
+    __slots__ = ()
     type_of_right = fields.Selection(
         [
             ('copyright', 'Copyright'),
@@ -202,16 +203,18 @@ class MixinRight(object):
         raise NotImplementedError("Subclasses should implement this")
 
 
-class MixinIdentifier(object):
+class MixinIdentifier:
     'Mixin for <Object>Identifier models'
+    __slots__ = ()
 
     valid_from = fields.Date('Valid From Date')
     valid_to = fields.Date('Valid To Date')
     id_code = fields.Char('ID Code')
 
 
-class MixinIdentifierHelper(object):
+class MixinIdentifierHelper:
     'Mixin for Repertoire models that feature identifiers'
+    __slots__ = ()
 
     # TODO: honor valid-from and -to dates
 
@@ -233,8 +236,9 @@ class MixinIdentifierHelper(object):
                 space=space, id_code=id_code)
 
 
-class CurrentState(object):
+class CurrentState:
     'Mixin for the active state'
+    __slots__ = ()
     active = fields.Boolean('Active')
 
     @staticmethod
@@ -242,8 +246,9 @@ class CurrentState(object):
         return True
 
 
-class ClaimState(object):
+class ClaimState:
     'Mixin for the claim workflow'
+    __slots__ = ()
     claim_state = fields.Selection(
         [
             ('unclaimed', 'Unclaimed'),
@@ -260,8 +265,9 @@ class ClaimState(object):
         return "unclaimed"
 
 
-class CommitState(object):
+class CommitState:
     'Mixin for the commit workflow'
+    __slots__ = ()
     commit_state = fields.Selection(
         [
             ('uncommited', 'Uncommited'),
@@ -282,8 +288,9 @@ class CommitState(object):
         return 'uncommited'
 
 
-class EntityOrigin(object):
+class EntityOrigin:
     'Mixin to track the origin of the entity'
+    __slots__ = ()
     entity_origin = fields.Selection(
         [
             ('direct', 'Direct'),
@@ -299,8 +306,9 @@ class EntityOrigin(object):
         return "direct"
 
 
-class PublicApi(object):
+class PublicApi:
     'Mixin to add an unique identifier for public use'
+    __slots__ = ()
     oid = fields.Char(
         'OID', required=True,
         help='A unique object identifier used in the public web api to avoid'
@@ -320,8 +328,9 @@ class PublicApi(object):
         return str(uuid.uuid4())
 
 
-class CurrencyDigits(object):
+class CurrencyDigits:
     'Mixin to provide the currency digit configuration'
+    __slots__ = ()
     currency_digits = fields.Function(
         fields.Integer('Currency Digits'), 'get_currency_digits')
 
@@ -333,8 +342,9 @@ class CurrencyDigits(object):
         return 2
 
 
-class AccessControlList(object):
+class AccessControlList:
     'Mixin to add an Access Control List'
+    __slots__ = ()
     acl = fields.One2Many(
         'ace', 'entity', 'Access Control List',
         states=STATES, depends=DEPENDS,
