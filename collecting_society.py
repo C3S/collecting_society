@@ -384,7 +384,7 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Name', required=True, states=STATES, depends=DEPENDS)
     party = fields.Many2One(
         'party.party', 'Party', states=STATES, depends=DEPENDS,
         help='The legal person or organization acting the collecting society')
@@ -405,9 +405,9 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
     _rec_name = 'version'
 
     code = fields.Char(
-        'Code', required=True, select=True, states={'readonly': True})
+        'Code', required=True, states={'readonly': True})
     version = fields.Char(
-        'Version', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Version', required=True, states=STATES, depends=DEPENDS)
     valid_from = fields.Date(
         'Valid from', help='Date from which the tariff is valid.')
     valid_through = fields.Date(
@@ -471,9 +471,9 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Name', required=True, states=STATES, depends=DEPENDS)
     code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Code', required=True, states=STATES, depends=DEPENDS)
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the tariff category.')
@@ -589,11 +589,11 @@ class TariffCategoryTariffAdjustmentCategory(ModelSQL):
     _history = True
     tariff_category = fields.Many2One(
         'tariff_system.category', 'Tariff Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     tariff_adjustment_category = fields.Many2One(
         'tariff_system.tariff.adjustment.category',
         'Tariff Adjustment Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class TariffAdjustment(ModelSQL, ModelView, PublicApi):
@@ -670,10 +670,10 @@ class TariffCategoryTariffRelevanceCategory(ModelSQL):
     _history = True
     tariff_category = fields.Many2One(
         'tariff_system.category', 'Tariff Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     tariff_relevance_category = fields.Many2One(
         'tariff_system.tariff.relevance.category', 'Tariff Relevance Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class TariffRelevance(ModelSQL, ModelView, PublicApi):
@@ -712,9 +712,9 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     code = fields.Function(
         fields.Char('Code'), 'get_code', searcher='search_code')
     system = fields.Many2One(
-        'tariff_system', 'System', required=True, select=True)
+        'tariff_system', 'System', required=True)
     category = fields.Many2One(
-        'tariff_system.category', 'Category', required=True, select=True)
+        'tariff_system.category', 'Category', required=True)
 
     def get_name(self, name):
         return self.category.name
@@ -856,11 +856,11 @@ class Distribution(ModelSQL, ModelView):
     __name__ = 'distribution'
     _rec_name = 'code'
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         })
     date = fields.Date(
-        'Distribution Date', required=True, select=True,
+        'Distribution Date', required=True,
         help='The date of the distribution')
     from_date = fields.Date(
         'From Date',
@@ -925,9 +925,9 @@ class DistributionPlan(ModelSQL, ModelView):
     _history = True
 
     code = fields.Char(
-        'Code', required=True, select=True, states={'readonly': True})
+        'Code', required=True, states={'readonly': True})
     version = fields.Char(
-        'Version', required=True, select=True)
+        'Version', required=True)
     valid_from = fields.Date(
         'Valid from', help='Date from which the tariff is valid.')
     valid_through = fields.Date(
@@ -1634,12 +1634,12 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
     'License'
     __name__ = 'license'
     _history = True
-    name = fields.Char('Name', required=True, select=True)
-    code = fields.Char('Code', required=True, select=True)
+    name = fields.Char('Name', required=True)
+    code = fields.Char('Code', required=True)
     freedom_rank = fields.Integer('Freedom Rank')
-    version = fields.Char('Version', required=True, select=False)
-    country = fields.Char('Country', required=True, select=False)
-    link = fields.Char('Link', required=True, select=False)
+    version = fields.Char('Version', required=True)
+    country = fields.Char('Country', required=True)
+    link = fields.Char('Link', required=True)
 
     @classmethod
     def __setup__(cls):
@@ -1679,9 +1679,9 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     __name__ = 'artist'
     _history = True
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS)
+        'Name', required=True, states=STATES, depends=DEPENDS)
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The unique code of the artist')
     party = fields.Many2One(
@@ -2026,10 +2026,10 @@ class ArtistArtist(ModelSQL):
     __name__ = 'artist-artist'
     _history = True
     group_artist = fields.Many2One(
-        'artist', 'Group Artist', required=True, select=True,
+        'artist', 'Group Artist', required=True,
         ondelete='CASCADE')
     solo_artist = fields.Many2One(
-        'artist', 'Solo Artist', required=True, select=True,
+        'artist', 'Solo Artist', required=True,
         ondelete='CASCADE')
 
 
@@ -2038,9 +2038,9 @@ class ArtistRelease(ModelSQL):
     __name__ = 'artist-release'
     _history = True
     artist = fields.Many2One(
-        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Artist', required=True, ondelete='CASCADE')
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
 
 
 class ArtistPayeeAcceptance(ModelSQL):
@@ -2048,9 +2048,9 @@ class ArtistPayeeAcceptance(ModelSQL):
     __name__ = 'artist.payee.acceptance'
     _history = True
     artist = fields.Many2One(
-        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Artist', required=True, ondelete='CASCADE')
     party = fields.Many2One(
-        'party.party', 'Party', required=True, select=True, ondelete='CASCADE')
+        'party.party', 'Party', required=True, ondelete='CASCADE')
 
 
 class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
@@ -2059,10 +2059,10 @@ class ArtistIdentifier(ModelSQL, ModelView, MixinIdentifier):
     _history = True
     space = fields.Many2One(
         'artist.cs_identifier.space', 'Artist Identifier Space',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     artist = fields.Many2One(
         'artist', 'Artist',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class ArtistIdentifierSpace(ModelSQL, ModelView):
@@ -2115,7 +2115,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         help='The abstract title of the creation, needed to identify '
         'it later as a track within a release, for example.')
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The identification code for the creation')
     artist = fields.Many2One(
@@ -2378,10 +2378,10 @@ class CreationDerivative(ModelSQL, ModelView, PublicApi):
     _history = True
 
     original_creation = fields.Many2One(
-        'creation', 'Original Creation', select=True, required=True,
+        'creation', 'Original Creation', required=True,
         ondelete='CASCADE')
     derivative_creation = fields.Many2One(
-        'creation', 'Derivative Creation', select=True, required=True,
+        'creation', 'Derivative Creation', required=True,
         ondelete='CASCADE')
     allocation_type = fields.Selection(
         [
@@ -2403,7 +2403,7 @@ class CreationContribution(ModelSQL, ModelView, PublicApi):
     _history = True
 
     creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True,
+        'creation', 'Creation', required=True,
         ondelete='CASCADE')
     artist = fields.Many2One(
         'artist', 'Artist', help='The involved artist contributing to the '
@@ -2490,10 +2490,10 @@ class CreationContributionRole(ModelSQL, ModelView):
     _history = True
 
     contribution = fields.Many2One(
-        'creation.contribution', 'Contribution', required=True, select=True,
+        'creation.contribution', 'Contribution', required=True,
         ondelete='CASCADE')
     role = fields.Many2One(
-        'creation.role', 'Role', required=True, select=True,
+        'creation.role', 'Role', required=True,
         ondelete='CASCADE')
 
 
@@ -2529,10 +2529,10 @@ class CreationIdentifier(ModelSQL, ModelView, MixinIdentifier):
     _history = True
     space = fields.Many2One(
         'creation.cs_identifier.space', 'Creation Identifier Space',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     creation = fields.Many2One(
         'creation', 'Creation',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class CreationIdentifierSpace(ModelSQL, ModelView):
@@ -2549,11 +2549,9 @@ class CreationRight(ModelSQL, ModelView, MixinRight, PublicApi):
     _history = True
 
     rightsholder = fields.Many2One(
-        'artist', 'Rightsholder', required=True, select=True,
-        ondelete='CASCADE')
+        'artist', 'Rightsholder', required=True, ondelete='CASCADE')
     rightsobject = fields.Many2One(
-        'creation', 'Creation', required=True, select=True,
-        ondelete='CASCADE')
+        'creation', 'Creation', required=True, ondelete='CASCADE')
     contribution = fields.Selection(
         'get_contribution', 'Contribution Type')
     successor = fields.One2One(
@@ -2594,11 +2592,9 @@ class CreationRightCreationRight(ModelSQL):
     _history = True
 
     predecessor = fields.Many2One(
-        'creation.right', 'Predecessor', required=True,
-        select=True, ondelete='CASCADE')
+        'creation.right', 'Predecessor', required=True, ondelete='CASCADE')
     successor = fields.Many2One(
-        'creation.right', 'Successor', required=True,
-        select=True, ondelete='CASCADE')
+        'creation.right', 'Successor', required=True, ondelete='CASCADE')
 
 
 class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
@@ -2649,7 +2645,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     # metadata
     title = fields.Char('Title')
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The identification code for the release')
     picture_data = fields.Binary(
@@ -2874,12 +2870,12 @@ class ReleaseTrack(ModelSQL, ModelView, PublicApi):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
     creation = fields.Many2One(
-        'creation', 'Creation', required=True, select=True, ondelete='CASCADE')
+        'creation', 'Creation', required=True, ondelete='CASCADE')
 
     title = fields.Char(
-        'Title', select=True, states={'required': True},
+        'Title', states={'required': True},
         help='The title or name of the creation on the release')
     medium_number = fields.Integer(
         'Medium Number', help='The number of the medium on CD, LP, ...')
@@ -2895,9 +2891,9 @@ class ReleaseGenre(ModelSQL, ModelView):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
     genre = fields.Many2One(
-        'genre', 'Genre', required=True, select=True, ondelete='CASCADE')
+        'genre', 'Genre', required=True, ondelete='CASCADE')
 
 
 class ReleaseStyle(ModelSQL, ModelView):
@@ -2906,9 +2902,9 @@ class ReleaseStyle(ModelSQL, ModelView):
     _history = True
 
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
     style = fields.Many2One(
-        'style', 'Style', required=True, select=True, ondelete='CASCADE')
+        'style', 'Style', required=True, ondelete='CASCADE')
 
 
 class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
@@ -2917,9 +2913,9 @@ class ReleaseIdentifier(ModelSQL, ModelView, MixinIdentifier):
     _history = True
     space = fields.Many2One(
         'release.cs_identifier.space', 'Release Identifier Space',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     release = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
 
 
 class ReleaseIdentifierSpace(ModelSQL, ModelView):
@@ -2935,9 +2931,9 @@ class ReleaseRight(ModelSQL, ModelView, MixinRight):
     __name__ = 'release.right'
     _history = True
     rightsholder = fields.Many2One(
-        'artist', 'Artist', required=True, select=True, ondelete='CASCADE')
+        'artist', 'Artist', required=True, ondelete='CASCADE')
     rightsobject = fields.Many2One(
-        'release', 'Release', required=True, select=True, ondelete='CASCADE')
+        'release', 'Release', required=True, ondelete='CASCADE')
     contribution = fields.Function(
         fields.Char('Contribution Right'),
         'get_contribution')
@@ -2963,10 +2959,10 @@ class ReleaseRightReleaseRight(ModelSQL):
 
     predecessor = fields.Many2One(
         'release.right', 'Predecessor', required=True,
-        select=True, ondelete='CASCADE')
+        ondelete='CASCADE')
     successor = fields.Many2One(
         'release.right', 'Successor', required=True,
-        select=True, ondelete='CASCADE')
+        ondelete='CASCADE')
 
 
 class Instrument(ModelSQL, ModelView, PublicApi):
@@ -2987,10 +2983,10 @@ class CreationRightInstrument(ModelSQL):
 
     right = fields.Many2One(
         'creation.right', 'Right', required=True,
-        select=True, ondelete='CASCADE')
+        ondelete='CASCADE')
     instrument = fields.Many2One(
         'instrument', 'Instrument', required=True,
-        select=True, ondelete='CASCADE')
+        ondelete='CASCADE')
 
 
 class Genre(ModelSQL, ModelView, PublicApi):
@@ -3054,7 +3050,7 @@ class Event(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
     __samples__ = ['estimated', 'confirmed']
 
     name = fields.Char(
-        'Name', select=True, states={
+        'Name', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
@@ -3141,7 +3137,7 @@ class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
     __samples__ = ['estimated', 'confirmed']
 
     name = fields.Char(
-        'Name', select=True, states={
+        'Name', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
@@ -3182,10 +3178,10 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Name', required=True, states=STATES, depends=DEPENDS,
         help="The name of the location category")
     code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Code', required=True, states=STATES, depends=DEPENDS,
         help="The machine readable code for the location category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
@@ -3239,7 +3235,7 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi,
     __samples__ = ['estimated', 'confirmed']
 
     name = fields.Char(
-        'Name', required=False, select=True, states=STATES, depends=DEPENDS,
+        'Name', required=False, states=STATES, depends=DEPENDS,
         help="The name of the location space")
     location = fields.Many2One(
         'location', 'Location', states={
@@ -3321,10 +3317,10 @@ class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Name', required=True, states=STATES, depends=DEPENDS,
         help="The name of the location space category")
     code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Code', required=True, states=STATES, depends=DEPENDS,
         help="The machine readable code for the location space category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
@@ -3371,7 +3367,7 @@ class Website(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', select=True, states={
+        'Name', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
@@ -3424,10 +3420,10 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Name', required=True, states=STATES, depends=DEPENDS,
         help='The name of the website category')
     code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Code', required=True, states=STATES, depends=DEPENDS,
         help="The machine readable code for the website category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
@@ -3483,7 +3479,7 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
     _history = True
 
     name = fields.Char(
-        'Name', select=True, states={
+        'Name', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
@@ -3564,10 +3560,10 @@ class WebsiteResourceCreation(ModelSQL):
     _history = True
 
     resource = fields.Many2One(
-        'website.resource', 'Resource', select=True, required=True,
+        'website.resource', 'Resource', required=True,
         ondelete='CASCADE')
     creation = fields.Many2One(
-        'creation', 'Creation', select=True, required=True,
+        'creation', 'Creation', required=True,
         ondelete='CASCADE')
 
 
@@ -3577,10 +3573,10 @@ class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
 
     name = fields.Char(
-        'Name', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Name', required=True, states=STATES, depends=DEPENDS,
         help='The name of the resource category')
     code = fields.Char(
-        'Code', required=True, select=True, states=STATES, depends=DEPENDS,
+        'Code', required=True, states=STATES, depends=DEPENDS,
         help="The machine readable code for the resource category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
@@ -3636,10 +3632,10 @@ class WebsiteCategoryWebsiteResourceCategory(ModelSQL):
 
     website_category = fields.Many2One(
         'website.category', 'Website Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
     website_resource_category = fields.Many2One(
         'website.resource.category', 'Website Resource Category',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 # --- Devices ----------------------------------------------------------------
@@ -3859,10 +3855,10 @@ class DeviceMessageDeviceMessage(ModelSQL):
     _history = True
 
     previous_message = fields.Many2One(
-        'device.message', 'Previous Message', required=True, select=True,
+        'device.message', 'Previous Message', required=True,
         ondelete='CASCADE')
     next_message = fields.Many2One(
-        'device.message', 'Next Message', required=True, select=True,
+        'device.message', 'Next Message', required=True,
         ondelete='CASCADE')
 
 
@@ -4579,7 +4575,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
     __samples__ = ['estimated', 'confirmed']
 
     code = fields.Char(
-        'Code', required=True, select=True,
+        'Code', required=True,
         states={'required': True, 'readonly': True},
         help='Sequential code number of the utilisation')
     state = fields.Selection(
@@ -4932,7 +4928,7 @@ class HarddiskLabel(ModelSQL, ModelView, CurrentState):
     _rec_name = 'code'
     _history = True
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The Label code for the Harddisk.')
     harddisks = fields.One2Many(
@@ -5058,7 +5054,7 @@ class FilesystemLabel(ModelSQL, ModelView, CurrentState):
     _rec_name = 'code'
     _history = True
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The Label code for the Filesystem.')
     filesystems = fields.One2Many(
@@ -5161,7 +5157,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     _history = True
 
     code = fields.Char(
-        'Code', required=True, select=True, states={
+        'Code', required=True, states={
             'readonly': True,
         }, help='The unique code of the content')
     uuid = fields.Char(
@@ -5548,7 +5544,7 @@ class Fingerprintlog(ModelSQL, ModelView, EntityOrigin):
         'res.user', 'User', states={'required': True},
         help='The user which fingerprinted the content.')
     timestamp = fields.DateTime(
-        'Timestamp', states={'required': True}, select=True,
+        'Timestamp', states={'required': True},
         help='Point in time of fingerprinting')
     fingerprinting_algorithm = fields.Char(
         'Algorithm', states={'required': True},
@@ -5618,9 +5614,9 @@ class AccessControlEntryRole(ModelSQL, ModelView):
     _history = True
 
     ace = fields.Many2One(
-        'ace', 'Entry', required=True, select=True, ondelete='CASCADE')
+        'ace', 'Entry', required=True, ondelete='CASCADE')
     role = fields.Many2One(
-        'ace.role', 'Role', required=True, select=True, ondelete='CASCADE')
+        'ace.role', 'Role', required=True, ondelete='CASCADE')
     # recursive = fields.Boolean(
     #     'Including Subobjects',  # TODO: require for artist, invisible else
     #     help="Does the role also apply to the subobjects?")
@@ -5657,10 +5653,10 @@ class AccessRolePermission(ModelSQL, ModelView):
     _history = True
 
     role = fields.Many2One(
-        'ace.role', 'Role', required=True, select=True, ondelete='CASCADE')
+        'ace.role', 'Role', required=True, ondelete='CASCADE')
     permission = fields.Many2One(
         'ace.permission', 'Permission',
-        required=True, select=True, ondelete='CASCADE')
+        required=True, ondelete='CASCADE')
 
 
 class AccessPermission(ModelSQL, ModelView):
