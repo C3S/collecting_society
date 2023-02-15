@@ -3751,15 +3751,17 @@ class DeviceMessage(ModelSQL, ModelView):
     previous_message = fields.One2One(
         'device.message-device.message', 'next_message', 'previous_message',
         'Previous Message', domain=[
-            ['OR',
+            [
+                'OR',
                 # only free ones
                 [('next_message', '=', None)],
                 # allow saving (new relations to the current one)
-                [('next_message.id', '=', Eval('id'))]],
+                [('next_message.id', '=', Eval('id', -1))]
+            ],
             # no circles
-            ('last_message', '!=', Eval('last_message')),
+            ('last_message', '!=', Eval('last_message', -1)),
             # no self reference
-            ('id', '!=', Eval('id')),
+            ('id', '!=', Eval('id', -1)),
         ], depends=['id', 'last_message'],
         help='The previous message in a message sequence')
     next_message = fields.One2One(
@@ -3769,11 +3771,11 @@ class DeviceMessage(ModelSQL, ModelView):
                 # only free ones
                 [('previous_message', '=', None)],
                 # allow saving (new relations to the current one)
-                [('previous_message.id', '=', Eval('id'))]],
+                [('previous_message.id', '=', Eval('id', -1))]],
             # no circles
-            ('first_message', '!=', Eval('first_message')),
+            ('first_message', '!=', Eval('first_message', -1)),
             # no self reference
-            ('id', '!=', Eval('id')),
+            ('id', '!=', Eval('id', -1)),
         ], depends=['id', 'first_message'],
         help='The next message in a message sequence')
     first_message = fields.Function(
