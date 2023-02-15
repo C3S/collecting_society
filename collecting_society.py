@@ -1545,8 +1545,8 @@ class IndicatorsMeta(ModelMeta):
         new = super().__new__(cls, measured_class_name, bases, dct)
 
         # sanity checks
-        assert(dct['__indicators__'])
-        assert(dct['__samples__'])
+        assert dct['__indicators__']
+        assert dct['__samples__']
 
         # get model/class name and class of the indicators object
         samples = dct['__samples__']
