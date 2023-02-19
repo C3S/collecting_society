@@ -5,6 +5,8 @@
     <field name="event" expand="1"/>
     <field name="artist" expand="1"/>
     <field name="start" widget="date" expand="1"/>
+    <field name="start" widget="time" expand="1"/>
     <field name="end" widget="date" expand="1"/>
+    <field name="end" widget="time" expand="1"/>
     <field name="active"/>
 </tree>

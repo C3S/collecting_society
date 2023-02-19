@@ -38,7 +38,7 @@ class AccountMove(metaclass=PoolMeta):
 class AccountMoveLine(metaclass=PoolMeta):
     __name__ = 'account.move.line'
 
-    artist = fields.Many2One('artist', 'Artist', select=True)
+    artist = fields.Many2One('artist', 'Artist')
 
     @classmethod
     def __setup__(cls):
