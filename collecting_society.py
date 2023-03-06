@@ -48,7 +48,9 @@ __all__ = [
     'TariffRelevance',
     'Tariff',
     'Allocation',
-    'InvoiceAllocation',
+    'AllocateStart',
+    'Allocate',
+    'AllocationInvoice',
     'Distribution',
     'DistributionPlan',
     'DistributeStart',
@@ -733,7 +735,7 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 class Allocation(ModelSQL, ModelView, CurrencyDigits):
     'Allocation'
-    __name__ = 'distribution.allocation'
+    __name__ = 'allocation'
     company = fields.Many2One('company.company', 'Company', required=True)
     distribution = fields.Many2One(
         'distribution', 'Distribution', required=True,
@@ -756,7 +758,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         depends=['currency_digits'], help='The share for each utilisation')
     move_lines = fields.One2Many(
         'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'distribution.allocation,%')],
+        domain=[('origin', 'like', 'allocation,%')],
         help='The account move lines of the allocation')
     utilisations = fields.One2Many(
         'utilisation', 'allocation', 'Utilisations',
@@ -826,15 +828,15 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         return invoice
 
 
-class InvoiceAllocation(Wizard):
-    'Invoice Allocation'
-    __name__ = 'distribution.allocation.invoice'
+class AllocationInvoice(Wizard):
+    'Allocation Invoice'
+    __name__ = 'allocation.invoice'
     start_state = 'invoice'
     invoice = StateAction('account_invoice.act_invoice_form')
 
     def do_invoice(self, action):
         pool = Pool()
-        Allocation = pool.get('distribution.allocation')
+        Allocation = pool.get('allocation')
 
         allocations = Allocation.browse(Transaction().context['active_ids'])
         invoices = []
@@ -847,7 +849,55 @@ class InvoiceAllocation(Wizard):
         if len(invoices) == 1:
             action['views'].reverse()
         return action, data
+    
 
+class AllocateStart(ModelView):
+    'Allocate Start'
+    """
+    Defines the initial state of the Allocate wizard, including a list of
+    utilizarions to use in the allocation process.
+    """
+
+    __name__ = 'utilisation.allocate.start'
+    utilisations = fields.One2Many(
+        'utilisation', None, 'Utilisations',
+        states={'required': True}, help='The utilisations to allocate')
+
+
+class Allocate(Wizard):
+    'Allocate'
+    """
+    Defines states of the Allocate wizard and holds the code for the
+    allocation process.
+    """
+    __name__ = 'utilisation.allocate'
+
+    start = StateView(
+        'utilisation.allocate.start',
+        'collecting_society.utilisation_allocate_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Allocate', 'allocate', 'tryton-ok', default=True),
+        ])
+    allocate = StateTransition()
+
+    def default_start(self, fields):
+        Utilisation = Pool().get('utilisation')
+        active_model = Transaction().context.get('active_model', '')
+        if active_model == 'utilisation':
+            utilisations = Transaction().context['active_ids']
+        else:
+            utilisations = [
+                utilisation.id for utilisation
+                in Utilisation.search([])
+                ]
+        return {
+            'utilisations': utilisations
+        }
+
+    def transition_allocate(self):
+        Warning = Pool().get('res.user.warning')
+        return 'end'
 
 # --- Distribution ------------------------------------------------------------
 
@@ -868,7 +918,7 @@ class Distribution(ModelSQL, ModelView):
     thru_date = fields.Date(
         'Thru Date', help='Include utilisations until thru date')
     allocations = fields.One2Many(
-        'distribution.allocation', 'distribution', 'Allocations',
+        'allocation', 'distribution', 'Allocations',
         help='All allocations in this distributon')
 
     @classmethod
@@ -1030,7 +1080,7 @@ class Distribute(Wizard):
         pool = Pool()
         Company = pool.get('company.company')
         Distribution = pool.get('distribution')
-        Allocation = pool.get('distribution.allocation')
+        Allocation = pool.get('allocation')
         Utilisation = pool.get('utilisation')
         Account = pool.get('account.account')
         AccountMove = pool.get('account.move')
@@ -1135,7 +1185,7 @@ class Distribute(Wizard):
                     }]
             period_id = Period.find(company.id, date=self.start.date)
             journal, = AccountJournal.search([('code', '=', 'TRANS')])
-            origin = 'distribution.allocation,%s' % (allocation.id)
+            origin = 'allocation,%s' % (allocation.id)
             account_moves.append({
                 'journal': journal.id,
                 'origin': origin,
@@ -4585,9 +4635,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('created', 'Created'),
             ('estimated', 'Estimated'),
             ('confirmed', 'Confirmed'),
-            ('invoiced', 'Invoiced'),
-            ('payed', 'Payed'),
-            ('distributed', 'Distributed'),
+            ('invoiced', 'Invoiced'),        # -> allocation.invoice
+            ('payed', 'Payed'),              # -> allocation.invoice
+            ('distributed', 'Distributed'),  # -> allocation.distribution
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The processing state of the utilisation:\n\n'
@@ -4665,7 +4715,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         }, depends=DEPENDS,
         help='The distribution plan for the utilisation')
     allocation = fields.Many2One(
-        'distribution.allocation', 'Allocation',
+        'allocation', 'Allocation',
         states=STATES, depends=DEPENDS,
         help='The allocation of the utilisation')
 
