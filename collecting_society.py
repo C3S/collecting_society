@@ -731,52 +731,156 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
         return self.get_code(name)
 
 
-# --- Allocation --------------------------------------------------------------
+# --- Collection --------------------------------------------------------------
+# TODO:
+# - rename 'allocation' to 'collection.allocation' / 'collection_allocation'
+# - rename Allocate to Collect (and tryton ids / xml views accordingly
+# - add function fields to utilisatin to calculate (preview, not write)
+#   the utilisation amounts
+# - Mixins: Uuid (uuid), ~AutoProcessing (locked)
+# - no manual creation of allocations via tryton client (tryton ACLs)
 
-class Allocation(ModelSQL, ModelView, CurrencyDigits):
-    'Allocation'
-    __name__ = 'allocation'
-    company = fields.Many2One('company.company', 'Company', required=True)
+class Collection(ModelSQL, ModelView):
+    'Collection'
+    __name__ = 'collection'
+
+    uuid = fields.Char(
+        'UUID', required=True, states=STATES, depends=DEPENDS,
+        help='The uuid of the allocation')
+    # TODO: function field: collected -> all allocations >= collected
+    locked = fields.Boolean(
+        'Locked', states={'readonly': True},
+        help='Locked state for processing purposes')
+
+    allocations = fields.One2Many(
+        'allocation', 'collection', 'Allocations',
+        help='The collected allocations')
     distribution = fields.Many2One(
         'distribution', 'Distribution', required=True,
         help='The distribution of the allocation')
-    type = fields.Selection(
+
+    entity_origin = fields.Selection(
         [
-            ('pocket2hats', 'Pocket to Hats'),
-            ('hat2pockets', 'Hat to Pockets'),
-        ], 'Type', required=True, sort=False, help='The allocation type:\n'
-        '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
-        '*Hat to Pockets*: Allocates amount from a hat to many pockets')
-    party = fields.Many2One(
-        'party.party', 'Party', required=True,
-        help='The party which utilises creations')
-    amount = fields.Numeric(
-        'Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount to distribute')
-    share_amount = fields.Numeric(
-        'Share Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The share for each utilisation')
-    move_lines = fields.One2Many(
-        'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'allocation,%')],
-        help='The account move lines of the allocation')
-    utilisations = fields.One2Many(
-        'utilisation', 'allocation', 'Utilisations',
-        help='The allocated utilisations')
+            ('automatic', 'Automatic'),
+            ('manually', 'Manually'),
+        ], 'Entity Origin', states={'required': True}, sort=False,
+        help='Defines, if an object was created manually (e.g. staff) or '
+             'automatic (e.g. cronjob).')
+    entity_creator = fields.Many2One(
+        'party.party', 'Entity Creator', states={'required': True})
 
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('distribution', 'ASC'))
-        cls._order.insert(2, ('party', 'ASC'))
+        # Write email on collision to congratulate the uuid issuer
+        table = cls.__table__()
+        cls._sql_constraints = [
+            ('uuid_uniq', Unique(table, table.uuid),
+             'The UUID of the allocation must be unique.'),
+        ]
+        # TODO:
+        # - ensure allocations have the same origin (db level & tryton level)
+        # - ensure allocations have the same licensee (db level & tryton level)
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
+
+    # TODO: _collect() method, which is called in the Collect wizard
+    def _collect(self):
+        pass
+
+
+class Allocation(ModelSQL, ModelView, CurrencyDigits):
+    'Allocation'
+    __name__ = 'allocation'
+
+    uuid = fields.Char(
+        'UUID', required=True, states=STATES, depends=DEPENDS,
+        help='The uuid of the allocation')
+    state = fields.Selection(
+        [
+            ('created', 'Created'),
+            ('calculated', 'Calculated'),
+            ('invoiced', 'Invoiced'),
+            ('collected', 'Collected'),
+        ], 'State', required=True, sort=False,
+        states=STATES, depends=DEPENDS,
+        help='The processing state of the allocation:\n\n'
+        '*Created*: Default state for new allocations.\n'
+        '*Calculated*: Amounts have been calculated '
+        '(invoice amount, distribution amount, administration fee).\n'
+        '*Invoiced*: An invoice for this allocation has been issued.\n'
+        '*Collected*: The invoice has been payed and the allocation '
+        'is ready to be distributed.')
+    locked = fields.Boolean(
+        'Locked', states={'readonly': True},
+        help='Locked state for processing purposes')
+
+    company = fields.Many2One('company.company', 'Company', required=True)
+    date = fields.Date(
+        'Allocation Date', required=True,
+        help='The date of the allocation')
+
+    licensee = fields.Many2One(
+        'party.party', 'Licensee', states={
+            'required': True,
+        }, depends=DEPENDS,
+        help="The licensee of the allocation")
+    utilisations = fields.One2Many(
+        'utilisation', 'allocation', 'Utilisations',
+        help='The allocated utilisations')
+
+    invoice_amount = fields.Numeric(
+        'Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of invoice amounts over all utilisations')
+    distribution_amount = fields.Numeric(
+        'Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of distribution amounts over all utilisations')
+    administration_fee = fields.Numeric(
+        'Share Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of adminstration fee over all utilisations')
+
+    # TODO: attach the created invoice in _get_invoice() etc
+    invoice = fields.One2One(
+        'account.invoice', 'allocation', 'Allocation Invoice',
+        help='The invoice of the allocation')
+
+    # TODO: right object for this?
+    # if move_lines are only those for one licensee, it the right place.
+    # if move_lines contain all lines of all licensees, it has to move to
+    # Collection.
+    move_lines = fields.One2Many(
+        'account.move.line', 'origin', 'Account Move Lines',
+        domain=[('origin', 'like', 'distribution.allocation,%')],
+        help='The account move lines of the allocation')
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls._order.insert(1, ('utilisation', 'ASC'))
+        # Write email on collision to congratulate the uuid issuer
+        table = cls.__table__()
+        cls._sql_constraints = [
+            ('uuid_uniq', Unique(table, table.uuid),
+             'The UUID of the allocation must be unique.'),
+        ]
 
     @staticmethod
     def default_company():
         return Transaction().context.get('company')
 
     @staticmethod
-    def default_type():
-        return 'pocket2hats'
+    def default_uuid():
+        return str(uuid.uuid4())
+
+    def calculate_amounts(self, sample, update=False):
+        # TODO: https://redmine.c3s.cc/issues/1140
+        # as discussed: one function to calculate all amounts, no split
+        pass
 
     def _get_invoice(self):
         pool = Pool()
@@ -795,13 +899,17 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             'company': self.company,
             'type': 'out',
             'journal': journal,
-            'party': self.party,
-            'invoice_address': self.party.address_get('invoice'),
+            'party': self.licensee,
+            'invoice_address': self.licensee.address_get('invoice'),
             'currency': self.company.currency,
-            'account': self.party.account_receivable,
-            'payment_term': self.party.customer_payment_term,
-            'description': self.distribution.rec_name,
-            'invoice_date': self.distribution.date,
+            'account': self.licensee.account_receivable,
+            'payment_term': self.licensee.customer_payment_term,
+            # TODO: fetch from right objects
+            # 'description': self.distribution.rec_name,
+            'description': "TODO",
+            # TODO: get from form field (default today)?
+            # 'invoice_date': self.distribution.date,
+            'invoice_date': datetime.date.today(),
         }
         return Invoice(**data)
 
@@ -812,9 +920,9 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
-        if not self.party.account_receivable:
+        if not self.licensee.account_receivable:
             self.raise_user_error(
-                'missing_account_receivable', (self.party.rec_name,))
+                'missing_account_receivable', (self.licensee.rec_name,))
 
         invoice_lines = []
         for utilisation in self.utilisations:
@@ -826,6 +934,24 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         invoice.save()
         Invoice.update_taxes([invoice])
         return invoice
+
+    # TODO: delete as soon as everything works out
+    # -> artifact from imp
+    # type = fields.Selection(
+    #     [
+    #         ('pocket2hats', 'Pocket to Hats'),
+    #         ('hat2pockets', 'Hat to Pockets'),
+    #     ], 'Type', required=True, sort=False, help='The allocation type:\n'
+    #     '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
+    #     '*Hat to Pockets*: Allocates amount from a hat to many pockets')
+    # -> artifact from imp
+    # @staticmethod
+    # def default_type():
+    #     return 'pocket2hats'
+    # -> probably artifact from imp, we have utilisation.licensee
+    # party = fields.Many2One(
+    #     'party.party', 'Party', required=True,
+    #     help='The party which utilises creations')
 
 
 class AllocationInvoice(Wizard):
@@ -849,7 +975,7 @@ class AllocationInvoice(Wizard):
         if len(invoices) == 1:
             action['views'].reverse()
         return action, data
-    
+
 
 class AllocateStart(ModelView):
     'Allocate Start'
@@ -896,8 +1022,12 @@ class Allocate(Wizard):
         }
 
     def transition_allocate(self):
-        Warning = Pool().get('res.user.warning')
+        # Notes
+        # - write _collect() in Collection, analogue to _invoice()
+        # - default case: 'write invoice' as form field (default: False)
+        # Warning = Pool().get('res.user.warning')
         return 'end'
+
 
 # --- Distribution ------------------------------------------------------------
 
@@ -1445,10 +1575,10 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The amount to invoice')
-    administration_amount = fields.Numeric(
+    administration_fee = fields.Numeric(
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
-        help='The amount for administration')
+        help='The fee for administration')
     distribution_amount = fields.Numeric(
         'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': False}, depends=['currency_digits'],
@@ -4635,9 +4765,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('created', 'Created'),
             ('estimated', 'Estimated'),
             ('confirmed', 'Confirmed'),
-            ('invoiced', 'Invoiced'),        # -> allocation.invoice
-            ('payed', 'Payed'),              # -> allocation.invoice
-            ('distributed', 'Distributed'),  # -> allocation.distribution
+            ('allocated', 'Allocated'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The processing state of the utilisation:\n\n'
