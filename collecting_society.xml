@@ -821,7 +821,7 @@
             <field name="action" ref="act_invoice_form"/>
         </record>
 
-        <!-- Menu: Utilisation / Allocate Wizard -->
+        <!-- Menu: Allocation / Allocate Wizard -->
         <record model="ir.action.wizard" id="act_utilisation_allocate">
             <!-- define the wizard: name and reference to the Python model -->
             <field name="name">Allocate</field>
@@ -848,6 +848,38 @@
                   sequence="10"
                   action="act_utilisation_allocate"
                   id="menu_utilisation_allocate"/>
+
+        <!-- Menue: Collection -->
+        <record model="ir.ui.view" id="collection_form">
+            <field name="model">collection</field>
+            <field name="type">form</field>
+            <field name="name">collection_form</field>
+        </record>
+        <record model="ir.ui.view" id="collection_list">
+            <field name="model">collection</field>
+            <field name="type">tree</field>
+            <field name="name">collection_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_collection">
+            <field name="name">Collections</field>
+            <field name="res_model">collection</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_collection_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="collection_list"/>
+            <field name="act_window" ref="act_collection"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_collection_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="collection_form"/>
+            <field name="act_window" ref="act_collection"/>
+        </record>
+        <menuitem parent="menu_collecting_society" sequence="45"
+                  action="act_collection"
+                  id="menu_collection"/>
 
         <!-- Menue: Distribution -->
         <record model="ir.ui.view" id="distribution_form">

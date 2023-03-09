@@ -115,6 +115,7 @@ def register():
         DeviceMessageUsagereport,
         Distribution,
         DistributionPlan,
+        Collection,
         Allocation,
         AllocateStart,
         DeclarationGroup,

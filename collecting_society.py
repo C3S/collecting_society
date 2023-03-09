@@ -52,6 +52,7 @@ __all__ = [
     'AllocateStart',
     'Allocate',
     'AllocationInvoice',
+    'Collection',
     'Distribution',
     'DistributionPlan',
     'DistributeStart',
@@ -747,11 +748,14 @@ class Collection(ModelSQL, ModelView):
 
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the allocation')
-    # TODO: function field: collected -> all allocations >= collected
+    # TODO: function field state: collected -> all allocations >= collected
     locked = fields.Boolean(
         'Locked', states={'readonly': True},
         help='Locked state for processing purposes')
 
+    date = fields.Date(
+        'Allocation Date', required=True,
+        help='The date of the allocation')
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
@@ -769,6 +773,7 @@ class Collection(ModelSQL, ModelView):
     @classmethod
     def __setup__(cls):
         super().__setup__()
+        cls._order.insert(1, ('date', 'ASC'))
         # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [
@@ -812,11 +817,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         'Locked', states={'readonly': True},
         help='Locked state for processing purposes')
 
-    company = fields.Many2One('company.company', 'Company', required=True)
-    date = fields.Date(
-        'Allocation Date', required=True,
-        help='The date of the allocation')
-
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={'required': True},
         help="The licensee of the allocation")
@@ -836,6 +836,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         depends=['currency_digits'],
         help='The sum of adminstration fee over all utilisations')
     # TODO: attach the created invoice in _get_invoice() etc
+    company = fields.Many2One('company.company', 'Company', required=True)
     invoice = fields.One2One(
         'allocation-account.invoice', 'allocation', 'invoice',
         'Allocation Invoice',
@@ -849,14 +850,19 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         domain=[('origin', 'like', 'distribution.allocation,%')],
         help='The account move lines of the allocation')
 
+    collection = fields.Many2One(
+        'collection', 'Collection', required=True,
+        help='The collection of the allocation')
     distribution = fields.Many2One(
         'distribution', 'Distribution', required=True,
         help='The distribution of the allocation')
 
+    # TODO: function field date: allocation.date
+
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('date', 'ASC'))
+        cls._order.insert(1, ('collection.date', 'ASC'))
         # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [

@@ -10,8 +10,8 @@
     <field name="locked"/>
     <newline/>
 
-    <field name="date" widget="date"/>
-    <field name="date" widget="time"/>
+    <!--field name="date" widget="date"/-->
+    <!--field name="date" widget="time"/-->
     <label name="company"/>
     <field name="company"/>
 
