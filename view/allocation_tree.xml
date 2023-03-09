@@ -2,9 +2,9 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree>
-    <field name="distribution"/>
-    <field name="party"/>
-    <field name="type"/>
-    <field name="amount"/>
-    <field name="share_amount"/>
+    <field name="uuid"/>
+    <field name="state"/>
+    <field name="date" widget="date"/>
+    <field name="licensee"/>
+    <field name="invoice_amount"/>
 </tree>

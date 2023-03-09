@@ -10,8 +10,8 @@
 
     <label name="invoice_amount"/>
     <field name="invoice_amount"/>
-    <label name="administration_amount"/>
-    <field name="administration_amount"/>
+    <label name="administration_fee"/>
+    <field name="administration_fee"/>
     <label name="distribution_amount"/>
     <field name="distribution_amount"/>
 

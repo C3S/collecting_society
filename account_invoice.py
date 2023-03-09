@@ -3,14 +3,15 @@
 from trytond.pool import PoolMeta
 from trytond.model import fields
 
-__all__ = ['InvoiceLine']
+__all__ = ['Invoice', 'InvoiceLine']
 
 
 class Invoice(metaclass=PoolMeta):
     __name__ = 'account.invoice'
 
     allocation = fields.One2One(
-        'allocation', 'account.invoice', 'Invoice Allocation',
+        'allocation-account.invoice', 'invoice', 'allocation',
+        'Invoice Allocation',
         help='The allocation of the invoice')
 
     # TODO: set allocation.state = 'collected', when invoice is payed

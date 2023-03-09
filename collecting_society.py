@@ -48,6 +48,7 @@ __all__ = [
     'TariffRelevance',
     'Tariff',
     'Allocation',
+    'AllocationAccountInvoice',
     'AllocateStart',
     'Allocate',
     'AllocationInvoice',
@@ -745,8 +746,7 @@ class Collection(ModelSQL, ModelView):
     __name__ = 'collection'
 
     uuid = fields.Char(
-        'UUID', required=True, states=STATES, depends=DEPENDS,
-        help='The uuid of the allocation')
+        'UUID', required=True, help='The uuid of the allocation')
     # TODO: function field: collected -> all allocations >= collected
     locked = fields.Boolean(
         'Locked', states={'readonly': True},
@@ -755,9 +755,6 @@ class Collection(ModelSQL, ModelView):
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
-    distribution = fields.Many2One(
-        'distribution', 'Distribution', required=True,
-        help='The distribution of the allocation')
 
     entity_origin = fields.Selection(
         [
@@ -796,8 +793,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     __name__ = 'allocation'
 
     uuid = fields.Char(
-        'UUID', required=True, states=STATES, depends=DEPENDS,
-        help='The uuid of the allocation')
+        'UUID', required=True, help='The uuid of the allocation')
     state = fields.Selection(
         [
             ('created', 'Created'),
@@ -805,7 +801,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             ('invoiced', 'Invoiced'),
             ('collected', 'Collected'),
         ], 'State', required=True, sort=False,
-        states=STATES, depends=DEPENDS,
         help='The processing state of the allocation:\n\n'
         '*Created*: Default state for new allocations.\n'
         '*Calculated*: Amounts have been calculated '
@@ -823,14 +818,11 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         help='The date of the allocation')
 
     licensee = fields.Many2One(
-        'party.party', 'Licensee', states={
-            'required': True,
-        }, depends=DEPENDS,
+        'party.party', 'Licensee', states={'required': True},
         help="The licensee of the allocation")
     utilisations = fields.One2Many(
         'utilisation', 'allocation', 'Utilisations',
         help='The allocated utilisations')
-
     invoice_amount = fields.Numeric(
         'Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
@@ -843,12 +835,11 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         'Share Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
         help='The sum of adminstration fee over all utilisations')
-
     # TODO: attach the created invoice in _get_invoice() etc
     invoice = fields.One2One(
-        'account.invoice', 'allocation', 'Allocation Invoice',
+        'allocation-account.invoice', 'allocation', 'invoice',
+        'Allocation Invoice',
         help='The invoice of the allocation')
-
     # TODO: right object for this?
     # if move_lines are only those for one licensee, it the right place.
     # if move_lines contain all lines of all licensees, it has to move to
@@ -858,10 +849,14 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         domain=[('origin', 'like', 'distribution.allocation,%')],
         help='The account move lines of the allocation')
 
+    distribution = fields.Many2One(
+        'distribution', 'Distribution', required=True,
+        help='The distribution of the allocation')
+
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('utilisation', 'ASC'))
+        cls._order.insert(1, ('date', 'ASC'))
         # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [
@@ -952,6 +947,17 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     # party = fields.Many2One(
     #     'party.party', 'Party', required=True,
     #     help='The party which utilises creations')
+
+
+class AllocationAccountInvoice(ModelSQL):
+    'Allocation - Invoice'
+    __name__ = 'allocation-account.invoice'
+    _history = True
+
+    allocation = fields.Many2One(
+        'allocation', 'Allocation', required=True, ondelete='CASCADE')
+    invoice = fields.Many2One(
+        'account.invoice', 'Invoice', required=True, ondelete='CASCADE')
 
 
 class AllocationInvoice(Wizard):

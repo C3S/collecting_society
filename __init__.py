@@ -27,6 +27,7 @@ def register():
         ArtistIdentifier,
         AccountMove,
         AccountMoveLine,
+        AllocationAccountInvoice,
         Invoice,
         InvoiceLine,
         UserRole,
