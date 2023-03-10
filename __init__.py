@@ -117,7 +117,7 @@ def register():
         DistributionPlan,
         Collection,
         Allocation,
-        AllocateStart,
+        CollectStart,
         DeclarationGroup,
         Declaration,
         DeclarationCollection,
@@ -133,7 +133,7 @@ def register():
         Address,
         module='collecting_society', type_='model')
     Pool.register(
-        Allocate,
+        Collect,
         Distribute,
         DeviceMessageFingerprintMatch,
         DeviceMessageFingerprintMerge,

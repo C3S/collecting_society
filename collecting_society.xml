@@ -821,33 +821,33 @@
             <field name="action" ref="act_invoice_form"/>
         </record>
 
-        <!-- Menu: Allocation / Allocate Wizard -->
-        <record model="ir.action.wizard" id="act_utilisation_allocate">
+        <!-- Menu: Allocation / Collect Wizard -->
+        <record model="ir.action.wizard" id="act_utilisation_allocation_collect">
             <!-- define the wizard: name and reference to the Python model -->
-            <field name="name">Allocate</field>
-            <field name="wiz_name">utilisation.allocate</field>
+            <field name="name">Collect</field>
+            <field name="wiz_name">utilisation.allocation.collect</field>
         </record>
         <record model="ir.action.keyword"
-                id="act_utilisation_allocate_keyword1">
+                id="act_utilisation_allocation_collect_keyword1">
             <!-- add the wizard to the forms propeller icon -->
-            <field name="action" ref="act_utilisation_allocate"/>
+            <field name="action" ref="act_utilisation_allocation_collect"/>
             <field name="keyword">form_action</field>
             <field name="model">utilisation,-1</field>
         </record>
         <record model="ir.ui.view"
-                id="utilisation_allocate_start_view_form">
+                id="utilisation_allocation_collect_start_view_form">
             <!-- associate the client view with the more abstract model view
-                of the Python class and utilisation_allocate_start_form.xml-->
-            <field name="model">utilisation.allocate.start</field>
+                of the Python class and utilisation_allocation_collect_start_form.xml-->
+            <field name="model">utilisation.allocation.collect.start</field>
             <field name="type">form</field>
-            <field name="name">utilisation_allocate_start_form</field>
+            <field name="name">utilisation_allocation_collect_start_form</field>
         </record>
         <!-- define under which parent menu (on the left navigation area of the
             client) the wizard action can be found -->
-        <menuitem name="Allocate" parent="menu_allocation"
+        <menuitem name="Collect" parent="menu_allocation"
                   sequence="10"
-                  action="act_utilisation_allocate"
-                  id="menu_utilisation_allocate"/>
+                  action="act_utilisation_allocation_collect"
+                  id="menu_utilisation_allocation_collect"/>
 
         <!-- Menue: Collection -->
         <record model="ir.ui.view" id="collection_form">

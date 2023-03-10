@@ -49,8 +49,8 @@ __all__ = [
     'Tariff',
     'Allocation',
     'AllocationAccountInvoice',
-    'AllocateStart',
-    'Allocate',
+    'CollectStart',
+    'Collect',
     'AllocationInvoice',
     'Collection',
     'Distribution',
@@ -989,35 +989,35 @@ class AllocationInvoice(Wizard):
         return action, data
 
 
-class AllocateStart(ModelView):
-    'Allocate Start'
+class CollectStart(ModelView):
+    'Collect Start'
     """
-    Defines the initial state of the Allocate wizard, including a list of
+    Defines the initial state of the Collect wizard, including a list of
     utilizarions to use in the allocation process.
     """
 
-    __name__ = 'utilisation.allocate.start'
+    __name__ = 'utilisation.allocation.collect.start'
     utilisations = fields.One2Many(
         'utilisation', None, 'Utilisations',
         states={'required': True}, help='The utilisations to allocate')
 
 
-class Allocate(Wizard):
-    'Allocate'
+class Collect(Wizard):
+    'Collect'
     """
-    Defines states of the Allocate wizard and holds the code for the
+    Defines states of the Collect wizard and holds the code for the
     allocation process.
     """
-    __name__ = 'utilisation.allocate'
+    __name__ = 'utilisation.allocation.collect'
 
     start = StateView(
-        'utilisation.allocate.start',
-        'collecting_society.utilisation_allocate_start_view_form',
+        'utilisation.allocation.collect.start',
+        'collecting_society.utilisation_allocation_collect_start_view_form',
         [
             Button('Cancel', 'end', 'tryton-cancel'),
-            Button('Allocate', 'allocate', 'tryton-ok', default=True),
+            Button('Collect', 'collect', 'tryton-ok', default=True),
         ])
-    allocate = StateTransition()
+    collect = StateTransition()
 
     def default_start(self, fields):
         Utilisation = Pool().get('utilisation')
@@ -1038,6 +1038,7 @@ class Allocate(Wizard):
         # - write _collect() in Collection, analogue to _invoice()
         # - default case: 'write invoice' as form field (default: False)
         # Warning = Pool().get('res.user.warning')
+
         return 'end'
 
 
