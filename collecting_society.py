@@ -753,9 +753,9 @@ class Collection(ModelSQL, ModelView):
         'Locked', states={'readonly': True},
         help='Locked state for processing purposes')
 
-    date = fields.Date(
+    date = fields.DateTime(
         'Allocation Date', required=True,
-        help='The date of the allocation')
+        help='The time of the allocation')
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
@@ -768,7 +768,7 @@ class Collection(ModelSQL, ModelView):
         help='Defines, if an object was created manually (e.g. staff) or '
              'automatic (e.g. cronjob).')
     entity_creator = fields.Many2One(
-        'party.party', 'Entity Creator', states={'required': True})
+        'res.user', 'Entity Creator', states={'required': True})
 
     @classmethod
     def __setup__(cls):
@@ -1033,9 +1033,19 @@ class Collect(Wizard):
             'utilisations': utilisations
         }
 
-    def transition_allocate(self):
+    def transition_collect(self):
+        Collection = Pool().get('collection')
+        collection = Collection()
+        collection.locked = False
+        collection.date = datetime.date.today()
+        collection.entity_origin = 'manually'
+        collection.entity_creator, = Pool().get('res.user').browse(
+            [Transaction().user])
+        # web_user = self.request.web_user
+        collection.save()
+        # collection.allocations = ...
+        
         # Notes
-        # - write _collect() in Collection, analogue to _invoice()
         # - default case: 'write invoice' as form field (default: False)
         # Warning = Pool().get('res.user.warning')
 
