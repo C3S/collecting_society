@@ -9,6 +9,7 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
+from typing import List, Tuple
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -743,7 +744,9 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 # - no manual creation of allocations via tryton client (tryton ACLs)
 
 class Collection(ModelSQL, ModelView):
-    'Collection'
+    """
+    represents a number of allocations on an administrational level
+    """
     __name__ = 'collection'
 
     uuid = fields.Char(
@@ -753,9 +756,12 @@ class Collection(ModelSQL, ModelView):
         'Locked', states={'readonly': True},
         help='Locked state for processing purposes')
 
-    date = fields.DateTime(
-        'Allocation Date', required=True,
-        help='The time of the allocation')
+    date = fields.Date(
+        'Collection Date', required=True,
+        help='The date of the collection run (Tryton needs this somehow...)')
+    time = fields.DateTime(
+        'Collection Time', required=True,
+        help='The time of the collection run')
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
@@ -788,9 +794,133 @@ class Collection(ModelSQL, ModelView):
     def default_uuid():
         return str(uuid.uuid4())
 
-    # TODO: _collect() method, which is called in the Collect wizard
-    def _collect(self):
-        pass
+    def __collect_finish_allocation(self, allocation: 'Allocation',
+                                    utilisations: List['Utilisation']):
+        """
+        just a helper for collect(); see below'
+        """
+        allocation.utilisations = utilisations
+        allocation.save()
+        utilisations.clear()
+
+    def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> Tuple[
+            bool, str]:
+        """
+        collects money from licensees
+
+        scans utilisations and creates allocations to invoice the respective
+        licensees
+
+        Args:
+            from_utilisations: utilisations to collect from
+
+        Returns:
+            bool, string: The return value; True for success, False otherwise;
+                          on False: a message text about what went wrong
+        """
+        from_utilisations_by_licensee = sorted(from_utilisations,
+                                               key=lambda x: x.licensee)
+        current_allocation = None
+        current_utilisations = []
+        for utilisation in from_utilisations_by_licensee:  # one allocation for
+            if (current_allocation is None or              # each new licensee
+                    utilisation.licensee != current_allocation.licensee):
+                if current_allocation is not None:      # finish old allocation
+                    self.__collect_finish_allocation(current_allocation,
+                                                     current_utilisations)
+                current_licensee = utilisation.licensee  # before switching
+                Allocation = Pool().get('allocation')   # to new one
+                current_allocation = Allocation()
+                current_allocation.state = 'calculated'  # 'invoiced'
+                current_allocation.licensee = current_licensee
+                current_allocation.invoice_amount = 0
+                current_allocation.distribution_amount = 0
+                current_allocation.administration_fee = 0
+                current_allocation.collection = self
+
+            # add utilisation to allocation and increase amounts
+            current_utilisations.append(utilisation.id)
+            current_allocation.invoice_amount = (
+                    current_allocation.invoice_amount + 1)
+            current_allocation.distribution_amount = (
+                    current_allocation.distribution_amount + Decimal('0.9'))
+            current_allocation.administration_fee = (
+                    current_allocation.administration_fee + Decimal('0.1'))
+
+        if current_allocation is not None:  # finish last allocation
+            self.__collect_finish_allocation(current_allocation,
+                                             current_utilisations)
+
+        return True, None
+
+
+class CollectStart(ModelView):
+    """
+    Defines the initial state of the Collect wizard, including a list of
+    utilizarions to use in the allocation process.
+    """
+
+    __name__ = 'utilisation.allocation.collect.start'
+    utilisations = fields.One2Many(
+        'utilisation', None, 'Utilisations',
+        states={'required': True}, help='The utilisations to allocate')
+
+
+class Collect(Wizard):
+    """
+    Defines states of the Collect wizard and holds the code for the
+    allocation process.
+    """
+    __name__ = 'utilisation.allocation.collect'
+
+    start = StateView(
+        'utilisation.allocation.collect.start',
+        'collecting_society.utilisation_allocation_collect_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Collect', 'collect', 'tryton-ok', default=True),
+        ])
+    collect = StateTransition()
+
+    def default_start(self, fields) -> List['Utilisation']:
+        """
+        triggered by the Collect button of the wizard
+
+        Returns:
+            List of Utilization that are preselected for collection in the
+            wizard
+        """
+        Utilisation = Pool().get('utilisation')
+        active_model = Transaction().context.get('active_model', '')
+        if active_model == 'utilisation':
+            utilisations = Transaction().context['active_ids']
+        else:
+            utilisations = [
+                utilisation.id for utilisation
+                in Utilisation.search([])
+                ]
+        return {
+            'utilisations': utilisations
+        }
+
+    def transition_collect(self):
+        Collection = Pool().get('collection')
+        collection = Collection()
+        collection.locked = False
+        collection.date = datetime.date.today()
+        collection.time = datetime.datetime.now()
+        collection.entity_origin = 'manually'
+        collection.entity_creator, = Pool().get('res.user').browse(
+            [Transaction().user])
+        collection.collect(self.start.utilisations)
+        collection.save()
+        # collection.allocations = ...
+
+        # Notes
+        # - default case: 'write invoice' as form field (default: False)
+        # Warning = Pool().get('res.user.warning')
+
+        return 'end'
 
 
 class Allocation(ModelSQL, ModelView, CurrencyDigits):
@@ -824,17 +954,17 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         'utilisation', 'allocation', 'Utilisations',
         help='The allocated utilisations')
     invoice_amount = fields.Numeric(
-        'Amount', digits=(16, Eval('currency_digits', 2)),
+        'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
         help='The sum of invoice amounts over all utilisations')
     distribution_amount = fields.Numeric(
-        'Amount', digits=(16, Eval('currency_digits', 2)),
+        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
         help='The sum of distribution amounts over all utilisations')
     administration_fee = fields.Numeric(
-        'Share Amount', digits=(16, Eval('currency_digits', 2)),
+        'Administration Fee', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
-        help='The sum of adminstration fee over all utilisations')
+        help='The sum of adminstration fees over all utilisations')
     # TODO: attach the created invoice in _get_invoice() etc
     company = fields.Many2One('company.company', 'Company', required=True)
     invoice = fields.One2One(
@@ -854,7 +984,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         'collection', 'Collection', required=True,
         help='The collection of the allocation')
     distribution = fields.Many2One(
-        'distribution', 'Distribution', required=True,
+        'distribution', 'Distribution',
         help='The distribution of the allocation')
 
     # TODO: function field date: allocation.date
@@ -987,69 +1117,6 @@ class AllocationInvoice(Wizard):
         if len(invoices) == 1:
             action['views'].reverse()
         return action, data
-
-
-class CollectStart(ModelView):
-    'Collect Start'
-    """
-    Defines the initial state of the Collect wizard, including a list of
-    utilizarions to use in the allocation process.
-    """
-
-    __name__ = 'utilisation.allocation.collect.start'
-    utilisations = fields.One2Many(
-        'utilisation', None, 'Utilisations',
-        states={'required': True}, help='The utilisations to allocate')
-
-
-class Collect(Wizard):
-    'Collect'
-    """
-    Defines states of the Collect wizard and holds the code for the
-    allocation process.
-    """
-    __name__ = 'utilisation.allocation.collect'
-
-    start = StateView(
-        'utilisation.allocation.collect.start',
-        'collecting_society.utilisation_allocation_collect_start_view_form',
-        [
-            Button('Cancel', 'end', 'tryton-cancel'),
-            Button('Collect', 'collect', 'tryton-ok', default=True),
-        ])
-    collect = StateTransition()
-
-    def default_start(self, fields):
-        Utilisation = Pool().get('utilisation')
-        active_model = Transaction().context.get('active_model', '')
-        if active_model == 'utilisation':
-            utilisations = Transaction().context['active_ids']
-        else:
-            utilisations = [
-                utilisation.id for utilisation
-                in Utilisation.search([])
-                ]
-        return {
-            'utilisations': utilisations
-        }
-
-    def transition_collect(self):
-        Collection = Pool().get('collection')
-        collection = Collection()
-        collection.locked = False
-        collection.date = datetime.date.today()
-        collection.entity_origin = 'manually'
-        collection.entity_creator, = Pool().get('res.user').browse(
-            [Transaction().user])
-        # web_user = self.request.web_user
-        collection.save()
-        # collection.allocations = ...
-        
-        # Notes
-        # - default case: 'write invoice' as form field (default: False)
-        # Warning = Pool().get('res.user.warning')
-
-        return 'end'
 
 
 # --- Distribution ------------------------------------------------------------

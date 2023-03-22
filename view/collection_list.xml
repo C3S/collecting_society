@@ -3,7 +3,7 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree>
     <field name="uuid"/>
-    <field name="date" widget="date"/>
+    <field name="time" widget="time"/>
     <!--field name="state"/-->
     <!--field name="amount"/-->
     <field name="allocations"/>
