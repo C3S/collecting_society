@@ -798,10 +798,18 @@ class Collection(ModelSQL, ModelView):
                                     utilisations: List['Utilisation']):
         """
         just a helper for collect(); see below'
+
+        Args:
+            allocation:   the Allocation record to finish before continuing
+                          with the next licensee
+            utilisations: list of Utlisisation IDs (int) of utilisations that
+                          are associated with this licensee resp. allocation to
+                          be assigned to the allocation and cleared afterwards
         """
         allocation.utilisations = utilisations
         allocation.save()
         utilisations.clear()
+        allocation.create_invoice()  # TODO: on error reset 'invoiced' state
 
     def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> Tuple[
             bool, str]:
@@ -818,6 +826,7 @@ class Collection(ModelSQL, ModelView):
             bool, string: The return value; True for success, False otherwise;
                           on False: a message text about what went wrong
         """
+        Allocation = Pool().get('allocation')
         from_utilisations_by_licensee = sorted(from_utilisations,
                                                key=lambda x: x.licensee)
         current_allocation = None
@@ -825,13 +834,12 @@ class Collection(ModelSQL, ModelView):
         for utilisation in from_utilisations_by_licensee:  # one allocation for
             if (current_allocation is None or              # each new licensee
                     utilisation.licensee != current_allocation.licensee):
-                if current_allocation is not None:      # finish old allocation
+                if current_allocation is not None:       # finish old allo-
                     self.__collect_finish_allocation(current_allocation,
                                                      current_utilisations)
-                current_licensee = utilisation.licensee  # before switching
-                Allocation = Pool().get('allocation')   # to new one
-                current_allocation = Allocation()
-                current_allocation.state = 'calculated'  # 'invoiced'
+                current_licensee = utilisation.licensee  # cation before
+                current_allocation = Allocation()        # switching to new one
+                current_allocation.state = 'calculated'  # !?! 'invoiced'
                 current_allocation.licensee = current_licensee
                 current_allocation.invoice_amount = 0
                 current_allocation.distribution_amount = 0
@@ -910,15 +918,13 @@ class Collect(Wizard):
         collection.date = datetime.date.today()
         collection.time = datetime.datetime.now()
         collection.entity_origin = 'manually'
-        collection.entity_creator, = Pool().get('res.user').browse(
-            [Transaction().user])
+        collection.entity_creator = Pool().get('res.user')(Transaction().user)
         collection.collect(self.start.utilisations)
         collection.save()
         # collection.allocations = ...
 
         # Notes
         # - default case: 'write invoice' as form field (default: False)
-        # Warning = Pool().get('res.user.warning')
 
         return 'end'
 
@@ -1052,8 +1058,10 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         Invoice = pool.get('account.invoice')
 
         if not self.licensee.account_receivable:
-            self.raise_user_error(
-                'missing_account_receivable', (self.licensee.rec_name,))
+            raise UserError('Missing Account Receivable',
+                            'The Licensee "%s" has no account receivable '
+                            'assigned, so the allocation can\'t be invoiced.' %
+                            self.licensee.rec_name,)
 
         invoice_lines = []
         for utilisation in self.utilisations:
@@ -5071,7 +5079,8 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         distribution_invoice_line.unit_price = (
             self.confirmed_distribution_amount
             or distribution_product.list_price)
-        distribution_invoice_line.taxes = distribution_product.customer_taxes
+        distribution_invoice_line.taxes = (
+            distribution_product.customer_taxes_used)
         distribution_invoice_line.invoice_type = 'out'
 
         administration_invoice_line = InvoiceLine()
@@ -5089,10 +5098,10 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         administration_invoice_line.quantity = 1
         administration_invoice_line.unit = administration_product.default_uom
         administration_invoice_line.unit_price = (
-            self.confirmed_administration_amount
+            self.confirmed_administration_fee
             or administration_product.list_price)
         administration_invoice_line.taxes =  \
-            administration_product.customer_taxes
+            administration_product.customer_taxes_used
         administration_invoice_line.invoice_type = 'out'
 
         return [distribution_invoice_line, administration_invoice_line]
