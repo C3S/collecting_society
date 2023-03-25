@@ -9,7 +9,7 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
-from typing import List, Tuple
+from typing import List, Dict, Tuple, Optional
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -365,7 +365,7 @@ class AccessControlList:
                         return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         permissions = set()
         for ace in self.acl:
             if ace.web_user != web_user:
@@ -795,7 +795,7 @@ class Collection(ModelSQL, ModelView):
         return str(uuid.uuid4())
 
     def __collect_finish_allocation(self, allocation: 'Allocation',
-                                    utilisations: List['Utilisation']):
+                                    utilisations: List['Utilisation']) -> None:
         """
         just a helper for collect(); see below'
 
@@ -811,8 +811,7 @@ class Collection(ModelSQL, ModelView):
         utilisations.clear()
         allocation.create_invoice()  # TODO: on error reset 'invoiced' state
 
-    def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> Tuple[
-            bool, str]:
+    def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> None:
         """
         collects money from licensees
 
@@ -821,16 +820,12 @@ class Collection(ModelSQL, ModelView):
 
         Args:
             from_utilisations: utilisations to collect from
-
-        Returns:
-            bool, string: The return value; True for success, False otherwise;
-                          on False: a message text about what went wrong
         """
         Allocation = Pool().get('allocation')
         from_utilisations_by_licensee = sorted(from_utilisations,
                                                key=lambda x: x.licensee)
-        current_allocation = None
-        current_utilisations = []
+        current_allocation: Optional['Allocation'] = None
+        current_utilisations: List['Utilisation'] = []
         for utilisation in from_utilisations_by_licensee:  # one allocation for
             if (current_allocation is None or              # each new licensee
                     utilisation.licensee != current_allocation.licensee):
@@ -858,8 +853,6 @@ class Collection(ModelSQL, ModelView):
         if current_allocation is not None:  # finish last allocation
             self.__collect_finish_allocation(current_allocation,
                                              current_utilisations)
-
-        return True, None
 
 
 class CollectStart(ModelView):
@@ -890,7 +883,7 @@ class Collect(Wizard):
         ])
     collect = StateTransition()
 
-    def default_start(self, fields) -> List['Utilisation']:
+    def default_start(self, fields) -> Dict[str, List['Utilisation']]:
         """
         triggered by the Collect button of the wizard
 
@@ -1886,9 +1879,6 @@ class IndicatorsMeta(ModelMeta):
                     setattr(new, 'search_%s' % field_name,
                             cls.search_attribute(sample_name))
 
-        # for each sample
-        for sample_name in samples:
-
             # add back reference to the indicator model
             measured_field_name = '%s_%ss' % (
                 sample_name, measured_model_name.replace('.', '_'))
@@ -2623,7 +2613,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -3115,7 +3105,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -5757,7 +5747,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -5767,7 +5757,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'edit_artist_content':   'edit_content',
             'delete_artist_content': 'delete_content',
         }
-        if not set(valid_codes).intersection(set(derivation.values())):
+        if not set([valid_codes]).intersection(set(derivation.values())):
             return direct_permissions
         permissions = set(direct_permissions)
         if self.creation and self.creation.artist:
