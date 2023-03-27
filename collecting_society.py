@@ -9,11 +9,11 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Union, Optional, Protocol
 from sql.functions import CharLength
 import hurry.filesize
 
-from trytond.model import ModelView, ModelSQL, fields, Unique
+from trytond.model import ModelView, ModelSQL, fields, Unique, Model
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
@@ -223,6 +223,10 @@ class MixinIdentifierHelper:
 
     # TODO: honor valid-from and -to dates
 
+    def __init__(self, cs_identifiers: tuple[Union['ArtistIdentifier',
+                 'ReleaseIdentifier', 'CreationIdentifier'], ...]) -> None:
+        self.cs_identifiers = cs_identifiers
+
     def get_id_code(self, space):
         for identifier in self.cs_identifiers:
             if identifier.space.name == space:
@@ -309,6 +313,12 @@ class EntityOrigin:
     @staticmethod
     def default_entity_origin():
         return "direct"
+
+
+# TODO: type checking for PublicApi, e.g.
+# class HasSuperSetupProtocol(Protocol):
+#     @classmethod
+#     def __setup__(cls) -> None: ...
 
 
 class PublicApi:
