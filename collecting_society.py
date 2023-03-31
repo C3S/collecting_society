@@ -9,11 +9,11 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
-from typing import List, Dict, Tuple, Union, Optional, Protocol
+from typing import List, Dict, Self, Tuple, Union, Optional, Protocol
 from sql.functions import CharLength
 import hurry.filesize
 
-from trytond.model import ModelView, ModelSQL, fields, Unique, Model
+from trytond.model import ModelView, ModelSQL, fields, Unique, Table
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
@@ -315,10 +315,9 @@ class EntityOrigin:
         return "direct"
 
 
-# TODO: type checking for PublicApi, e.g.
-# class HasSuperSetupProtocol(Protocol):
-#     @classmethod
-#     def __setup__(cls) -> None: ...
+class PublicApiProtocol(Protocol):
+    def __setup__(self) -> None: ...
+    def __table__(self) -> Table: ...
 
 
 class PublicApi:
@@ -330,7 +329,7 @@ class PublicApi:
              'exposure of implementation details to the users.')
 
     @classmethod
-    def __setup__(cls):
+    def __setup__(cls: PublicApiProtocol):
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints += [
