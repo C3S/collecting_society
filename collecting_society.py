@@ -9,6 +9,7 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
+from typing import List, Dict, Tuple, Optional, Protocol
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -48,7 +49,11 @@ __all__ = [
     'TariffRelevance',
     'Tariff',
     'Allocation',
-    'InvoiceAllocation',
+    'AllocationAccountInvoice',
+    'CollectStart',
+    'Collect',
+    'AllocationInvoice',
+    'Collection',
     'Distribution',
     'DistributionPlan',
     'DistributeStart',
@@ -306,6 +311,11 @@ class EntityOrigin:
         return "direct"
 
 
+class PublicApiProtocol(Protocol):
+    def __setup__(self) -> None: ...
+    # def __table__(self) -> Table: ...
+
+
 class PublicApi:
     'Mixin to add an unique identifier for public use'
     __slots__ = ()
@@ -315,7 +325,7 @@ class PublicApi:
              'exposure of implementation details to the users.')
 
     @classmethod
-    def __setup__(cls):
+    def __setup__(cls: PublicApiProtocol):
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints += [
@@ -360,7 +370,7 @@ class AccessControlList:
                         return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         permissions = set()
         for ace in self.acl:
             if ace.web_user != web_user:
@@ -729,52 +739,283 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
         return self.get_code(name)
 
 
-# --- Allocation --------------------------------------------------------------
+# --- Collection --------------------------------------------------------------
+# TODO:
+# - rename 'allocation' to 'collection.allocation' / 'collection_allocation'
+# - rename Allocate to Collect (and tryton ids / xml views accordingly
+# - add function fields to utilisatin to calculate (preview, not write)
+#   the utilisation amounts
+# - Mixins: Uuid (uuid), ~AutoProcessing (locked)
+# - no manual creation of allocations via tryton client (tryton ACLs)
 
-class Allocation(ModelSQL, ModelView, CurrencyDigits):
-    'Allocation'
-    __name__ = 'distribution.allocation'
-    company = fields.Many2One('company.company', 'Company', required=True)
-    distribution = fields.Many2One(
-        'distribution', 'Distribution', required=True,
-        help='The distribution of the allocation')
-    type = fields.Selection(
+class Collection(ModelSQL, ModelView):
+    """
+    represents a number of allocations on an administrational level
+    """
+    __name__ = 'collection'
+
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the allocation')
+    # TODO: function field state: collected -> all allocations >= collected
+    locked = fields.Boolean(
+        'Locked', states={'readonly': True},
+        help='Locked state for processing purposes')
+
+    date = fields.Date(
+        'Collection Date', required=True,
+        help='The date of the collection run (Tryton needs this somehow...)')
+    time = fields.DateTime(
+        'Collection Time', required=True,
+        help='The time of the collection run')
+    allocations = fields.One2Many(
+        'allocation', 'collection', 'Allocations',
+        help='The collected allocations')
+
+    entity_origin = fields.Selection(
         [
-            ('pocket2hats', 'Pocket to Hats'),
-            ('hat2pockets', 'Hat to Pockets'),
-        ], 'Type', required=True, sort=False, help='The allocation type:\n'
-        '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
-        '*Hat to Pockets*: Allocates amount from a hat to many pockets')
-    party = fields.Many2One(
-        'party.party', 'Party', required=True,
-        help='The party which utilises creations')
-    amount = fields.Numeric(
-        'Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The amount to distribute')
-    share_amount = fields.Numeric(
-        'Share Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'], help='The share for each utilisation')
-    move_lines = fields.One2Many(
-        'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'distribution.allocation,%')],
-        help='The account move lines of the allocation')
-    utilisations = fields.One2Many(
-        'utilisation', 'allocation', 'Utilisations',
-        help='The allocated utilisations')
+            ('automatic', 'Automatic'),
+            ('manually', 'Manually'),
+        ], 'Entity Origin', states={'required': True}, sort=False,
+        help='Defines, if an object was created manually (e.g. staff) or '
+             'automatic (e.g. cronjob).')
+    entity_creator = fields.Many2One(
+        'res.user', 'Entity Creator', states={'required': True})
 
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('distribution', 'ASC'))
-        cls._order.insert(2, ('party', 'ASC'))
+        cls._order.insert(1, ('date', 'ASC'))
+        # Write email on collision to congratulate the uuid issuer
+        table = cls.__table__()
+        cls._sql_constraints = [
+            ('uuid_uniq', Unique(table, table.uuid),
+             'The UUID of the allocation must be unique.'),
+        ]
+        # TODO:
+        # - ensure allocations have the same origin (db level & tryton level)
+        # - ensure allocations have the same licensee (db level & tryton level)
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
+
+    def __collect_finish_allocation(self, allocation: 'Allocation',
+                                    utilisations: List['Utilisation']) -> None:
+        """
+        just a helper for collect(); see below'
+
+        Args:
+            allocation:   the Allocation record to finish before continuing
+                          with the next licensee
+            utilisations: list of Utlisisation IDs (int) of utilisations that
+                          are associated with this licensee resp. allocation to
+                          be assigned to the allocation and cleared afterwards
+        """
+        allocation.utilisations = utilisations
+        allocation.save()
+        utilisations.clear()
+        allocation.create_invoice()  # TODO: on error reset 'invoiced' state
+
+    def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> None:
+        """
+        collects money from licensees
+
+        scans utilisations and creates allocations to invoice the respective
+        licensees
+
+        Args:
+            from_utilisations: utilisations to collect from
+        """
+        Allocation = Pool().get('allocation')
+        from_utilisations_by_licensee = sorted(from_utilisations,
+                                               key=lambda x: x.licensee)
+        current_allocation: Optional['Allocation'] = None
+        current_utilisations: List['Utilisation'] = []
+        for utilisation in from_utilisations_by_licensee:  # one allocation for
+            if (current_allocation is None or              # each new licensee
+                    utilisation.licensee != current_allocation.licensee):
+                if current_allocation is not None:       # finish old allo-
+                    self.__collect_finish_allocation(current_allocation,
+                                                     current_utilisations)
+                current_licensee = utilisation.licensee  # cation before
+                current_allocation = Allocation()        # switching to new one
+                current_allocation.state = 'calculated'  # !?! 'invoiced'
+                current_allocation.licensee = current_licensee
+                current_allocation.invoice_amount = 0
+                current_allocation.distribution_amount = 0
+                current_allocation.administration_fee = 0
+                current_allocation.collection = self
+
+            # add utilisation to allocation and increase amounts
+            current_utilisations.append(utilisation.id)
+            current_allocation.invoice_amount = (
+                    current_allocation.invoice_amount + 1)
+            current_allocation.distribution_amount = (
+                    current_allocation.distribution_amount + Decimal('0.9'))
+            current_allocation.administration_fee = (
+                    current_allocation.administration_fee + Decimal('0.1'))
+
+        if current_allocation is not None:  # finish last allocation
+            self.__collect_finish_allocation(current_allocation,
+                                             current_utilisations)
+
+
+class CollectStart(ModelView):
+    """
+    Defines the initial state of the Collect wizard, including a list of
+    utilizarions to use in the allocation process.
+    """
+
+    __name__ = 'utilisation.allocation.collect.start'
+    utilisations = fields.One2Many(
+        'utilisation', None, 'Utilisations',
+        states={'required': True}, help='The utilisations to allocate')
+
+
+class Collect(Wizard):
+    """
+    Defines states of the Collect wizard and holds the code for the
+    allocation process.
+    """
+    __name__ = 'utilisation.allocation.collect'
+
+    start = StateView(
+        'utilisation.allocation.collect.start',
+        'collecting_society.utilisation_allocation_collect_start_view_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Collect', 'collect', 'tryton-ok', default=True),
+        ])
+    collect = StateTransition()
+
+    def default_start(self, fields) -> Dict[str, List['Utilisation']]:
+        """
+        triggered by the Collect button of the wizard
+
+        Returns:
+            List of Utilization that are preselected for collection in the
+            wizard
+        """
+        Utilisation = Pool().get('utilisation')
+        active_model = Transaction().context.get('active_model', '')
+        if active_model == 'utilisation':
+            utilisations = Transaction().context['active_ids']
+        else:
+            utilisations = [
+                utilisation.id for utilisation
+                in Utilisation.search([])
+                ]
+        return {
+            'utilisations': utilisations
+        }
+
+    def transition_collect(self):
+        Collection = Pool().get('collection')
+        collection = Collection()
+        collection.locked = False
+        collection.date = datetime.date.today()
+        collection.time = datetime.datetime.now()
+        collection.entity_origin = 'manually'
+        collection.entity_creator = Pool().get('res.user')(Transaction().user)
+        collection.collect(self.start.utilisations)
+        collection.save()
+        # collection.allocations = ...
+
+        # Notes
+        # - default case: 'write invoice' as form field (default: False)
+
+        return 'end'
+
+
+class Allocation(ModelSQL, ModelView, CurrencyDigits):
+    'Allocation'
+    __name__ = 'allocation'
+
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the allocation')
+    state = fields.Selection(
+        [
+            ('created', 'Created'),
+            ('calculated', 'Calculated'),
+            ('invoiced', 'Invoiced'),
+            ('collected', 'Collected'),
+        ], 'State', required=True, sort=False,
+        help='The processing state of the allocation:\n\n'
+        '*Created*: Default state for new allocations.\n'
+        '*Calculated*: Amounts have been calculated '
+        '(invoice amount, distribution amount, administration fee).\n'
+        '*Invoiced*: An invoice for this allocation has been issued.\n'
+        '*Collected*: The invoice has been payed and the allocation '
+        'is ready to be distributed.')
+    locked = fields.Boolean(
+        'Locked', states={'readonly': True},
+        help='Locked state for processing purposes')
+
+    licensee = fields.Many2One(
+        'party.party', 'Licensee', states={'required': True},
+        help="The licensee of the allocation")
+    utilisations = fields.One2Many(
+        'utilisation', 'allocation', 'Utilisations',
+        help='The allocated utilisations')
+    invoice_amount = fields.Numeric(
+        'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of invoice amounts over all utilisations')
+    distribution_amount = fields.Numeric(
+        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of distribution amounts over all utilisations')
+    administration_fee = fields.Numeric(
+        'Administration Fee', digits=(16, Eval('currency_digits', 2)),
+        depends=['currency_digits'],
+        help='The sum of adminstration fees over all utilisations')
+    # TODO: attach the created invoice in _get_invoice() etc
+    company = fields.Many2One('company.company', 'Company', required=True)
+    invoice = fields.One2One(
+        'allocation-account.invoice', 'allocation', 'invoice',
+        'Allocation Invoice',
+        help='The invoice of the allocation')
+    # TODO: right object for this?
+    # if move_lines are only those for one licensee, it the right place.
+    # if move_lines contain all lines of all licensees, it has to move to
+    # Collection.
+    move_lines = fields.One2Many(
+        'account.move.line', 'origin', 'Account Move Lines',
+        domain=[('origin', 'like', 'distribution.allocation,%')],
+        help='The account move lines of the allocation')
+
+    collection = fields.Many2One(
+        'collection', 'Collection', required=True,
+        help='The collection of the allocation')
+    distribution = fields.Many2One(
+        'distribution', 'Distribution',
+        help='The distribution of the allocation')
+
+    # TODO: function field date: allocation.date
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls._order.insert(1, ('collection.date', 'ASC'))
+        # Write email on collision to congratulate the uuid issuer
+        table = cls.__table__()
+        cls._sql_constraints = [
+            ('uuid_uniq', Unique(table, table.uuid),
+             'The UUID of the allocation must be unique.'),
+        ]
 
     @staticmethod
     def default_company():
         return Transaction().context.get('company')
 
     @staticmethod
-    def default_type():
-        return 'pocket2hats'
+    def default_uuid():
+        return str(uuid.uuid4())
+
+    def calculate_amounts(self, sample, update=False):
+        # TODO: https://redmine.c3s.cc/issues/1140
+        # as discussed: one function to calculate all amounts, no split
+        pass
 
     def _get_invoice(self):
         pool = Pool()
@@ -793,13 +1034,17 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             'company': self.company,
             'type': 'out',
             'journal': journal,
-            'party': self.party,
-            'invoice_address': self.party.address_get('invoice'),
+            'party': self.licensee,
+            'invoice_address': self.licensee.address_get('invoice'),
             'currency': self.company.currency,
-            'account': self.party.account_receivable,
-            'payment_term': self.party.customer_payment_term,
-            'description': self.distribution.rec_name,
-            'invoice_date': self.distribution.date,
+            'account': self.licensee.account_receivable,
+            'payment_term': self.licensee.customer_payment_term,
+            # TODO: fetch from right objects
+            # 'description': self.distribution.rec_name,
+            'description': "TODO",
+            # TODO: get from form field (default today)?
+            # 'invoice_date': self.distribution.date,
+            'invoice_date': datetime.date.today(),
         }
         return Invoice(**data)
 
@@ -810,9 +1055,11 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
-        if not self.party.account_receivable:
-            self.raise_user_error(
-                'missing_account_receivable', (self.party.rec_name,))
+        if not self.licensee.account_receivable:
+            raise UserError('Missing Account Receivable',
+                            'The Licensee "%s" has no account receivable '
+                            'assigned, so the allocation can\'t be invoiced.' %
+                            self.licensee.rec_name,)
 
         invoice_lines = []
         for utilisation in self.utilisations:
@@ -825,16 +1072,45 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         Invoice.update_taxes([invoice])
         return invoice
 
+    # TODO: delete as soon as everything works out
+    # -> artifact from imp
+    # type = fields.Selection(
+    #     [
+    #         ('pocket2hats', 'Pocket to Hats'),
+    #         ('hat2pockets', 'Hat to Pockets'),
+    #     ], 'Type', required=True, sort=False, help='The allocation type:\n'
+    #     '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
+    #     '*Hat to Pockets*: Allocates amount from a hat to many pockets')
+    # -> artifact from imp
+    # @staticmethod
+    # def default_type():
+    #     return 'pocket2hats'
+    # -> probably artifact from imp, we have utilisation.licensee
+    # party = fields.Many2One(
+    #     'party.party', 'Party', required=True,
+    #     help='The party which utilises creations')
 
-class InvoiceAllocation(Wizard):
-    'Invoice Allocation'
-    __name__ = 'distribution.allocation.invoice'
+
+class AllocationAccountInvoice(ModelSQL):
+    'Allocation - Invoice'
+    __name__ = 'allocation-account.invoice'
+    _history = True
+
+    allocation = fields.Many2One(
+        'allocation', 'Allocation', required=True, ondelete='CASCADE')
+    invoice = fields.Many2One(
+        'account.invoice', 'Invoice', required=True, ondelete='CASCADE')
+
+
+class AllocationInvoice(Wizard):
+    'Allocation Invoice'
+    __name__ = 'allocation.invoice'
     start_state = 'invoice'
     invoice = StateAction('account_invoice.act_invoice_form')
 
     def do_invoice(self, action):
         pool = Pool()
-        Allocation = pool.get('distribution.allocation')
+        Allocation = pool.get('allocation')
 
         allocations = Allocation.browse(Transaction().context['active_ids'])
         invoices = []
@@ -868,7 +1144,7 @@ class Distribution(ModelSQL, ModelView):
     thru_date = fields.Date(
         'Thru Date', help='Include utilisations until thru date')
     allocations = fields.One2Many(
-        'distribution.allocation', 'distribution', 'Allocations',
+        'allocation', 'distribution', 'Allocations',
         help='All allocations in this distributon')
 
     @classmethod
@@ -1030,7 +1306,7 @@ class Distribute(Wizard):
         pool = Pool()
         Company = pool.get('company.company')
         Distribution = pool.get('distribution')
-        Allocation = pool.get('distribution.allocation')
+        Allocation = pool.get('allocation')
         Utilisation = pool.get('utilisation')
         Account = pool.get('account.account')
         AccountMove = pool.get('account.move')
@@ -1135,7 +1411,7 @@ class Distribute(Wizard):
                     }]
             period_id = Period.find(company.id, date=self.start.date)
             journal, = AccountJournal.search([('code', '=', 'TRANS')])
-            origin = 'distribution.allocation,%s' % (allocation.id)
+            origin = 'allocation,%s' % (allocation.id)
             account_moves.append({
                 'journal': journal.id,
                 'origin': origin,
@@ -1395,10 +1671,10 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The amount to invoice')
-    administration_amount = fields.Numeric(
+    administration_fee = fields.Numeric(
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
-        help='The amount for administration')
+        help='The fee for administration')
     distribution_amount = fields.Numeric(
         'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': False}, depends=['currency_digits'],
@@ -1516,7 +1792,9 @@ class IndicatorsMeta(ModelMeta):
                 value = getattr(indicators, attribute_name)
                 if isinstance(value, tuple):
                     return [entry.id for entry in value]
-                return getattr(indicators, attribute_name)
+                if isinstance(value, ModelSQL):
+                    return value.id
+                return value
         return get_value
 
     @staticmethod
@@ -1605,9 +1883,6 @@ class IndicatorsMeta(ModelMeta):
                     # searcher
                     setattr(new, 'search_%s' % field_name,
                             cls.search_attribute(sample_name))
-
-        # for each sample
-        for sample_name in samples:
 
             # add back reference to the indicator model
             measured_field_name = '%s_%ss' % (
@@ -2343,7 +2618,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -2835,7 +3110,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -4583,9 +4858,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('created', 'Created'),
             ('estimated', 'Estimated'),
             ('confirmed', 'Confirmed'),
-            ('invoiced', 'Invoiced'),
-            ('payed', 'Payed'),
-            ('distributed', 'Distributed'),
+            ('allocated', 'Allocated'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The processing state of the utilisation:\n\n'
@@ -4663,7 +4936,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         }, depends=DEPENDS,
         help='The distribution plan for the utilisation')
     allocation = fields.Many2One(
-        'distribution.allocation', 'Allocation',
+        'allocation', 'Allocation',
         states=STATES, depends=DEPENDS,
         help='The allocation of the utilisation')
 
@@ -4801,7 +5074,8 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         distribution_invoice_line.unit_price = (
             self.confirmed_distribution_amount
             or distribution_product.list_price)
-        distribution_invoice_line.taxes = distribution_product.customer_taxes
+        distribution_invoice_line.taxes = (
+            distribution_product.customer_taxes_used)
         distribution_invoice_line.invoice_type = 'out'
 
         administration_invoice_line = InvoiceLine()
@@ -4819,10 +5093,10 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         administration_invoice_line.quantity = 1
         administration_invoice_line.unit = administration_product.default_uom
         administration_invoice_line.unit_price = (
-            self.confirmed_administration_amount
+            self.confirmed_administration_fee
             or administration_product.list_price)
         administration_invoice_line.taxes =  \
-            administration_product.customer_taxes
+            administration_product.customer_taxes_used
         administration_invoice_line.invoice_type = 'out'
 
         return [distribution_invoice_line, administration_invoice_line]
@@ -5478,7 +5752,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                             return True
         return False
 
-    def permissions(self, web_user, valid_codes=False, derive=True):
+    def permissions(self, web_user, valid_codes=[], derive=True):
         direct_permissions = super().permissions(
             web_user, valid_codes, derive)
         if not derive:
@@ -5488,7 +5762,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'edit_artist_content':   'edit_content',
             'delete_artist_content': 'delete_content',
         }
-        if not set(valid_codes).intersection(set(derivation.values())):
+        if not set([valid_codes]).intersection(set(derivation.values())):
             return direct_permissions
         permissions = set(direct_permissions)
         if self.creation and self.creation.artist:

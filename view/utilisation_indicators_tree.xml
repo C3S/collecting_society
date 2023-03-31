@@ -6,6 +6,6 @@
     <field name="relevance" expand="1"/>
     <field name="adjustments" expand="1"/>
     <field name="invoice_amount" expand="1"/>
-    <field name="administration_amount" expand="1"/>
+    <field name="administration_fee" expand="1"/>
     <field name="distribution_amount" expand="1"/>
 </tree>

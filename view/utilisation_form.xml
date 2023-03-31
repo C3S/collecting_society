@@ -70,10 +70,10 @@
             <label name="confirmed_invoice_amount"/>
             <field name="confirmed_invoice_amount"/>
 
-            <label name="estimated_administration_amount"/>
-            <field name="estimated_administration_amount"/>
-            <label name="confirmed_administration_amount"/>
-            <field name="confirmed_administration_amount"/>
+            <label name="estimated_administration_fee"/>
+            <field name="estimated_administration_fee"/>
+            <label name="confirmed_administration_fee"/>
+            <field name="confirmed_administration_fee"/>
 
             <label name="estimated_distribution_amount"/>
             <field name="estimated_distribution_amount"/>
