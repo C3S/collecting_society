@@ -9,7 +9,8 @@ import json
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
-from typing import List, Dict, Tuple, Optional, Protocol
+from typing import Protocol, Any
+from sql import Table
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -313,7 +314,8 @@ class EntityOrigin:
 
 class PublicApiProtocol(Protocol):
     def __setup__(self) -> None: ...
-    # def __table__(self) -> Table: ...
+    def __table__(self) -> Table: ...
+    _sql_constraints: list[tuple[str, Any, str]]
 
 
 class PublicApi:
@@ -800,7 +802,7 @@ class Collection(ModelSQL, ModelView):
         return str(uuid.uuid4())
 
     def __collect_finish_allocation(self, allocation: 'Allocation',
-                                    utilisations: List['Utilisation']) -> None:
+                                    utilisations: list['Utilisation']) -> None:
         """
         just a helper for collect(); see below'
 
@@ -816,7 +818,7 @@ class Collection(ModelSQL, ModelView):
         utilisations.clear()
         allocation.create_invoice()  # TODO: on error reset 'invoiced' state
 
-    def collect(self, from_utilisations: Tuple['Utilisation', ...]) -> None:
+    def collect(self, from_utilisations: tuple['Utilisation', ...]) -> None:
         """
         collects money from licensees
 
@@ -829,8 +831,8 @@ class Collection(ModelSQL, ModelView):
         Allocation = Pool().get('allocation')
         from_utilisations_by_licensee = sorted(from_utilisations,
                                                key=lambda x: x.licensee)
-        current_allocation: Optional['Allocation'] = None
-        current_utilisations: List['Utilisation'] = []
+        current_allocation: AllocationAlias | None = None
+        current_utilisations: list['Utilisation'] = []
         for utilisation in from_utilisations_by_licensee:  # one allocation for
             if (current_allocation is None or              # each new licensee
                     utilisation.licensee != current_allocation.licensee):
@@ -838,13 +840,14 @@ class Collection(ModelSQL, ModelView):
                     self.__collect_finish_allocation(current_allocation,
                                                      current_utilisations)
                 current_licensee = utilisation.licensee  # cation before
-                current_allocation = Allocation()        # switching to new one
-                current_allocation.state = 'calculated'  # !?! 'invoiced'
-                current_allocation.licensee = current_licensee
-                current_allocation.invoice_amount = 0
-                current_allocation.distribution_amount = 0
-                current_allocation.administration_fee = 0
-                current_allocation.collection = self
+                new_allocation: AllocationAlias = Allocation()  # new instance
+                new_allocation.state = 'calculated'  # 'invoiced'      new one
+                new_allocation.licensee = current_licensee
+                new_allocation.invoice_amount = 0
+                new_allocation.distribution_amount = 0
+                new_allocation.administration_fee = 0
+                new_allocation.collection = self
+                current_allocation = new_allocation
 
             # add utilisation to allocation and increase amounts
             current_utilisations.append(utilisation.id)
@@ -888,7 +891,7 @@ class Collect(Wizard):
         ])
     collect = StateTransition()
 
-    def default_start(self, fields) -> Dict[str, List['Utilisation']]:
+    def default_start(self, fields) -> dict[str, list['Utilisation']]:
         """
         triggered by the Collect button of the wizard
 
@@ -5959,3 +5962,10 @@ class AccessPermission(ModelSQL, ModelView):
             ('code_uniq', Unique(table, table.code),
              'The code of the permission must be unique.'),
         ]
+
+
+##############################################################################
+# Type Mappings
+##############################################################################
+
+AllocationAlias = Allocation
