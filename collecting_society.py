@@ -5850,7 +5850,7 @@ class AccessControlEntry(ModelSQL, ModelView):
 
     web_user = fields.Many2One(
         'web.user', 'Web User', required=True,
-        help='The web user interacting with an object.')
+        help='The web user interacting with an object.', ondelete='CASCADE')
     party = fields.Function(
         fields.Many2One(
             'party.party', 'Party',
