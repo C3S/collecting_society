@@ -3,8 +3,9 @@
      Repository: https://github.com/C3S/collecting_society -->
 <tree>
     <field name="uuid"/>
-    <field name="state"/>
-    <!--field name="date" widget="date"/-->
-    <field name="licensee"/>
-    <field name="invoice_amount"/>
+    <field name="time" widget="time"/>
+    <!--field name="state"/-->
+    <!--field name="amount"/-->
+    <field name="allocations"/>
+    <field name="entity_origin"/>
 </tree>

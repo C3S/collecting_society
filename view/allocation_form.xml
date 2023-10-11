@@ -2,18 +2,36 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form>
-    <label name="party"/>
-    <field name="party"/>
-    <label name="distribution"/>
-    <field name="distribution"/>
-    <label name="type"/>
-    <field name="type"/>
-    <label name="amount"/>
-    <field name="amount"/>
-    <label name="share_amount"/>
-    <field name="share_amount"/>
+    <label name="uuid"/>
+    <field name="uuid"/>
+    <label name="state"/>
+    <field name="state"/>
+    <label name="locked"/>
+    <field name="locked"/>
+    <newline/>
+
+    <!--field name="date" widget="date"/-->
+    <!--field name="date" widget="time"/-->
     <label name="company"/>
     <field name="company"/>
-    <field name="move_lines" colspan="4"/>
+
+    <newline/>
+    <label name="licensee"/>
+    <field name="licensee"/>
+    <label name="invoice"/>
+    <field name="invoice"/>
+    <label name="distribution"/>
+    <field name="distribution"/>
+
+    <newline/>
+    <label name="invoice_amount"/>
+    <field name="invoice_amount"/>
+    <label name="distribution_amount"/>
+    <field name="distribution_amount"/>
+    <label name="administration_fee"/>
+    <field name="administration_fee"/>
+
+    <newline/>
     <field name="utilisations" colspan="4"/>
+    <field name="move_lines" colspan="4"/>
 </form>

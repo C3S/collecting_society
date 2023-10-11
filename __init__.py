@@ -27,6 +27,8 @@ def register():
         ArtistIdentifier,
         AccountMove,
         AccountMoveLine,
+        AllocationAccountInvoice,
+        Invoice,
         InvoiceLine,
         UserRole,
         User,
@@ -113,7 +115,9 @@ def register():
         DeviceMessageUsagereport,
         Distribution,
         DistributionPlan,
+        Collection,
         Allocation,
+        CollectStart,
         DeclarationGroup,
         Declaration,
         DeclarationCollection,
@@ -129,8 +133,9 @@ def register():
         Address,
         module='collecting_society', type_='model')
     Pool.register(
+        Collect,
         Distribute,
         DeviceMessageFingerprintMatch,
         DeviceMessageFingerprintMerge,
-        InvoiceAllocation,
+        AllocationInvoice,
         module='collecting_society', type_='wizard')

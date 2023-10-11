@@ -4,7 +4,7 @@
 from trytond.tests.test_tryton import ModuleTestCase
 
 
-class CollectingSocietyTestCase(ModuleTestCase):
+class CollectingSocietyModuleTestCase(ModuleTestCase):
     'Test Collecting Society module'
     module = 'collecting_society'
 

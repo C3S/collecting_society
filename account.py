@@ -32,7 +32,7 @@ class AccountMove(metaclass=PoolMeta):
     def _get_origin(cls):
         return (
             super(AccountMove, cls)._get_origin()
-            + ['distribution.allocation'])
+            + ['allocation'])
 
 
 class AccountMoveLine(metaclass=PoolMeta):
