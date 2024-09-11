@@ -6,7 +6,7 @@ import random
 
 from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import Pool, PoolMeta
-from trytond.pyson import Eval, Greater
+# from trytond.pyson import Eval, Greater
 from trytond.rpc import RPC
 
 __all__ = [
@@ -45,7 +45,7 @@ class User(metaclass=PoolMeta):
         'Nickname', help='The name shown to other users')
     user = fields.One2One(
         'web.user-res.user', 'web_user', 'res_user', 'Tryton User',
-        readonly=True, states={'required': Greater(Eval('active_id', -1), 0)},
+        readonly=True, states={'required': True},
         help='The Tryton user of the web user')
     devices = fields.One2Many('device', 'web_user', 'Devices')
     roles = fields.Many2Many(
@@ -81,7 +81,7 @@ class User(metaclass=PoolMeta):
         super().__setup__()
         cls.party = fields.One2One(
             'web.user-party.party', 'user', 'party', 'Party',
-            states={'required': Greater(Eval('active_id', -1), 0)},
+            states={'required': True},
             help='The party of the web user')
         cls.__rpc__.update(
             {'authenticate': RPC(check_access=False)})
