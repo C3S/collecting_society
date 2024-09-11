@@ -734,11 +734,13 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def get_code(self, name):
         return self.category.code + self.system.version
 
-    def search_name(self, name):
-        return self.get_title(name)
+    @classmethod
+    def search_name(cls, name, clause):
+        return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
-    def search_code(self, name):
-        return self.get_code(name)
+    @classmethod
+    def search_code(cls, name, clause):
+        return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
 
 # --- Collection --------------------------------------------------------------
@@ -2134,8 +2136,7 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def on_change_with_bank_account_numbers(self, name=None):
         BankAccountNumber = Pool().get('bank.account.number')
 
-        bank_account_numbers = []
-        numbers = BankAccountNumber.search(
+        bank_account_numbers = BankAccountNumber.search(
             [
                 'OR', [
                     (
@@ -2146,17 +2147,13 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                         if self.party else None),
                 ]
             ])
-        if numbers:
-            bank_account_numbers = [n.id for n in numbers]
-        else:
-            bank_account_numbers = None
-        return bank_account_numbers
+        return bank_account_numbers or None
 
     @fields.depends('bank_account_number')
     def on_change_with_bank_account_owner(self, name=None):
         if self.bank_account_number:
             bank_account_owner = (
-                self.bank_account_number.account.owner.id)
+                self.bank_account_number.account.owner)
         else:
             bank_account_owner = None
         return bank_account_owner
@@ -2544,17 +2541,21 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
                 return content.length
         return None
 
-    def search_license(self, name):
-        return self.get_license(name)
+    @classmethod
+    def search_license(cls, name, clause):
+        return [('license.' + clause[0],) + tuple(clause[1:])]
 
-    def search_release(self, name):
-        return self.get_release(name)
+    @classmethod
+    def search_release(cls, name, clause):
+        return [('release.' + clause[0],) + tuple(clause[1:])]
 
-    def search_genres(self, name):
-        return self.get_genres(name)
+    @classmethod
+    def search_genres(cls, name, clause):
+        return [('release-genre.' + clause[0],) + tuple(clause[1:])]
 
-    def search_styles(self, name):
-        return self.get_styles(name)
+    @classmethod
+    def search_styles(cls, name, clause):
+        return [('release-style.' + clause[0],) + tuple(clause[1:])]
 
     @classmethod
     def create(cls, vlist):
@@ -5455,7 +5456,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'File Name', help='The name of the file.')
     extension = fields.Function(
         fields.Char('Extension'), 'on_change_with_extension')
-    size = fields.BigInteger(
+    size = fields.Integer(
         'Size', help='The size of the content in Bytes.')
     mime_type = fields.Char(
         'Mime Type', help='The media or content type.')
