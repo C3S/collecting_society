@@ -132,7 +132,6 @@ __all__ = [
     'DeviceMessageUsagereport',
     'Declaration',
     'DeclarationGroup',
-    'DeclarationCollection',
     'Utilisation',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
@@ -4767,11 +4766,6 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         'Context', context_list, states=STATES, depends=DEPENDS,
         help='The context object of the planned utilisation')
 
-    collections = fields.One2Many(
-        'declaration.collection', 'declaration', 'Collections',
-        states=STATES, depends=DEPENDS,
-        help='The processes, in which utilisations were created for the '
-             'declaration')
     utilisations = fields.One2Many(
         'utilisation', 'declaration', 'Utilisations',
         states=STATES, depends=DEPENDS,
@@ -4815,29 +4809,6 @@ class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The declarations in this group')
-
-
-class DeclarationCollection(ModelSQL, ModelView):
-    'Declaration Collection'
-    __name__ = 'declaration.collection'
-    _history = True
-
-    trigger = fields.Selection(
-        [
-            ('declaration_creation', 'Declaration Creation'),
-            ('start_of_period', 'Start of Period'),
-            ('after_event', 'After Event'),
-            ('manually', 'Manually'),
-        ], 'Trigger', states={'required': True}, sort=False,
-        help='The trigger, which created the utilisations')
-    timestamp = fields.DateTime(
-        'Timestamp', help='The timestamp of the declaration collection')
-    declaration = fields.Many2One(
-        'declaration', 'Declaration', states={'required': True},
-        help='The declaration, which created the utilisations')
-    utilisations = fields.One2Many(
-        'utilisation', 'declaration_collection', 'Utilisatons',
-        help='The utilisations created from the declaration')
 
 
 # --- Utilisation ------------------------------------------------------------
@@ -4908,10 +4879,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The declaration, which created this utilisation')
-    declaration_collection = fields.Many2One(
-        'declaration.collection', 'Declaration Collection',
-        states={'readonly': True},
-        help='The declaration collection, which created the utilisation')
 
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={

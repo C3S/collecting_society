@@ -120,7 +120,6 @@ def register():
         CollectStart,
         DeclarationGroup,
         Declaration,
-        DeclarationCollection,
         Utilisation,
         DistributeStart,
         Configuration,

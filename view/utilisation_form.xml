@@ -29,8 +29,6 @@
 
     <label name="declaration"/>
     <field name="declaration"/>
-    <label name="declaration_collection"/>
-    <field name="declaration_collection"/>
 
     <label name="tariff"/>
     <field name="tariff"/>
