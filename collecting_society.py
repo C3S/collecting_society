@@ -557,18 +557,20 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
     name = fields.Char(
         'Name', states={'required': True}, depends=DEPENDS,
         help='The name of the category')
-    value_min = fields.Float(
-        'Minimum', states={
+    code = fields.Char(
+        'Code', required=True, states={'readonly': True})
+    value_min = fields.Numeric(
+        'Minimum', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The minimum value')
-    value_max = fields.Float(
-        'Maximum', states={
+    value_max = fields.Numeric(
+        'Maximum', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The maximum value')
-    value_default = fields.Float(
-        'Default', states={
+    value_default = fields.Numeric(
+        'Default', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The default value')
@@ -611,8 +613,9 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
             ('rejected', 'Rejected'),
         ], 'Status', required=True, sort=False,
         help='The approval status of the adjustment')
-    value = fields.Float(
-        'Value', required=True, help='The value of the adjustment')
+    value = fields.Numeric(
+        'Value', digits=(3, 6),
+        required=True, help='The value of the adjustment')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
@@ -638,18 +641,18 @@ class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The name of the category')
-    value_min = fields.Float(
-        'Minimum', help='The minimum value', states={
+    value_min = fields.Numeric(
+        'Minimum', digits=(3, 6), help='The minimum value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    value_max = fields.Float(
-        'Maximum', help='The maximum value', states={
+    value_max = fields.Numeric(
+        'Maximum', digits=(3, 6), help='The maximum value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    value_default = fields.Float(
-        'Default', help='The default value', states={
+    value_default = fields.Numeric(
+        'Default', digits=(3, 6), help='The default value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
@@ -685,8 +688,9 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
         'tariff_system.tariff.relevance.category', 'Category',
         states={'required': True},
         help='The category of the relevance')
-    value = fields.Float(
-        'Value', help='The value of the relevance', required=True)
+    value = fields.Numeric(
+        'Value', digits=(3, 6),
+        required=True, help='The value of the relevance')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
