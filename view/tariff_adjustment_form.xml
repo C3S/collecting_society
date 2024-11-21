@@ -5,10 +5,8 @@
     <group col="2" colspan="2" yfill="1" id="main">
         <label name="name"/>
         <field name="name"/>
-        <label name="operation"/>
-        <field name="operation"/>
-        <label name="priority"/>
-        <field name="priority"/>
+        <label name="code"/>
+        <field name="code"/>
     </group>
     <group col="2" colspan="2" id="values">
         <label name="value_min"/>

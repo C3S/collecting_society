@@ -572,17 +572,6 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The default value')
-    priority = fields.Integer(
-        'Priority', required=True,
-        states=STATES, depends=DEPENDS,
-        help='The calculation priority (higher values have higher priority)')
-    operation = fields.Selection(
-        [
-            ('addition', 'Addition'),
-            ('multiplication', 'Multiplication'),
-            ('percentage', 'Percentage'),
-        ], 'Operation', required=True, sort=False,
-        help='The mathematical operation of the category')
     tariff_categories = fields.Many2Many(
         'tariff_category-tariff_adjustment_category',
         'tariff_adjustment_category', 'tariff_category', 'Tariff Categories',
