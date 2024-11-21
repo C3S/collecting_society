@@ -137,4 +137,5 @@ def register():
         DeviceMessageFingerprintMatch,
         DeviceMessageFingerprintMerge,
         AllocationInvoice,
+        UtilisationCalculate,
         module='collecting_society', type_='wizard')

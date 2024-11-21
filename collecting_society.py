@@ -1540,6 +1540,20 @@ class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
         digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the production')
 
+    @classmethod
+    def write(cls, records, values, *args):
+        super().write(records, values, *args)
+        # recalculate estimated utilisations
+        domain = [('context.estimated_indicators', 'in', records, 'event')]
+        for utilisation in Utilisation.search(domain):
+            if utilisation.state == 'estimated':
+                utilisation.calculate_all('estimated', save=True)
+        # recalculate confirmed utilisations
+        domain = [('context.confirmed_indicators', 'in', records, 'event')]
+        for utilisation in Utilisation.search(domain):
+            if utilisation.state == 'confirmed':
+                utilisation.calculate_all('confirmed', save=True)
+
 
 class LocationIndicators(ModelSQL, ModelView, CurrencyDigits):
     'Location Indicators'
