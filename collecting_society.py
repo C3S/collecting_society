@@ -734,6 +734,30 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def search_code(cls, name, clause):
         return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
+    def get_base_formula(self):
+        version = formulas.convert_version(self.code)
+        return getattr(formulas, f"tariff_base__{version}")
+
+    def get_relevance_formula(self):
+        version = formulas.convert_version(self.code)
+        return getattr(formulas, f"tariff_relevance__{version}")
+
+    def get_share_formula(self):
+        version = formulas.convert_version(self.code)
+        return getattr(formulas, f"tariff_share__{version}")
+
+    def get_adjustments_formula(self):
+        version = formulas.convert_version(self.code)
+        return getattr(formulas, f"tariff_adjustments__{version}")
+
+    def get_total_formula(self):
+        version = formulas.convert_version(self.system.version)
+        return getattr(formulas, f"tariff_total__{version}")
+
+    def get_fee_formula(self):
+        version = formulas.convert_version(self.system.version)
+        return getattr(formulas, f"tariff_fee__{version}")
+
 
 # --- Collection --------------------------------------------------------------
 # TODO:
@@ -4958,6 +4982,121 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
                 config = Configuration(1)
                 values['code'] = config.utilisation_sequence.get()
         return super().create(vlist)
+
+    def context_indicators_as_dict(self, sample):
+        if self.tariff.category.code == 'L':
+            indicators = getattr(self.context, f"{sample}_indicators")
+            return {
+                'start': indicators.start,
+                'end': indicators.end,
+                'attendants': indicators.attendants,
+                'turnover_tickets': indicators.turnover_tickets,
+                'turnover_benefit': indicators.turnover_benefit,
+                'expenses_musicians': indicators.expenses_musicians,
+                'expenses_production': indicators.expenses_production,
+            }
+        elif self.tariff.category.code == 'C':
+            return {}
+        elif self.tariff.category.code == 'P':
+            return {}
+        elif self.tariff.category.code == 'O':
+            return {}
+        raise NotImplementedError()
+
+    def calculate_base(self, sample, save=False):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # represented ratio
+        represented_ratio = 1
+        if self.creation_list and self.creation_list.complete:
+            represented_ratio = self.creation_list.represented_ratio
+        # base
+        formula = self.tariff.get_base_formula()
+        base = formula(
+            context=context_indicators_dict,
+            represented_ratio=represented_ratio
+        )
+        if save:
+            setattr(self, f'{sample}_base', base)
+            self.save()
+        return base
+
+    def calculate_relevance(self, sample):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # relevance
+        formula = self.tariff.get_relevance_formula()
+        relevance = getattr(self, f'{sample}_relevance').value
+        return formula(
+            context=context_indicators_dict,
+            relevance=relevance
+        )
+
+    def calculate_share(self, sample):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # share
+        formula = self.tariff.get_share_formula()
+        return formula(context=context_indicators_dict)
+
+    def calculate_adjustments(self, sample):
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        indicators = getattr(self, f"{sample}_indicators")
+        # adjustments_dict
+        adjustments_dict = {
+            adjustment.category.code: adjustment.value
+            for adjustment in indicators.adjustments
+        }
+        # adjustments
+        formula = self.tariff.get_adjustments_formula()
+        return formula(
+            context=context_indicators_dict,
+            adjustments=adjustments_dict
+        )
+
+    def calculate_invoice_amount(self, sample, save=False):
+        indicators = getattr(self, f"{sample}_indicators")
+        formula = self.tariff.get_total_formula()
+        utilisation_dict = {
+            'base': indicators.base,
+            'relevance': self.calculate_relevance(sample),
+            'share': self.calculate_share(sample),
+            'adjustments': self.calculate_adjustments(sample),
+        }
+        invoice_amount = round(
+            formula(utilisation=utilisation_dict),
+            self.get_currency_digits('')
+        )
+        if save:
+            setattr(self, f'{sample}_invoice_amount', invoice_amount)
+            self.save()
+        return invoice_amount
+
+    def calculate_administration_fee(self, sample, save=False):
+        indicators = getattr(self, f"{sample}_indicators")
+        formula = self.tariff.get_fee_formula()
+        administration_fee = round(
+            formula(total=indicators.invoice_amount),
+            self.get_currency_digits('')
+        )
+        if save:
+            setattr(self, f'{sample}_administration_fee', administration_fee)
+            self.save()
+        return administration_fee
+
+    def calculate_all(self, sample, save=False):
+        # TODO: implement calculations for other tariffs
+        if self.tariff.category.code not in ['L']:
+            return
+        self.calculate_base(sample, save)
+        self.calculate_invoice_amount(sample, save)
+        self.calculate_administration_fee(sample, save)
 
     @classmethod
     def copy(cls, utilisations, default=None):
