@@ -133,6 +133,7 @@ __all__ = [
     'Declaration',
     'DeclarationGroup',
     'Utilisation',
+    'UtilisationCalculate',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
 
@@ -5210,6 +5211,18 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         administration_invoice_line.invoice_type = 'out'
 
         return [distribution_invoice_line, administration_invoice_line]
+
+
+class UtilisationCalculate(Wizard):
+    'Utilisation Calcualte'
+    __name__ = 'utilisation.calculate'
+    start_state = 'calculate'
+    calculate = StateTransition()
+
+    def transition_calculate(self):
+        if self.record.state in ['estimated', 'confirmed']:
+            self.record.calculate_all(self.record.state, save=True)
+        return 'end'
 
 
 class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
