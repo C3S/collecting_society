@@ -25,6 +25,8 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
+from .formulas import formulas
+
 
 __all__ = [
 
@@ -761,13 +763,6 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 
 # --- Collection --------------------------------------------------------------
-# TODO:
-# - rename 'allocation' to 'collection.allocation' / 'collection_allocation'
-# - rename Allocate to Collect (and tryton ids / xml views accordingly
-# - add function fields to utilisatin to calculate (preview, not write)
-#   the utilisation amounts
-# - Mixins: Uuid (uuid), ~AutoProcessing (locked)
-# - no manual creation of allocations via tryton client (tryton ACLs)
 
 class Collection(ModelSQL, ModelView):
     """
@@ -1678,8 +1673,8 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
     _history = True
 
     base = fields.Numeric(
-        'Base', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        'Base', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
         help='The base value')
     relevance = fields.Many2One(
         'tariff_system.tariff.relevance', 'Relevance',
@@ -1833,8 +1828,7 @@ class IndicatorsMeta(ModelMeta):
                 attribute_name = getattr(cls, name)._attribute_name
                 indicators = getattr(instance, '%s_indicators' % sample_name)
                 if indicators:
-                    indicators.write([indicators], {
-                        attribute_name: value})
+                    indicators.write([indicators], {attribute_name: value})
         return classmethod(set_value)
 
     @staticmethod
