@@ -1672,10 +1672,17 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The fee for administration')
-    distribution_amount = fields.Numeric(
-        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        states={'readonly': False}, depends=['currency_digits'],
-        help='The amount to distribute')
+    distribution_amount = fields.Function(
+        fields.Numeric(
+            'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+            states={'readonly': True}, depends=['currency_digits'],
+            help='The amount to distribute'),
+        'get_distribution_amount')
+
+    def get_distribution_amount(self, name):
+        if not self.invoice_amount or not self.administration_fee:
+            return None
+        return self.invoice_amount - self.administration_fee
 
 
 class IndicatorsMeta(ModelMeta):
