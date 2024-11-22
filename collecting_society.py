@@ -1805,8 +1805,7 @@ class IndicatorsMeta(ModelMeta):
             # prevent copy of One2Many indicator fields
             for field_name in cls._measured_field_names:
                 default[field_name] = None
-            print(default)
-            cls._copy(indicator_instances, default=default)
+            return cls._copy(indicator_instances, default=default)
         return classmethod(copy)
 
     @staticmethod
@@ -1837,7 +1836,7 @@ class IndicatorsMeta(ModelMeta):
                 field_name = '%s_indicators' % sample_name
                 if field_name in default:
                     default[field_name] = None
-            cls._copy(measured_instances, default=default)
+            return cls._copy(measured_instances, default=default)
         return classmethod(copy)
 
     @staticmethod
