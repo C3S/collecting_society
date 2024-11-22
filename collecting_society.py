@@ -1757,8 +1757,9 @@ class IndicatorsMeta(ModelMeta):
 
     - Adds fields for the indicators for each sample
         - [fields.Many2One] <SAMPLE_NAME>_indicators
-    - Adds create/copy classmethods to autocreate the indicators objects
+    - Adds create classmethod to autocreate the indicators objects
         - [classmethod] create
+    - Adds copy classmethod to prevent copy of One2Many indicator fields
         - [classmethod] copy
     - Adds shortcut function fields with setter/getter for indicator attributes
         - [fields.Function] <SAMPLE_NAME>_<ATTRIBUTE_NAME>
@@ -1771,36 +1772,52 @@ class IndicatorsMeta(ModelMeta):
     Changes to the indicators model:
     - Adds back reference field to the measured for each sample
         - [fields.One2Many] <SAMPLE_NAME>_<MEASURED_MODEL_NAME>
+    - Add set of measured field names to the indicator model
+        - [set] _measured_field_names
+    - Adds copy classmethod to prevent copy of One2Many indicator fields
+        - [classmethod] copy
 
     Note: The class name of the indicator model is expected to be the
     capitalized model name without dots.
     """
 
     @staticmethod
-    def _create(measured_class_name):
+    def dummy_create():
         """Dummy create method added, if none is present"""
         def create(cls, vlist):
-            # MeasuredClass = getattr(
-            #     sys.modules[__name__], measured_class_name)
             return super().create(vlist)
         return classmethod(create)
 
     @staticmethod
-    def _copy(measured_class_name):
+    def dummy_copy():
         """Dummy copy method added, if none is present"""
-        def copy(cls, measured_instances, default=None):
-            # MeasuredClass = getattr(
-            #     sys.modules[__name__], measured_class_name)
-            super().copy(measured_instances, default=default)
+        def copy(cls, instances, default=None):
+            super().copy(instances, default=default)
         return classmethod(copy)
 
     @staticmethod
-    def create(indicators_model_name, samples):
-        """This copy method wraps the copy method of the measured class"""
+    def indicator__copy():
+        """This create method wraps the copy method of the indicator class"""
+        def copy(cls, indicator_instances, default=None):
+            if default is None:
+                default = {}
+            default = default.copy()
+            # prevent copy of One2Many indicator fields
+            for field_name in cls._measured_field_names:
+                default[field_name] = None
+            print(default)
+            cls._copy(indicator_instances, default=default)
+        return classmethod(copy)
+
+    @staticmethod
+    def measured__create(indicators_model_name, samples):
+        """This copy method wraps the create method of the measured class"""
         def create(cls, vlist):
             for entry in vlist:
                 # autocreate indicator model
                 for sample_name in samples:
+                    if sample_name == 'confirmed':
+                        continue
                     IndicatorsModel = Pool().get(indicators_model_name)
                     indicators, = IndicatorsModel.create([{}])
                     indicators.save()
@@ -1809,12 +1826,13 @@ class IndicatorsMeta(ModelMeta):
         return classmethod(create)
 
     @staticmethod
-    def copy(samples):
-        """This create method wraps the create method of the measured class"""
+    def measured__copy(samples):
+        """This create method wraps the copy method of the measured class"""
         def copy(cls, measured_instances, default=None):
             if default is None:
                 default = {}
             default = default.copy()
+            # prevent copy of One2Many indicator fields
             for sample_name in samples:
                 field_name = '%s_indicators' % sample_name
                 if field_name in default:
@@ -1823,7 +1841,7 @@ class IndicatorsMeta(ModelMeta):
         return classmethod(copy)
 
     @staticmethod
-    def get_attribute(sample_name):
+    def measured__get_attribute(sample_name):
         def get_value(self, name):
             indicators = getattr(self, '%s_indicators' % sample_name)
             if indicators:
@@ -1837,7 +1855,7 @@ class IndicatorsMeta(ModelMeta):
         return get_value
 
     @staticmethod
-    def set_attribute(sample_name):
+    def measured__set_attribute(sample_name):
         def set_value(cls, measured_instances, name, value):
             for instance in measured_instances:
                 attribute_name = getattr(cls, name)._attribute_name
@@ -1847,7 +1865,7 @@ class IndicatorsMeta(ModelMeta):
         return classmethod(set_value)
 
     @staticmethod
-    def search_attribute(sample_name):
+    def measured__search_attribute(sample_name):
         def search(cls, name, clause):
             attribute_name = getattr(cls, name)._attribute_name
             key = '%s_indicators.%s' % (sample_name, attribute_name)
@@ -1872,18 +1890,27 @@ class IndicatorsMeta(ModelMeta):
             part.capitalize() for part in indicators_model_name.split('.')])
         IndicatorsClass = getattr(sys.modules[__name__], indicators_class_name)
 
-        # add create/copy classmethods to autocreate the indicators objects
-        # reassign present create/copy functions or create dummies
+        # add copy classmethod to indicator class to prevent copy of backlinks
+        if not hasattr(IndicatorsClass, '_copy'):
+            if hasattr(IndicatorsClass, 'copy'):
+                IndicatorsClass._copy = IndicatorsClass.copy
+            else:
+                setattr(IndicatorsClass, '_copy', cls.dummy_copy())
+            setattr(IndicatorsClass, 'copy', cls.indicator__copy())
+
+        # add create classmethod to autocreate the indicators objects
         if hasattr(new, 'create'):
             new._create = new.create
         else:
-            setattr(new, '_create', cls._create(measured_class_name))
-        setattr(new, 'create', cls.create(indicators_model_name, samples))
+            setattr(new, '_create', cls.dummy_create())
+        setattr(new, 'create', cls.measured__create(
+                indicators_model_name, samples))
+        # add copy classmethod to prevent copy of One2Many indicator fields
         if hasattr(new, 'copy'):
             new._copy = new.copy
         else:
-            setattr(new, '_copy', cls._copy(measured_class_name))
-        setattr(new, 'copy', cls.copy(samples))
+            setattr(new, '_copy', cls.dummy_copy())
+        setattr(new, 'copy', cls.measured__copy(samples))
 
         # for each sample
         for sample_name in samples:
@@ -1918,13 +1945,13 @@ class IndicatorsMeta(ModelMeta):
                     getattr(new, field_name)._attribute_name = attribute_name
                     # getter
                     setattr(new, 'get_%s' % field_name,
-                            cls.get_attribute(sample_name))
+                            cls.measured__get_attribute(sample_name))
                     # setter
                     setattr(new, 'set_%s' % field_name,
-                            cls.set_attribute(sample_name))
+                            cls.measured__set_attribute(sample_name))
                     # searcher
                     setattr(new, 'search_%s' % field_name,
-                            cls.search_attribute(sample_name))
+                            cls.measured__search_attribute(sample_name))
 
             # add back reference to the indicator model
             measured_field_name = '%s_%ss' % (
@@ -1939,6 +1966,11 @@ class IndicatorsMeta(ModelMeta):
                 }, depends=[measured_field_name])
             field._backreference = True
             setattr(IndicatorsClass, measured_field_name, field)
+
+            # add set of measured field names to the indicator model
+            if not getattr(IndicatorsClass, '_measured_field_names', False):
+                setattr(IndicatorsClass, '_measured_field_names', set())
+            IndicatorsClass._measured_field_names.add(measured_field_name)
 
         return new
 
@@ -5227,7 +5259,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
 
 
 class UtilisationCalculate(Wizard):
-    'Utilisation Calcualte'
+    'Utilisation Calculate'
     __name__ = 'utilisation.calculate'
     start_state = 'calculate'
     calculate = StateTransition()
