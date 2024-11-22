@@ -6,6 +6,7 @@ import uuid
 import datetime
 import requests
 import json
+import copy
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
@@ -1904,8 +1905,12 @@ class IndicatorsMeta(ModelMeta):
                     # function field name (e.g. estimated_turnover)
                     field_name = '%s_%s' % (sample_name, attribute_name)
                     # add function field
+                    function_field = copy.deepcopy(field)
+                    if 'readonly' not in function_field.states:
+                        function_field.states['readonly'] = ~Bool(
+                            Eval(indicators_field_name))
                     setattr(new, field_name,
-                            fields.Function(field,
+                            fields.Function(function_field,
                                             'get_%s' % field_name,
                                             'set_%s' % field_name,
                                             'search_%s' % field_name))
