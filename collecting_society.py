@@ -1827,7 +1827,7 @@ class IndicatorsMeta(ModelMeta):
                     IndicatorsModel = Pool().get(indicators_model_name)
                     indicators, = IndicatorsModel.create([{}])
                     indicators.save()
-                    entry['%s_indicators' % sample_name] = indicators.id
+                    entry[f'{sample_name}_indicators'] = indicators.id
             return cls._create(vlist)
         return classmethod(create)
 
@@ -1840,7 +1840,7 @@ class IndicatorsMeta(ModelMeta):
             default = default.copy()
             # prevent copy of One2Many indicator fields
             for sample_name in samples:
-                field_name = '%s_indicators' % sample_name
+                field_name = f'{sample_name}_indicators'
                 if field_name in default:
                     default[field_name] = None
             return cls._copy(measured_instances, default=default)
@@ -1849,7 +1849,7 @@ class IndicatorsMeta(ModelMeta):
     @staticmethod
     def measured__get_attribute(sample_name):
         def get_value(self, name):
-            indicators = getattr(self, '%s_indicators' % sample_name)
+            indicators = getattr(self, f'{sample_name}_indicators')
             if indicators:
                 attribute_name = getattr(self.__class__, name)._attribute_name
                 value = getattr(indicators, attribute_name)
@@ -1865,7 +1865,7 @@ class IndicatorsMeta(ModelMeta):
         def set_value(cls, measured_instances, name, value):
             for instance in measured_instances:
                 attribute_name = getattr(cls, name)._attribute_name
-                indicators = getattr(instance, '%s_indicators' % sample_name)
+                indicators = getattr(instance, f'{sample_name}_indicators')
                 if indicators:
                     indicators.write([indicators], {attribute_name: value})
         return classmethod(set_value)
@@ -1874,7 +1874,7 @@ class IndicatorsMeta(ModelMeta):
     def measured__search_attribute(sample_name):
         def search(cls, name, clause):
             attribute_name = getattr(cls, name)._attribute_name
-            key = '%s_indicators.%s' % (sample_name, attribute_name)
+            key = f'{sample_name}_indicators.{attribute_name}'
             return [
                 (key,) + tuple(clause[1:]),
             ]
@@ -1922,9 +1922,10 @@ class IndicatorsMeta(ModelMeta):
         for sample_name in samples:
 
             # add indicators field to the measured model
-            indicators_field_name = '%s_indicators' % sample_name
-            indicators_field_description = '%s Indicators' % (
-                sample_name.capitalize())
+            indicators_field_name = f'{sample_name}_indicators'
+            indicators_field_description = (
+                f'{sample_name.capitalize()} Indicators'
+            )
             setattr(new, indicators_field_name,
                     fields.Many2One(
                         indicators_model_name, indicators_field_description))
@@ -1936,28 +1937,34 @@ class IndicatorsMeta(ModelMeta):
                     if getattr(field, '_backreference', False):
                         continue
                     # function field name (e.g. estimated_turnover)
-                    field_name = '%s_%s' % (sample_name, attribute_name)
+                    field_name = f'{sample_name}_{attribute_name}'
                     # add function field
                     function_field = copy.deepcopy(field)
                     if 'readonly' not in function_field.states:
                         function_field.states['readonly'] = ~Bool(
                             Eval(indicators_field_name))
+                    getter_name = f'get_{field_name}'
+                    setter_name = f'set_{field_name}'
+                    searcher_name = f'search_{field_name}'
                     setattr(new, field_name,
                             fields.Function(function_field,
-                                            'get_%s' % field_name,
-                                            'set_%s' % field_name,
-                                            'search_%s' % field_name))
+                                            getter_name,
+                                            setter=setter_name,
+                                            searcher=searcher_name))
                     # save original field name in field to ease later access
                     getattr(new, field_name)._attribute_name = attribute_name
                     # getter
-                    setattr(new, 'get_%s' % field_name,
-                            cls.measured__get_attribute(sample_name))
+                    if not getattr(new, getter_name, False):
+                        setattr(new, getter_name,
+                                cls.measured__get_attribute(sample_name))
                     # setter
-                    setattr(new, 'set_%s' % field_name,
-                            cls.measured__set_attribute(sample_name))
+                    if not getattr(new, setter_name, False):
+                        setattr(new, setter_name,
+                                cls.measured__set_attribute(sample_name))
                     # searcher
-                    setattr(new, 'search_%s' % field_name,
-                            cls.measured__search_attribute(sample_name))
+                    if not getattr(new, searcher_name, False):
+                        setattr(new, searcher_name,
+                                cls.measured__search_attribute(sample_name))
 
             # add back reference to the indicator model
             measured_field_name = '%s_%ss' % (
