@@ -709,6 +709,12 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
         'utilisation.indicators', 'relevance', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff relevance')
 
+    def get_rec_name(self, name):
+        rec_name = f"{self.category.name}: {self.value:.2f}"
+        if self.deviation:
+            rec_name += " *"
+        return rec_name
+
 
 class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff'
