@@ -3463,7 +3463,7 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         'event', 'Event', states={
             'required': True,
             'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
+        }, depends=DEPENDS, ondelete='CASCADE',
         help='The event of the performance')
     artist = fields.Many2One(
         'artist', 'Artist', states={
