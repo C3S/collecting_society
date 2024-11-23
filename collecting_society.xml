@@ -2654,6 +2654,16 @@
             <field name="model">utilisation,-1</field>
         </record>
 
+        <record model="ir.action.wizard" id="act_utilisation_confirm">
+            <field name="name">Confirm</field>
+            <field name="wiz_name">utilisation.confirm</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_confirm_keyword">
+            <field name="action" ref="act_utilisation_confirm"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
+
         <!-- Menue: Utilisations / Creationslist -->
         <record model="ir.ui.view" id="utilisation_creationlist_form">
             <field name="model">utilisation.creationlist</field>

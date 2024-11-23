@@ -15,7 +15,7 @@ from sql import Table
 from sql.functions import CharLength
 import hurry.filesize
 
-from trytond.model import ModelView, ModelSQL, fields, Unique
+from trytond.model import Model, ModelView, ModelSQL, fields, Unique
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
@@ -137,6 +137,7 @@ __all__ = [
     'DeclarationGroup',
     'Utilisation',
     'UtilisationCalculate',
+    'UtilisationConfirm',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
 
@@ -5069,9 +5070,10 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             context=context_indicators_dict,
             represented_ratio=represented_ratio
         )
+        indicators = getattr(self, f"{sample}_indicators")
+        indicators.base = base
         if save:
-            setattr(self, f'{sample}_base', base)
-            self.save()
+            indicators.save()
         return base
 
     def calculate_relevance(self, sample):
@@ -5081,7 +5083,8 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         context_indicators_dict = self.context_indicators_as_dict(sample)
         # relevance
         formula = self.tariff.get_relevance_formula()
-        relevance = getattr(self, f'{sample}_relevance').value
+        utilisation_indicators = getattr(self, f'{sample}_indicators')
+        relevance = utilisation_indicators.relevance.value
         return formula(
             context=context_indicators_dict,
             relevance=relevance
@@ -5124,9 +5127,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             formula(utilisation=utilisation_dict),
             self.get_currency_digits('')
         )
+        indicators.invoice_amount = invoice_amount
         if save:
-            setattr(self, f'{sample}_invoice_amount', invoice_amount)
-            self.save()
+            indicators.save()
         return invoice_amount
 
     def calculate_administration_fee(self, sample, save=False):
@@ -5136,9 +5139,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             formula(total=indicators.invoice_amount),
             self.get_currency_digits('')
         )
+        indicators.administration_fee = administration_fee
         if save:
-            setattr(self, f'{sample}_administration_fee', administration_fee)
-            self.save()
+            indicators.save()
         return administration_fee
 
     def calculate_all(self, sample, save=False):
@@ -5272,6 +5275,128 @@ class UtilisationCalculate(Wizard):
     def transition_calculate(self):
         if self.record.state in ['estimated', 'confirmed']:
             self.record.calculate_all(self.record.state, save=True)
+        return 'end'
+
+
+class UtilisationConfirm(Wizard):
+    'Utilisation Confirm'
+    __name__ = 'utilisation.confirm'
+
+    start_state = 'choose_context'
+    choose_context = StateTransition()
+    review_event_indicators = StateView(
+        'event.indicators',
+        'collecting_society.event_indicators_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Confirm Event Indicators', 'review_utilisation_indicators',
+                   'tryton-go-next', default=True),
+        ])
+    review_utilisation_indicators = StateView(
+        'utilisation.indicators',
+        'collecting_society.utilisation_indicators_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Confirm Utilisation', 'save',
+                   'tryton-go-next', default=True),
+        ])
+    save = StateTransition()
+
+    @staticmethod
+    def _record_as_dict(record, fields):
+        values = {}
+        for fieldname in fields:
+            value = getattr(record, fieldname)
+            if isinstance(value, Model):
+                if getattr(record.__class__, fieldname)._type == 'reference':
+                    value = str(value)
+                else:
+                    value = value.id
+            elif isinstance(value, (list, tuple)):
+                value = [r.id for r in value]
+            values[fieldname] = value
+        return values
+
+    def transition_choose_context(self):
+        # sanity checks
+        if self.record.state != 'estimated':
+            return 'end'
+        # choose context
+        if self.record.tariff.category.code == 'L':
+            return 'review_event_indicators'
+        elif self.record.tariff.category.code == 'C':
+            return 'end'
+        elif self.record.tariff.category.code == 'P':
+            return 'end'
+        elif self.record.tariff.category.code == 'O':
+            return 'end'
+        return 'end'
+
+    def value_review_event_indicators(self, fields):
+        values = self._record_as_dict(
+            self.record.context.estimated_indicators,
+            fields
+        )
+        values['confirmed_events'] = []
+        values['estimated_events'] = []
+        return values
+
+    def value_review_utilisation_indicators(self, fields):
+        pool = Pool()
+        self.record.context.confirmed_indicators = self.review_event_indicators
+        # copy estimated utilisation indicators
+        _UtilisationIndicators = pool.get('utilisation.indicators')
+        self.record.confirmed_indicators = _UtilisationIndicators(
+            **self._record_as_dict(self.record.estimated_indicators, fields))
+        # calculate confirmed utilisation indicators
+        self.record.state = 'confirmed'
+        self.record.calculate_all('confirmed')
+
+        values = self._record_as_dict(
+            self.record.confirmed_indicators,
+            fields
+        )
+        values['confirmed_utilisations'] = []
+        values['estimated_utilisations'] = []
+        return values
+
+    def transition_save(self):
+        if self.record.tariff.category.code == 'L':
+            event_indicators = self.review_event_indicators
+            event_indicators.confirmed_events = [self.record.context]
+            event_indicators.save()
+        elif self.record.tariff.category.code == 'C':
+            pass
+        elif self.record.tariff.category.code == 'P':
+            pass
+        elif self.record.tariff.category.code == 'O':
+            pass
+
+        pool = Pool()
+        _TariffAdjustment = pool.get('tariff_system.tariff.adjustment')
+
+        utilisation_indicators = self.review_utilisation_indicators
+        utilisation_indicators.confirmed_utilisations = [self.record]
+        adjustments = []
+        for adjustment in utilisation_indicators.adjustments:
+            if adjustment.id > 0:
+                adjustments.append(_TariffAdjustment(
+                    category=adjustment.category,
+                    status=adjustment.status,
+                    value=adjustment.value,
+                    deviation=adjustment.deviation,
+                    deviation_reason=adjustment.deviation_reason,
+                    utilisation_indicators=adjustment.utilisation_indicators,
+                ))
+            else:
+                adjustments.append(adjustment)
+        utilisation_indicators.adjustments = adjustments
+        utilisation_indicators.save()
+
+        self.record.state = 'confirmed'
+        self.record.confirmed_indicators.adjustments = adjustments
+        self.record.calculate_all('confirmed', save=True)
+        self.record.save()
         return 'end'
 
 
