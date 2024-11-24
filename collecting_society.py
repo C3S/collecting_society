@@ -1719,12 +1719,35 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
             'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
             states={'readonly': True}, depends=['currency_digits'],
             help='The amount to distribute'),
-        'get_distribution_amount')
+        'on_change_with_distribution_amount')
 
-    def get_distribution_amount(self, name):
+    @fields.depends('invoice_amount', 'administration_fee')
+    def on_change_with_distribution_amount(self, name=None):
         if not self.invoice_amount or not self.administration_fee:
             return None
         return self.invoice_amount - self.administration_fee
+
+    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    def on_change_adjustments(self):
+        samples = ['estimated', 'confirmed']
+        for sample in samples:
+            for utilisation in getattr(self, f'{sample}_utilisations', []):
+                setattr(utilisation, f'{sample}_indicators', self)
+                self.invoice_amount = \
+                    utilisation.calculate_invoice_amount(sample)
+                self.administration_fee = \
+                    utilisation.calculate_administration_fee(sample)
+
+    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    def on_change_relevance(self):
+        samples = ['estimated', 'confirmed']
+        for sample in samples:
+            for utilisation in getattr(self, f'{sample}_utilisations', []):
+                setattr(utilisation, f'{sample}_indicators', self)
+                self.invoice_amount = \
+                    utilisation.calculate_invoice_amount(sample)
+                self.administration_fee = \
+                    utilisation.calculate_administration_fee(sample)
 
 
 class IndicatorsMeta(ModelMeta):
