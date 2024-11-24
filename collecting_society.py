@@ -5404,9 +5404,11 @@ class UtilisationConfirm(Wizard):
 
         pool = Pool()
         _TariffAdjustment = pool.get('tariff_system.tariff.adjustment')
+        _TariffRelevance = pool.get('tariff_system.tariff.relevance')
 
         utilisation_indicators = self.review_utilisation_indicators
         utilisation_indicators.confirmed_utilisations = [self.record]
+        # create new adjustments
         adjustments = []
         for adjustment in utilisation_indicators.adjustments:
             if adjustment.id > 0:
@@ -5421,10 +5423,21 @@ class UtilisationConfirm(Wizard):
             else:
                 adjustments.append(adjustment)
         utilisation_indicators.adjustments = adjustments
+        # create new relevance
+        relevance = utilisation_indicators.relevance
+        utilisation_indicators.relevance = _TariffRelevance(
+            category=relevance.category,
+            value=relevance.value,
+            deviation=relevance.deviation,
+            deviation_reason=relevance.deviation_reason,
+            utilisation_indicators=relevance.utilisation_indicators,
+        )
         utilisation_indicators.save()
 
+        # recalculate indicators
         self.record.state = 'confirmed'
         self.record.confirmed_indicators.adjustments = adjustments
+        self.record.confirmed_indicators.relevance = relevance
         self.record.calculate_all('confirmed', save=True)
         self.record.save()
         return 'end'
