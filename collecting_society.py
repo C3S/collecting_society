@@ -1530,7 +1530,13 @@ class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
     end = fields.DateTime(
         'End', help='End of the event')
     attendants = fields.Integer(
-        'Attendants', help='The number of attendants of the event')
+        'Attendants', help='The number of attendants')
+    max_attendants = fields.Integer(
+        'Max Attendants', help='The maximum number of attendants')
+    max_admission = fields.Numeric(
+        'Max Admission', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The maxiumum entrance fee')
     turnover_tickets = fields.Numeric(
         'Turnover Tickets', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),

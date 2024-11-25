@@ -31,6 +31,12 @@
                 <label name="estimated_attendants"/>
                 <field name="estimated_attendants"/>
 
+                <label name="estimated_max_attendants"/>
+                <field name="estimated_max_attendants"/>
+
+                <label name="estimated_max_admission"/>
+                <field name="estimated_max_admission"/>
+
                 <label name="estimated_turnover_tickets"/>
                 <field name="estimated_turnover_tickets"/>
 

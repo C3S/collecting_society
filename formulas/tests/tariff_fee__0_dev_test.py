@@ -49,7 +49,7 @@ def test_tariff_fee(version, total):
 def test_tariff_fee_total_exception(version, total):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_fee__{version}")
-    with pytest.raises(Exception):
+    with pytest.raises(AssertionError):
         formula(total=total)
 
 

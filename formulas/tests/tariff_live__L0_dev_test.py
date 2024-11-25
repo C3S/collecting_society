@@ -318,7 +318,7 @@ def test_tariff_live_base_represented_ratio_exception(
         version, represented_ratio):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_base__L{version}")
-    with pytest.raises(Exception):
+    with pytest.raises(AssertionError):
         formula(
             context={
                 'attendants': 0,
@@ -375,7 +375,7 @@ def test_tariff_live_relevance(version, relevance):
 def test_tariff_live_relevance_exception(version, relevance):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_relevance__L{version}")
-    with pytest.raises(Exception):
+    with pytest.raises(AssertionError):
         assert formula(
             context={},
             relevance=relevance

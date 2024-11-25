@@ -37,6 +37,8 @@ class Event(TypedDict):
     start: NotRequired[datetime]
     end: NotRequired[datetime]
     attendants: int
+    max_attendants: int
+    max_admission: Decimal
     turnover_tickets: Decimal
     turnover_benefit: Decimal
     expenses_musicians: Decimal
