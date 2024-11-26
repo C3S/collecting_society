@@ -14,6 +14,7 @@ development_versions = [
 ]
 
 base_values = [
+    D('0'),
     D('10'),
     D('100'),
     D('1000'),
@@ -70,7 +71,7 @@ money_values = [
     (D('1000'), D('1000')),
     (D('10000'), D('10000')),
 ]
-represented_ratio_values = [
+billable_ratio_values = [
     D('0'),
     D('0.25'),
     D('0.5'),

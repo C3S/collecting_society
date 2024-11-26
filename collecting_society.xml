@@ -2664,6 +2664,16 @@
             <field name="model">utilisation,-1</field>
         </record>
 
+        <record model="ir.action.wizard" id="act_utilisation_finalize">
+            <field name="name">Finalize</field>
+            <field name="wiz_name">utilisation.finalize</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_finalize_keyword">
+            <field name="action" ref="act_utilisation_finalize"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
+
         <!-- Menue: Utilisations / Creationslist -->
         <record model="ir.ui.view" id="utilisation_creationlist_form">
             <field name="model">utilisation.creationlist</field>

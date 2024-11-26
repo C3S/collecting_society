@@ -50,7 +50,7 @@ fixtures_total = [
             'base': D('1234.56789'),
             'relevance': D('0.2'),
             'share': D('0.12345'),
-            'adjustments': D('0.1'),
+            'adjustments': D('-0.1'),
         },
     },
 ]
@@ -78,7 +78,7 @@ def test_tariff_total(version, base, relevance, share, adjustments):
             'share': share,
             'adjustments': adjustments,
         }
-    ) == base * relevance * share * (1 - adjustments)
+    ) == base * relevance * share * (1 + adjustments)
 
 
 @pytest.mark.parametrize(

@@ -10,7 +10,7 @@ import formulas
 from tests.fixtures import (
     development_versions,
     money_values,
-    represented_ratio_values,
+    billable_ratio_values,
     attendant_values,
     relevance_values,
     adjustment_categories,
@@ -23,7 +23,7 @@ from tests.fixtures import (
 development_fixtures_tariff_live_base = [
     {
         'result': D('200'),
-        'represented_ratio': D('1'),
+        'billable_ratio': D('1'),
         'context': {
             'attendants': D('100'),
             'turnover_tickets': D('100'),
@@ -34,7 +34,7 @@ development_fixtures_tariff_live_base = [
     },
     {
         'result': D('3535.835148'),
-        'represented_ratio': D('0.9876'),
+        'billable_ratio': D('0.9876'),
         'context': {
             'attendants': D('1234'),
             'turnover_tickets': D('1234.56'),
@@ -45,7 +45,7 @@ development_fixtures_tariff_live_base = [
     },
     {
         'result': D('3535.835148'),
-        'represented_ratio': D('0.9876'),
+        'billable_ratio': D('0.9876'),
         'context': {
             'attendants': D('1234'),
             'turnover_tickets': D('0'),
@@ -56,7 +56,7 @@ development_fixtures_tariff_live_base = [
     },
     {
         'result': D('127.003280'),
-        'represented_ratio': D('0.1234'),
+        'billable_ratio': D('0.1234'),
         'context': {
             'attendants': D('1234'),
             'turnover_tickets': D('1'),
@@ -190,7 +190,7 @@ development_fixtures_tariff_live_adjustments = [
 development_fixtures_tariff_live = [
     {
         'result': D('141.433405920'),
-        'represented_ratio': D('0.9876'),
+        'billable_ratio': D('0.9876'),
         'context': {
             'attendants': D('100'),
             'turnover_tickets': D('1234.56'),
@@ -201,11 +201,11 @@ development_fixtures_tariff_live = [
         'relevance': D('0.5'),
         'share': D('0.1'),
         'adjustments': {
-            'electronic_submission': D('0.1'),
+            'electronic_submission': D('-0.1'),
             'small': D('0'),
             'benefit': D('0'),
             'social_cultural_religious': D('0'),
-            'promotion_of_young_artists': D('0.1'),
+            'promotion_of_young_artists': D('-0.1'),
             'missing_playlist_fee': D('0'),
         },
     },
@@ -221,9 +221,9 @@ development_fixtures_tariff_live = [
 @pytest.mark.parametrize(
     "turnover_tickets, turnover_benefit", money_values)
 @pytest.mark.parametrize(
-    "represented_ratio", represented_ratio_values)
+    "billable_ratio", billable_ratio_values)
 def test_tariff_live_base_turnover(
-        version, turnover_tickets, turnover_benefit, represented_ratio):
+        version, turnover_tickets, turnover_benefit, billable_ratio):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_base__L{version}")
     assert formula(
@@ -234,8 +234,8 @@ def test_tariff_live_base_turnover(
             'expenses_musicians': D('0'),
             'expenses_production': D('0'),
         },
-        represented_ratio=represented_ratio
-    ) == (turnover_tickets + turnover_benefit) * represented_ratio
+        billable_ratio=billable_ratio
+    ) == (turnover_tickets + turnover_benefit) * billable_ratio
     assert formula(
         context={
             'attendants': 1,
@@ -244,8 +244,8 @@ def test_tariff_live_base_turnover(
             'expenses_musicians': D('1'),
             'expenses_production': D('1'),
         },
-        represented_ratio=represented_ratio
-    ) == (turnover_tickets + turnover_benefit) * represented_ratio
+        billable_ratio=billable_ratio
+    ) == (turnover_tickets + turnover_benefit) * billable_ratio
 
 
 @pytest.mark.parametrize(
@@ -253,9 +253,9 @@ def test_tariff_live_base_turnover(
 @pytest.mark.parametrize(
     "expenses_musicians,expenses_production", money_values)
 @pytest.mark.parametrize(
-    "represented_ratio", represented_ratio_values)
+    "billable_ratio", billable_ratio_values)
 def test_tariff_live_base_expenses(
-        version, expenses_musicians, expenses_production, represented_ratio):
+        version, expenses_musicians, expenses_production, billable_ratio):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_base__L{version}")
     assert formula(
@@ -266,8 +266,8 @@ def test_tariff_live_base_expenses(
             'expenses_musicians': expenses_musicians,
             'expenses_production': expenses_production,
         },
-        represented_ratio=represented_ratio
-    ) == (expenses_musicians + expenses_production) * represented_ratio
+        billable_ratio=billable_ratio
+    ) == (expenses_musicians + expenses_production) * billable_ratio
 
 
 @pytest.mark.parametrize(
@@ -275,8 +275,8 @@ def test_tariff_live_base_expenses(
 @pytest.mark.parametrize(
     "attendants", attendant_values)
 @pytest.mark.parametrize(
-    "represented_ratio", represented_ratio_values)
-def test_tariff_live_base_minimum(version, attendants, represented_ratio):
+    "billable_ratio", billable_ratio_values)
+def test_tariff_live_base_minimum(version, attendants, billable_ratio):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_base__L{version}")
     minimum = ceil(attendants / 10) * 10 * D('0.83')
@@ -288,8 +288,8 @@ def test_tariff_live_base_minimum(version, attendants, represented_ratio):
             'expenses_musicians': D('1'),
             'expenses_production': D('1'),
         },
-        represented_ratio=represented_ratio
-    ) == minimum * represented_ratio
+        billable_ratio=billable_ratio
+    ) == minimum * billable_ratio
     assert formula(
         context={
             'attendants': attendants,
@@ -298,14 +298,14 @@ def test_tariff_live_base_minimum(version, attendants, represented_ratio):
             'expenses_musicians': D('0'),
             'expenses_production': D('0'),
         },
-        represented_ratio=represented_ratio
-    ) == minimum * represented_ratio
+        billable_ratio=billable_ratio
+    ) == minimum * billable_ratio
 
 
 @pytest.mark.parametrize(
     "version", development_versions)
 @pytest.mark.parametrize(
-    "represented_ratio", [
+    "billable_ratio", [
         D('-100'),
         D('-2'),
         D('-1'),
@@ -314,8 +314,8 @@ def test_tariff_live_base_minimum(version, attendants, represented_ratio):
         D('2'),
         D('100'),
     ])
-def test_tariff_live_base_represented_ratio_exception(
-        version, represented_ratio):
+def test_tariff_live_base_billable_ratio_exception(
+        version, billable_ratio):
     version = formulas.convert_version(version)
     formula = getattr(formulas, f"tariff_base__L{version}")
     with pytest.raises(AssertionError):
@@ -327,7 +327,7 @@ def test_tariff_live_base_represented_ratio_exception(
                 'expenses_musicians': D('0'),
                 'expenses_production': D('0'),
             },
-            represented_ratio=represented_ratio
+            billable_ratio=billable_ratio
         )
 
 
@@ -340,7 +340,7 @@ def test_tariff_live_base_fixtures(version, fixture):
     formula = getattr(formulas, f"tariff_base__L{version}")
     assert formula(
         context=fixture['context'],
-        represented_ratio=fixture['represented_ratio']
+        billable_ratio=fixture['billable_ratio']
     ) == fixture['result']
 
 
@@ -488,7 +488,7 @@ def test_tariff_live_fixtures(version, fixture):
         utilisation={
             'base': formula_base(
                 context=fixture['context'],
-                represented_ratio=fixture['represented_ratio']
+                billable_ratio=fixture['billable_ratio']
             ),
             'relevance': formula_relevance(
                 context=fixture['context'],

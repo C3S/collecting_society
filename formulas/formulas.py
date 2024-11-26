@@ -51,7 +51,7 @@ class Event(TypedDict):
 
 def tariff_total__0_1(utilisation: Utilisation):
     # sanity checks
-    assert utilisation['base'] > 0
+    assert 0 <= utilisation['base']
     assert 0 < utilisation['relevance'] <= 1
     assert 0 <= utilisation['share'] <= 1
     # total
@@ -59,7 +59,7 @@ def tariff_total__0_1(utilisation: Utilisation):
         utilisation['base']
         * utilisation['relevance']
         * utilisation['share']
-        * (1 - utilisation['adjustments'])
+        * (1 + utilisation['adjustments'])
     )
 
 
@@ -92,25 +92,25 @@ def tariff_fee__0_3(total: Decimal):
 
 # --- Tariff Live Base
 
-def tariff_base__L0_1(context: Event, represented_ratio: Decimal):
+def tariff_base__L0_1(context: Event, billable_ratio: Decimal):
     # sanity checks
-    assert 0 <= represented_ratio <= 1, \
-           f"invalid range of tariff represented_ratio: {represented_ratio}"
+    assert 0 <= billable_ratio <= 1, \
+           f"invalid range of tariff billable_ratio: {billable_ratio}"
     # base
     base_turnover = context['turnover_tickets'] + context['turnover_benefit']
     base_expenses = \
         context['expenses_musicians'] + context['expenses_production']
     base_minimum = ceil(context['attendants'] / 10) * 10 * Decimal('0.83')
     base_total = max(base_minimum, base_turnover or base_expenses)
-    return base_total * represented_ratio
+    return base_total * billable_ratio
 
 
-def tariff_base__L0_2(context: Event, represented_ratio: Decimal):
-    return tariff_base__L0_1(context, represented_ratio)
+def tariff_base__L0_2(context: Event, billable_ratio: Decimal):
+    return tariff_base__L0_1(context, billable_ratio)
 
 
-def tariff_base__L0_3(context: Event, represented_ratio: Decimal):
-    return tariff_base__L0_1(context, represented_ratio)
+def tariff_base__L0_3(context: Event, billable_ratio: Decimal):
+    return tariff_base__L0_1(context, billable_ratio)
 
 
 # --- Tariff Live Relevance

@@ -138,6 +138,7 @@ __all__ = [
     'Utilisation',
     'UtilisationCalculate',
     'UtilisationConfirm',
+    'UtilisationFinalize',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
 
@@ -2027,6 +2028,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
     name = fields.Char('Name', required=True)
     code = fields.Char('Code', required=True)
+    billable = fields.Boolean('Billable')
     freedom_rank = fields.Integer('Freedom Rank')
     version = fields.Char('Version', required=True)
     country = fields.Char('Country', required=True)
@@ -4945,6 +4947,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('created', 'Created'),
             ('estimated', 'Estimated'),
             ('confirmed', 'Confirmed'),
+            ('finalized', 'Finalized'),
             ('allocated', 'Allocated'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
@@ -4952,10 +4955,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         '*Created*: Default state for new utilisations.\n'
         '*Estimated*: All indicators are present and the utilisation is '
         'awaiting confirmation.\n'
-        '*Confirmed*: The utilisation was confirmed.\n'
-        '*Invoiced*: An invoice for the utilisation was created.\n'
-        '*Payed*: The invoice amount was received.\n'
-        '*Distributed*: The distribution amount was distributed.')
+        '*Confirmed*: All indicators were confirmed.\n'
+        '*Finalized*: The utilisation is ready to be allocated.\n'
+        '*Allocated*: The utilisation was allocated.')
     start_override = fields.DateTime(
         'Start',
         help='Start of the period of utilisation, if setter is used')
@@ -5097,17 +5099,19 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         # indicators dict
         context_indicators_dict = self.context_indicators_as_dict(sample)
         # represented ratio
-        represented_ratio = 1
-        if self.creation_list and self.creation_list.complete:
-            represented_ratio = self.creation_list.represented_ratio
+        billable_ratio = 1  # TODO: define default
+        if self.creation_list:
+            billable_ratio = self.creation_list.billable_ratio
         # base
         formula = self.tariff.get_base_formula()
         base = formula(
             context=context_indicators_dict,
-            represented_ratio=represented_ratio
+            billable_ratio=billable_ratio
         )
         indicators = getattr(self, f"{sample}_indicators")
-        indicators.base = base
+        indicators.base = base.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits('')
+        )
         if save:
             indicators.save()
         return base
@@ -5142,6 +5146,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         adjustments_dict = {
             adjustment.category.code: adjustment.value
             for adjustment in indicators.adjustments
+            if adjustment.status == "approved"
         }
         # adjustments
         formula = self.tariff.get_adjustments_formula()
@@ -5449,8 +5454,107 @@ class UtilisationConfirm(Wizard):
         return 'end'
 
 
-class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
-                              metaclass=IndicatorsMeta):
+class UtilisationFinalize(Wizard):
+    'Utilisation Finalize'
+    __name__ = 'utilisation.finalize'
+    start_state = 'finalize'
+    finalize = StateTransition()
+
+    # TODO: configuration setting
+    grace_period_days = 6 * 7
+
+    def transition_finalize(self):
+        # sanity checks
+        if self.record.state != 'confirmed':
+            raise UserError(
+                'Utilisation not "Confirmed"',
+                'The utilisation "%s" is not in the state "confirmed" '
+                % (self.record.id))
+        # condition: adjustments not on approval
+        adjustments = self.record.confirmed_indicators.adjustments
+        adjustments_on_approval = []
+        for adjustment in adjustments:
+            if adjustment.status == "on_approval":
+                adjustments_on_approval.append(adjustment)
+        if adjustments_on_approval:
+            raise UserError(
+                'Adjustment on approval',
+                'The utilisation "%s" can\'t be finalized as long as '
+                'the following adjustments wait for approval: %s'
+                % (self.record.id,
+                   ", ".join([adjustment.category.name
+                              for adjustment in adjustments_on_approval])))
+        # choose context
+        if self.record.tariff.category.code == 'L':
+            self.finalize_live()
+        elif self.record.tariff.category.code == 'C':
+            return 'end'
+        elif self.record.tariff.category.code == 'P':
+            return 'end'
+        elif self.record.tariff.category.code == 'O':
+            return 'end'
+        return 'end'
+
+    def finalize_live(self):
+        pool = Pool()
+        Warning = pool.get('res.user.warning')
+        # missing playlists
+        performances = self.record.context.performances
+        playlist_missing = (
+            not performances
+            and not any([performance.playlist for performance in performances])
+        )
+        if playlist_missing:
+            # wait until the grace period is over
+            grace_period_deadline = (
+                self.record.context.confirmed_end
+                + datetime.timedelta(days=self.grace_period_days)
+            )
+            if datetime.datetime.now() < grace_period_deadline:
+                warning_name = 'utilisationgraceperiod,%s' % self.record.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Playlists not submitted yet',
+                        'The playlists for utilisation "%s" have not been '
+                        'submitted yet. The grace period will end on %s'
+                        % (self.record.id, grace_period_deadline))
+            # add missing playlist fee
+            missing_playlist_fee = any([
+                adjustment.category.code == 'missing_playlist_fee'
+                for adjustment in self.record.confirmed_indicators.adjustments
+            ])
+            if not missing_playlist_fee:
+                AdjustmentCategory = pool.get(
+                    'tariff_system.tariff.adjustment.category')
+                Adjustment = pool.get('tariff_system.tariff.adjustment')
+                missing_playlist_fee, = AdjustmentCategory.search(
+                    ['code', '=', 'missing_playlist_fee'])
+                adjustment = Adjustment(
+                    category=missing_playlist_fee,
+                    status='approved',
+                    value=missing_playlist_fee.value_default,
+                    utilisation_indicators=self.record.confirmed_indicators
+                )
+                adjustment.save()
+
+        # generate creation list
+        if not playlist_missing:
+            _UtilisationCreationlist = pool.get('utilisation.creationlist')
+            creation_list = self.record.creation_list
+            if not creation_list:
+                creation_list = _UtilisationCreationlist(
+                    utilisations=[self.record.id])
+                creation_list.save()
+            creation_list.calculate_all(save=True)
+            self.record.creation_list = creation_list
+        self.record.calculate_all('confirmed', save=True)
+        self.record.state = 'finalized'
+        self.record.save()
+
+        return 'end'
+
+
+class UtilisationCreationlist(ModelSQL, ModelView, metaclass=IndicatorsMeta):
     'Utilisation Creationlist'
     __name__ = 'utilisation.creationlist'
     _history = True
@@ -5463,19 +5567,16 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
     utilisations = fields.One2Many(
         'utilisation', 'creation_list', 'Utilisations',
         help='The utilisations, in which the list is used to distribute')
-    start = fields.DateTime(
-        'Start', states={'required': True},
-        help='Start of the period of utilisation')
-    end = fields.DateTime(
-        'End', help='End of the period of utilisation')
     complete = fields.Boolean(
         'Complete', help='Is the creation list complete?')
+    # TODO: context still needed?
     context = fields.Reference(
         'Context', [
             ('event.performance', 'Event Performance'),
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
             ('release', 'Release'),
+            (None, 'None'),
         ],
         help='The context object of the utilisation creation list')
     items = fields.One2Many(
@@ -5485,13 +5586,14 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
 
     # calculated values
     known_ratio = fields.Numeric(
-        'Unknown Ratio', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
-        help='The ratio of known / unknown creations [0-1]')
+        'Known Ratio', digits=(16, 16),
+        help='The ratio of known / all creations [0-1]')
     represented_ratio = fields.Numeric(
-        'Represented Ratio', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
-        help='The ratio of represented / unrepresented known creations [0-1]')
+        'Represented Ratio', digits=(16, 16),
+        help='The ratio of represented / all creations [0-1]')
+    billable_ratio = fields.Numeric(
+        'Billable Ratio', digits=(16, 16),
+        help='The ratio of billable / all creations [0-1]')
 
     # context dependend fields
     performer = fields.Many2One(
@@ -5499,10 +5601,111 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
         # TODO: visible only for context EventPerformance
         help='The performing artist')
     fingerprint_creationlists = fields.One2Many(
-        'device.message.fingerprint.creationlist', 'utilisation_creationlist',
+        'device.message.fingerprint.creationlist',
+        'utilisation_creationlist',
         'Fingerprint Creationlists',
         # TODO: visible only for context WebsiteResource|LocationSpace
         help='The merged fingerprint creation lists')
+
+    def calculate_items(self, save=False):
+        # sanity checks
+        if not self.utilisations:
+            return
+        pool = Pool()
+        # items
+        utilisation = self.utilisations[0]
+        if utilisation.tariff.category.code == 'L':
+            Item = pool.get('utilisation.creationlist.item')
+            items = {}
+            performances = utilisation.context.performances
+            for performance in performances:
+                for playlist_item in performance.playlist.items:
+                    creation_id = playlist_item.creation.id
+                    if creation_id not in items:
+                        items[creation_id] = Item(
+                            creationlist=self,
+                            creation=creation_id,
+                            weight=0,
+                        )
+                    items[creation_id].weight += 1
+        else:
+            return
+        # save
+        if save:
+            Item.delete(self.items)
+        self.items = items.values()
+        if save:
+            self.save()
+
+    def calculate_ratios(self, save=False):
+        # sanity checks
+        if not self.utilisations:
+            return
+
+        # ratios
+        pool = Pool()
+        _CollectingSociety = pool.get('collecting_society')
+        tariff = self.utilisations[0].tariff
+        collecting_society = _CollectingSociety(1)  # TODO: get from context
+
+        weights = {
+            'all': 0,
+            'known': 0,
+            'represented': 0,
+            'billable': 0,
+        }
+        for item in self.items:
+            creation = item.creation
+
+            # all
+            weights['all'] += 1
+
+            # known
+            if creation.claim_state != 'revised':
+                continue
+            weights['known'] += 1
+
+            # represented
+            represented = False
+            for ctc in creation.tariff_categories:
+                if (ctc.category.code == tariff.category.code
+                        and ctc.collecting_society == collecting_society):
+                    represented = True
+                    break
+            if not represented:
+                continue
+            weights['represented'] += 1
+
+            # billable
+            if not creation.license.billable:
+                continue
+            weights['billable'] += 1
+
+        self.known_ratio = (
+            Decimal(weights['known']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.known_ratio.digits[1]
+        )
+
+        self.represented_ratio = (
+            Decimal(weights['represented']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.represented_ratio.digits[1]
+        )
+
+        self.billable_ratio = (
+            Decimal(weights['billable']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.billable_ratio.digits[1]
+        )
+
+        # save
+        if save:
+            self.save()
+
+    def calculate_all(self, save=False):
+        self.calculate_items(save)
+        self.calculate_ratios(save)
 
 
 class UtilisationCreationlistItem(ModelSQL, ModelView):

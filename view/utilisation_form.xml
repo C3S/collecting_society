@@ -30,15 +30,20 @@
     <label name="declaration"/>
     <field name="declaration"/>
 
+    <newline/>
+
     <label name="tariff"/>
     <field name="tariff"/>
     <label name="context"/>
     <field name="context"/>
 
-    <label name="distribution_plan"/>
-    <field name="distribution_plan"/>
+    <label name="creation_list"/>
+    <field name="creation_list"/>
     <label name="allocation"/>
     <field name="allocation"/>
+
+    <label name="distribution_plan"/>
+    <field name="distribution_plan"/>
 
     <notebook colspan="4">
         <page string="Indicators" id="indicators" col="4">

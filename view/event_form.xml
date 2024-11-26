@@ -62,6 +62,12 @@
                 <label name="confirmed_attendants"/>
                 <field name="confirmed_attendants"/>
 
+                <label name="confirmed_max_attendants"/>
+                <field name="confirmed_max_attendants"/>
+
+                <label name="confirmed_max_admission"/>
+                <field name="confirmed_max_admission"/>
+
                 <label name="confirmed_turnover_tickets"/>
                 <field name="confirmed_turnover_tickets"/>
 

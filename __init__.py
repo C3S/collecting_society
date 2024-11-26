@@ -139,4 +139,5 @@ def register():
         AllocationInvoice,
         UtilisationCalculate,
         UtilisationConfirm,
+        UtilisationFinalize,
         module='collecting_society', type_='wizard')
