@@ -1,5 +1,7 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
+#
+# Test with: pytest --rootdir=. --cov=../formulas -x
 
 from datetime import datetime
 from decimal import Decimal, getcontext
