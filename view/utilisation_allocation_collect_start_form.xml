@@ -3,4 +3,5 @@
      Repository: https://github.com/C3S/collecting_society -->
 <form col="1">
     <field name="utilisations"/>
+    <field name="entity_origin"/>
 </form>

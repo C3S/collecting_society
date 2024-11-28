@@ -1,22 +1,27 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form>
-    <label name="uuid"/>
-    <field name="uuid"/>
-    <!--label name="state"/-->
-    <!--field name="state"/-->
-    <label name="locked"/>
-    <field name="locked"/>
-    <newline/>
-
-    <field name="time" widget="date"/>
-    <field name="time" widget="time"/>
+<form col="4">
+    <label name="start"/>
+    <field name="start"/>
     <label name="entity_origin"/>
     <field name="entity_origin"/>
+
+    <label name="end"/>
+    <field name="end"/>
     <label name="entity_creator"/>
     <field name="entity_creator"/>
 
+    <label name="uuid"/>
+    <field name="uuid"/>
     <newline/>
-    <field name="allocations" colspan="4"/>
+
+    <notebook colspan="4">
+        <page string="Allocations" id="allocations">
+            <field name="allocations"/>
+        </page>
+        <page string="Utilisations" id="utilisations">
+            <field name="utilisations"/>
+        </page>
+    </notebook>
 </form>
