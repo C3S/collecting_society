@@ -999,7 +999,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     # Collection.
     move_lines = fields.One2Many(
         'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'distribution.allocation,%')],
+        domain=[('origin', 'like', 'allocation,%')],
         help='The account move lines of the allocation')
 
     collection = fields.Many2One(
@@ -1063,6 +1063,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             journal = None
 
         data = {
+            'allocation': self,
             'company': self.company,
             'type': 'out',
             'journal': journal,
@@ -1071,11 +1072,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             'currency': self.company.currency,
             'account': self.licensee.account_receivable,
             'payment_term': self.licensee.customer_payment_term,
-            # TODO: fetch from right objects
-            # 'description': self.distribution.rec_name,
-            'description': "TODO",
-            # TODO: get from form field (default today)?
-            # 'invoice_date': self.distribution.date,
+            'description': "Invoice Description",
             'invoice_date': datetime.date.today(),
         }
         return Invoice(**data)
@@ -1084,13 +1081,55 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         '''
         Creates and returns an invoice
         '''
-        return
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
+        # TODO: add account_receivable e.g. on party creation
+        if not self.licensee.account_receivable:
+            Account = pool.get('account.account')
+            accounts_receivable = Account.search([
+                ('closed', '!=', True),
+                ('type.receivable', '=', True),
+                ('party_required', '=', True),
+                ('company', '=', 1),
+            ])
+            if accounts_receivable:
+                self.licensee.account_receivable = accounts_receivable[0]
+            self.licensee.save()
+        # TODO: add payment_term e.g. on party creation
+        if not self.licensee.payment_terms:
+            PaymentTerm = pool.get('account.invoice.payment_term')
+            payment_term = PaymentTerm.search([])
+            if payment_term:
+                self.licensee.payment_terms = payment_term[0]
+            self.licensee.save()
+        # TODO: add invoice address e.g. on party creation
+        if not self.licensee.address_get('invoice'):
+            Country = pool.get('country.country')
+            germany = Country(name='Germany', code='DE')
+            Address = pool.get('party.address')
+            address = Address(
+                party=self.licensee,
+                street='Street 12',
+                postal_code='40479',
+                city='Düsseldorf',
+                country=germany
+            )
+            address.save()
+
+        if not self.licensee.address_get('invoice'):
+            raise UserError('Missing Invoice Address',
+                            'The Licensee "%s" has no invoice address '
+                            'assigned, so the allocation can\'t be invoiced.' %
+                            self.licensee.rec_name,)
         if not self.licensee.account_receivable:
             raise UserError('Missing Account Receivable',
                             'The Licensee "%s" has no account receivable '
+                            'assigned, so the allocation can\'t be invoiced.' %
+                            self.licensee.rec_name,)
+        if not self.licensee.payment_term:
+            raise UserError('Missing Payment Term',
+                            'The Licensee "%s" has no payment term '
                             'assigned, so the allocation can\'t be invoiced.' %
                             self.licensee.rec_name,)
 
@@ -1104,24 +1143,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         invoice.save()
         Invoice.update_taxes([invoice])
         return invoice
-
-    # TODO: delete as soon as everything works out
-    # -> artifact from imp
-    # type = fields.Selection(
-    #     [
-    #         ('pocket2hats', 'Pocket to Hats'),
-    #         ('hat2pockets', 'Hat to Pockets'),
-    #     ], 'Type', required=True, sort=False, help='The allocation type:\n'
-    #     '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
-    #     '*Hat to Pockets*: Allocates amount from a hat to many pockets')
-    # -> artifact from imp
-    # @staticmethod
-    # def default_type():
-    #     return 'pocket2hats'
-    # -> probably artifact from imp, we have utilisation.licensee
-    # party = fields.Many2One(
-    #     'party.party', 'Party', required=True,
-    #     help='The party which utilises creations')
 
 
 class AllocationAccountInvoice(ModelSQL):
@@ -5264,7 +5285,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         pool = Pool()
         InvoiceLine = pool.get('account.invoice.line')
 
-        if self.state != 'confirmed':
+        if self.state != 'allocated':
             return []
 
         distribution_product = self.tariff.category.distribution_product
