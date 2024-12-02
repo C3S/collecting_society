@@ -48,10 +48,10 @@ class AccountMoveLine(metaclass=PoolMeta):
 
     # Cannot use super here as we need to remove only one check
     # of this method from module account
-    def check_account(self):
-        if self.account.kind in ('view',):
-            raise UserError(
-                'move_view_account', (self.account.rec_name,))
-        if not self.account.active:
-            raise UserError(
-                'move_inactive_account', (self.account.rec_name,))
+    # def check_account(self):
+    #     if self.account.kind in ('view',):
+    #         raise UserError(
+    #             'move_view_account', (self.account.rec_name,))
+    #     if not self.account.active:
+    #         raise UserError(
+    #             'move_inactive_account', (self.account.rec_name,))
