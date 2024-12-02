@@ -1084,39 +1084,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
-        # TODO: add account_receivable e.g. on party creation
-        if not self.licensee.account_receivable:
-            Account = pool.get('account.account')
-            accounts_receivable = Account.search([
-                ('closed', '!=', True),
-                ('type.receivable', '=', True),
-                ('party_required', '=', True),
-                ('company', '=', 1),
-            ])
-            if accounts_receivable:
-                self.licensee.account_receivable = accounts_receivable[0]
-            self.licensee.save()
-        # TODO: add payment_term e.g. on party creation
-        if not self.licensee.payment_terms:
-            PaymentTerm = pool.get('account.invoice.payment_term')
-            payment_term = PaymentTerm.search([])
-            if payment_term:
-                self.licensee.payment_terms = payment_term[0]
-            self.licensee.save()
-        # TODO: add invoice address e.g. on party creation
-        if not self.licensee.address_get('invoice'):
-            Country = pool.get('country.country')
-            germany = Country(name='Germany', code='DE')
-            Address = pool.get('party.address')
-            address = Address(
-                party=self.licensee,
-                street='Street 12',
-                postal_code='40479',
-                city='Düsseldorf',
-                country=germany
-            )
-            address.save()
-
         if not self.licensee.address_get('invoice'):
             raise UserError('Missing Invoice Address',
                             'The Licensee "%s" has no invoice address '
@@ -1125,11 +1092,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         if not self.licensee.account_receivable:
             raise UserError('Missing Account Receivable',
                             'The Licensee "%s" has no account receivable '
-                            'assigned, so the allocation can\'t be invoiced.' %
-                            self.licensee.rec_name,)
-        if not self.licensee.payment_term:
-            raise UserError('Missing Payment Term',
-                            'The Licensee "%s" has no payment term '
                             'assigned, so the allocation can\'t be invoiced.' %
                             self.licensee.rec_name,)
 
@@ -1142,6 +1104,9 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         invoice.lines = invoice_lines
         invoice.save()
         Invoice.update_taxes([invoice])
+        if invoice.allocation:
+            invoice.allocation.state = 'invoiced'
+            invoice.allocation.save()
         return invoice
 
 
