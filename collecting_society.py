@@ -26,7 +26,7 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
-from .formulas import collection, distribution
+from .formulas import collection
 
 
 __all__ = [
