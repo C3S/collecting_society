@@ -1568,6 +1568,7 @@
                   id="menu_creation_derivative"/>
 
         <!-- Menue: Creations / Contributions -->
+        <!--
         <record model="ir.ui.view" id="creation_contribution_form">
             <field name="model">creation.contribution</field>
             <field name="type">form</field>
@@ -1598,6 +1599,7 @@
         <menuitem parent="menu_creation" sequence="50"
                   action="act_creation_contribution"
                   id="menu_creation_contribution"/>
+        -->
 
         <!-- Menue: Creations / Roles -->
         <record model="ir.ui.view" id="creation_contribution_role_form">
