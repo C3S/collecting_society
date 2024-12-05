@@ -26,7 +26,7 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
-from .formulas import formulas
+from .formulas import collection, distribution
 
 
 __all__ = [
@@ -747,28 +747,28 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
         return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
     def get_base_formula(self):
-        version = formulas.convert_version(self.code)
-        return getattr(formulas, f"tariff_base__{version}")
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_base__{version}")
 
     def get_relevance_formula(self):
-        version = formulas.convert_version(self.code)
-        return getattr(formulas, f"tariff_relevance__{version}")
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_relevance__{version}")
 
     def get_share_formula(self):
-        version = formulas.convert_version(self.code)
-        return getattr(formulas, f"tariff_share__{version}")
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_share__{version}")
 
     def get_adjustments_formula(self):
-        version = formulas.convert_version(self.code)
-        return getattr(formulas, f"tariff_adjustments__{version}")
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_adjustments__{version}")
 
     def get_total_formula(self):
-        version = formulas.convert_version(self.system.version)
-        return getattr(formulas, f"tariff_total__{version}")
+        version = collection.convert_version(self.system.version)
+        return getattr(collection, f"tariff_total__{version}")
 
     def get_fee_formula(self):
-        version = formulas.convert_version(self.system.version)
-        return getattr(formulas, f"tariff_fee__{version}")
+        version = collection.convert_version(self.system.version)
+        return getattr(collection, f"tariff_fee__{version}")
 
 
 # --- Collection --------------------------------------------------------------
@@ -781,7 +781,7 @@ class Collection(ModelSQL, ModelView):
 
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the allocation')
-    # TODO: function field state: collected -> all allocations >= collected
+    # TODO: function field 'state' -> min allocation state
 
     start = fields.DateTime(
         'Start', states={'required': True},
@@ -790,7 +790,7 @@ class Collection(ModelSQL, ModelView):
         'End', help='End of the collection')
     utilisations = fields.One2Many(
         'utilisation', 'collection', 'Utilisations',
-        help='The collected allocations')
+        help='The collected utilisations')
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
@@ -822,6 +822,10 @@ class Collection(ModelSQL, ModelView):
     @staticmethod
     def default_uuid():
         return str(uuid.uuid4())
+
+    @staticmethod
+    def default_date():
+        return datetime.datetime.now()
 
     def create_allocations(self):
         # sanity checks
@@ -5042,13 +5046,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('code_uniq', Unique(table, table.code),
              'The code of the utilisation must be unique.')
         ]
-        # cls._order.insert(1, ('start', 'ASC'))
-        # cls._error_messages.update({
-        #     'missing_account_revenue': 'Product "%(product)s" misses a '
-        #     'revenue account.',
-        #     'missing_tariff_product': 'Tariff category "%(tariff_category)s"'
-        #     ' is missing a distribution product or administration product.',
-        # })
 
     @staticmethod
     def default_state():
@@ -5069,6 +5066,61 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
                 config = Configuration(1)
                 values['code'] = config.utilisation_sequence.get()
         return super().create(vlist)
+
+    @classmethod
+    def copy(cls, utilisations, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super().copy(utilisations, default=default)
+
+    @classmethod
+    def set_start(cls, utilisations, name, start):
+        for utilisation in utilisations:
+            # if utilisation.context is not None:
+            #     return None
+            utilisation.start_override = start
+            utilisation.save()
+
+    def get_start(self, name=None):
+        if self.context:
+            if self.tariff.category.code == 'C':  # reproduction
+                if self.context.production_date is not None:  # return proddate
+                    return datetime.datetime.combine(
+                        self.context.production_date,
+                        datetime.time(0, 0, 0, 0)
+                    )
+            if self.tariff.category.code == 'L':  # live
+                return self.context.start  # event start date
+
+        # all other tariffs get the start date from a manually entered date
+        return self.start_override
+
+    @classmethod
+    def set_end(cls, utilisations, name, end):
+        for utilisation in utilisations:
+            # if utilisation.context is not None:
+            #     return None
+            utilisation.end_override = end
+            utilisation.save()
+
+    def get_end(self, name=None):
+        if self.context:
+            if self.tariff.category.code == 'C':  # reproduction
+                if self.context.production_date is not None:  # return proddate
+                    return datetime.datetime.combine(         # + 1
+                        self.context.production_date + datetime.timedelta(
+                            days=1),
+                        datetime.time(0, 0, 0, 0)
+                    )
+            if self.tariff.category.code == 'L':  # live
+                return self.context.end  # event end date
+
+        # all other tariffs get the end date from a manually entered date
+        return self.end_override
+
+    # --- collection ----------------------------------------------------------
 
     def context_indicators_as_dict(self, sample):
         if self.tariff.category.code == 'L':
@@ -5189,59 +5241,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         self.calculate_base(sample, save)
         self.calculate_invoice_amount(sample, save)
         self.calculate_administration_fee(sample, save)
-
-    @classmethod
-    def copy(cls, utilisations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(utilisations, default=default)
-
-    @classmethod
-    def set_start(cls, utilisations, name, start):
-        for utilisation in utilisations:
-            # if utilisation.context is not None:
-            #     return None
-            utilisation.start_override = start
-            utilisation.save()
-
-    def get_start(self, name=None):
-        if self.context:
-            if self.tariff.category.code == 'C':  # reproduction
-                if self.context.production_date is not None:  # return proddate
-                    return datetime.datetime.combine(
-                        self.context.production_date,
-                        datetime.time(0, 0, 0, 0)
-                    )
-            if self.tariff.category.code == 'L':  # live
-                return self.context.start  # event start date
-
-        # all other tariffs get the start date from a manually entered date
-        return self.start_override
-
-    @classmethod
-    def set_end(cls, utilisations, name, end):
-        for utilisation in utilisations:
-            # if utilisation.context is not None:
-            #     return None
-            utilisation.end_override = end
-            utilisation.save()
-
-    def get_end(self, name=None):
-        if self.context:
-            if self.tariff.category.code == 'C':  # reproduction
-                if self.context.production_date is not None:  # return proddate
-                    return datetime.datetime.combine(         # + 1
-                        self.context.production_date + datetime.timedelta(
-                            days=1),
-                        datetime.time(0, 0, 0, 0)
-                    )
-            if self.tariff.category.code == 'L':  # live
-                return self.context.end  # event end date
-
-        # all other tariffs get the end date from a manually entered date
-        return self.end_override
 
     def _get_invoice_lines(self):
         '''
