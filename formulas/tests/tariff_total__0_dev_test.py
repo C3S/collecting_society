@@ -4,7 +4,7 @@
 import pytest
 from decimal import Decimal as D
 
-import formulas
+import collection
 from tests.fixtures import (
     development_versions,
     base_values,
@@ -69,8 +69,8 @@ fixtures_total = [
 @pytest.mark.parametrize(
     "adjustments", adjustment_values)
 def test_tariff_total(version, base, relevance, share, adjustments):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_total__{version}")
     assert formula(
         utilisation={
             'base': base,
@@ -91,8 +91,8 @@ def test_tariff_total(version, base, relevance, share, adjustments):
         D('-0.000001'),
     ])
 def test_tariff_total_base_exception(version, base):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_total__{version}")
     with pytest.raises(AssertionError):
         formula(
             utilisation={
@@ -119,8 +119,8 @@ def test_tariff_total_base_exception(version, base):
         D('100'),
     ])
 def test_tariff_total_relevance_exception(version, relevance):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_total__{version}")
     with pytest.raises(AssertionError):
         formula(
             utilisation={
@@ -146,8 +146,8 @@ def test_tariff_total_relevance_exception(version, relevance):
         D('100'),
     ])
 def test_tariff_total_share_exception(version, share):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_total__{version}")
     with pytest.raises(Exception):
         formula(
             utilisation={
@@ -164,8 +164,8 @@ def test_tariff_total_share_exception(version, share):
 @pytest.mark.parametrize(
     "fixture", fixtures_total)
 def test_tariff_total_fixtures(version, fixture):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_total__{version}")
     assert formula(
         utilisation=fixture['utilisation']
     ) == fixture['result']

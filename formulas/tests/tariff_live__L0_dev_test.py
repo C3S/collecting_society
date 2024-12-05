@@ -6,7 +6,7 @@ from math import ceil
 from decimal import Decimal as D
 from itertools import combinations
 
-import formulas
+import collection
 from tests.fixtures import (
     development_versions,
     money_values,
@@ -224,8 +224,8 @@ development_fixtures_tariff_live = [
     "billable_ratio", billable_ratio_values)
 def test_tariff_live_base_turnover(
         version, turnover_tickets, turnover_benefit, billable_ratio):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_base__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_base__L{version}")
     assert formula(
         context={
             'attendants': 1,
@@ -256,8 +256,8 @@ def test_tariff_live_base_turnover(
     "billable_ratio", billable_ratio_values)
 def test_tariff_live_base_expenses(
         version, expenses_musicians, expenses_production, billable_ratio):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_base__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_base__L{version}")
     assert formula(
         context={
             'attendants': 1,
@@ -277,8 +277,8 @@ def test_tariff_live_base_expenses(
 @pytest.mark.parametrize(
     "billable_ratio", billable_ratio_values)
 def test_tariff_live_base_minimum(version, attendants, billable_ratio):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_base__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_base__L{version}")
     minimum = ceil(attendants / 10) * 10 * D('0.83')
     assert formula(
         context={
@@ -316,8 +316,8 @@ def test_tariff_live_base_minimum(version, attendants, billable_ratio):
     ])
 def test_tariff_live_base_billable_ratio_exception(
         version, billable_ratio):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_base__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_base__L{version}")
     with pytest.raises(AssertionError):
         formula(
             context={
@@ -336,8 +336,8 @@ def test_tariff_live_base_billable_ratio_exception(
 @pytest.mark.parametrize(
     "fixture", development_fixtures_tariff_live_base)
 def test_tariff_live_base_fixtures(version, fixture):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_base__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_base__L{version}")
     assert formula(
         context=fixture['context'],
         billable_ratio=fixture['billable_ratio']
@@ -351,8 +351,8 @@ def test_tariff_live_base_fixtures(version, fixture):
 @pytest.mark.parametrize(
     "relevance", relevance_values)
 def test_tariff_live_relevance(version, relevance):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_relevance__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_relevance__L{version}")
     assert formula(
         context={},
         relevance=relevance
@@ -373,8 +373,8 @@ def test_tariff_live_relevance(version, relevance):
         D('100'),
     ])
 def test_tariff_live_relevance_exception(version, relevance):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_relevance__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_relevance__L{version}")
     with pytest.raises(AssertionError):
         assert formula(
             context={},
@@ -387,8 +387,8 @@ def test_tariff_live_relevance_exception(version, relevance):
 @pytest.mark.parametrize(
     "fixture", development_fixtures_tariff_live_relevance)
 def test_tariff_live_relevance_fixtures(version, fixture):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_relevance__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_relevance__L{version}")
     assert formula(
         context=fixture['context'],
         relevance=fixture['relevance']
@@ -400,8 +400,8 @@ def test_tariff_live_relevance_fixtures(version, fixture):
 @pytest.mark.parametrize(
     "version", development_versions)
 def test_tariff_live_share(version):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_share__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_share__L{version}")
     assert formula(
         context={},
     ) == D('0.1')
@@ -416,8 +416,8 @@ def test_tariff_live_share(version):
 @pytest.mark.parametrize(
     "value", adjustment_position_values)
 def test_tariff_live_adjustments_single(version, category, value):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_adjustments__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_adjustments__L{version}")
     assert formula(
         context={},
         adjustments={
@@ -433,8 +433,8 @@ def test_tariff_live_adjustments_single(version, category, value):
 @pytest.mark.parametrize(
     "value", adjustment_position_values)
 def test_tariff_live_adjustments_pairs(version, cat1, cat2, value):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_adjustments__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_adjustments__L{version}")
     assert formula(
         context={},
         adjustments={
@@ -449,8 +449,8 @@ def test_tariff_live_adjustments_pairs(version, cat1, cat2, value):
 @pytest.mark.parametrize(
     "value", adjustment_position_values)
 def test_tariff_live_adjustments_all(version, value):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_adjustments__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_adjustments__L{version}")
     assert formula(
         context={},
         adjustments={
@@ -464,8 +464,8 @@ def test_tariff_live_adjustments_all(version, value):
 @pytest.mark.parametrize(
     "fixture", development_fixtures_tariff_live_adjustments)
 def test_tariff_live_adjustment_fixtures(version, fixture):
-    version = formulas.convert_version(version)
-    formula = getattr(formulas, f"tariff_adjustments__L{version}")
+    version = collection.convert_version(version)
+    formula = getattr(collection, f"tariff_adjustments__L{version}")
     assert formula(
         context=fixture['context'],
         adjustments=fixture['adjustments']
@@ -479,11 +479,11 @@ def test_tariff_live_adjustment_fixtures(version, fixture):
 @pytest.mark.parametrize(
     "fixture", development_fixtures_tariff_live)
 def test_tariff_live_fixtures(version, fixture):
-    version = formulas.convert_version(version)
-    formula_base = getattr(formulas, f"tariff_base__L{version}")
-    formula_relevance = getattr(formulas, f"tariff_relevance__L{version}")
-    formula_adjustments = getattr(formulas, f"tariff_adjustments__L{version}")
-    formula_total = getattr(formulas, f"tariff_total__{version}")
+    version = collection.convert_version(version)
+    formula_base = getattr(collection, f"tariff_base__L{version}")
+    formula_relevance = getattr(collection, f"tariff_relevance__L{version}")
+    formula_adjustments = getattr(collection, f"tariff_adjustments__L{version}")
+    formula_total = getattr(collection, f"tariff_total__{version}")
     assert formula_total(
         utilisation={
             'base': formula_base(

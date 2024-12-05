@@ -1,7 +1,7 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
 
-import formulas
+import collection
 from decimal import Decimal as D
 
 
@@ -55,7 +55,7 @@ total_values = [
     D('10000.0'),
 ]
 
-adjustment_categories = formulas.Adjustments.__annotations__.keys()
+adjustment_categories = collection.Adjustments.__annotations__.keys()
 adjustment_position_values = [
     D('-2.0'),
     D('-1.0'),
