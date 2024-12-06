@@ -823,10 +823,6 @@ class Collection(ModelSQL, ModelView):
     def default_uuid():
         return str(uuid.uuid4())
 
-    @staticmethod
-    def default_date():
-        return datetime.datetime.now()
-
     def create_allocations(self):
         # sanity checks
         if self.allocations:
