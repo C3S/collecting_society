@@ -13,10 +13,6 @@ from typing import TypedDict, NotRequired
 getcontext().prec = 28
 
 
-def convert_version(version):
-    return version.replace(".", "_")
-
-
 # === Types ===================================================================
 
 class Utilisation(TypedDict):

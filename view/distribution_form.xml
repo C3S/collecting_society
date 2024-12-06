@@ -2,13 +2,26 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <form>
-    <label name="code"/>
-    <field name="code"/>
-    <label name="date"/>
-    <field name="date"/>
-    <label name="from_date"/>
-    <field name="from_date"/>
-    <label name="thru_date"/>
-    <field name="thru_date"/>
-    <field name="allocations" colspan="4"/>
+    <label name="start"/>
+    <field name="start"/>
+    <label name="entity_origin"/>
+    <field name="entity_origin"/>
+
+    <label name="end"/>
+    <field name="end"/>
+    <label name="entity_creator"/>
+    <field name="entity_creator"/>
+
+    <label name="uuid"/>
+    <field name="uuid"/>
+    <newline/>
+
+    <notebook colspan="4">
+        <page string="Allocations" id="allocations">
+            <field name="allocations"/>
+        </page>
+        <page string="Utilisations" id="utilisations">
+            <field name="utilisations"/>
+        </page>
+    </notebook>
 </form>

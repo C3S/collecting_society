@@ -7,8 +7,8 @@ import datetime
 import requests
 import json
 import copy
+import math
 from decimal import Decimal
-from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
 from typing import Protocol, Any
 from sql import Table
@@ -26,7 +26,7 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
 
-from .formulas import collection
+from .formulas import utils, collection, distribution
 
 
 __all__ = [
@@ -747,27 +747,27 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
         return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
     def get_base_formula(self):
-        version = collection.convert_version(self.code)
+        version = utils.convert_version(self.code)
         return getattr(collection, f"tariff_base__{version}")
 
     def get_relevance_formula(self):
-        version = collection.convert_version(self.code)
+        version = utils.convert_version(self.code)
         return getattr(collection, f"tariff_relevance__{version}")
 
     def get_share_formula(self):
-        version = collection.convert_version(self.code)
+        version = utils.convert_version(self.code)
         return getattr(collection, f"tariff_share__{version}")
 
     def get_adjustments_formula(self):
-        version = collection.convert_version(self.code)
+        version = utils.convert_version(self.code)
         return getattr(collection, f"tariff_adjustments__{version}")
 
     def get_total_formula(self):
-        version = collection.convert_version(self.system.version)
+        version = utils.convert_version(self.system.version)
         return getattr(collection, f"tariff_total__{version}")
 
     def get_fee_formula(self):
-        version = collection.convert_version(self.system.version)
+        version = utils.convert_version(self.system.version)
         return getattr(collection, f"tariff_fee__{version}")
 
 
@@ -956,6 +956,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             ('calculated', 'Calculated'),
             ('invoiced', 'Invoiced'),
             ('collected', 'Collected'),
+            ('distributed', 'Distributed'),
         ], 'State', required=True, sort=False,
         help='The processing state of the allocation:\n\n'
         '*Created*: Default state for new allocations.\n'
@@ -963,7 +964,8 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         '(invoice amount, distribution amount, administration fee).\n'
         '*Invoiced*: An invoice for this allocation has been issued.\n'
         '*Collected*: The invoice has been payed and the allocation '
-        'is ready to be distributed.')
+        'is ready to be distributed.\n'
+        '*Distributed*: The distribution amount has been distributed.')
 
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={'required': True},
@@ -987,20 +989,12 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             help='The amount to distribute'),
         'on_change_with_distribution_amount')
 
-    # TODO: attach the created invoice in _get_invoice() etc
-    company = fields.Many2One('company.company', 'Company', required=True)
+    company = fields.Many2One(
+        'company.company', 'Company', required=True)
     invoice = fields.One2One(
         'allocation-account.invoice', 'allocation', 'invoice',
         'Allocation Invoice',
         help='The invoice of the allocation')
-    # TODO: right object for this?
-    # if move_lines are only those for one licensee, it the right place.
-    # if move_lines contain all lines of all licensees, it has to move to
-    # Collection.
-    move_lines = fields.One2Many(
-        'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'allocation,%')],
-        help='The account move lines of the allocation')
 
     collection = fields.Many2One(
         'collection', 'Collection', required=True,
@@ -1146,72 +1140,231 @@ class AllocationInvoice(Wizard):
 
 # --- Distribution ------------------------------------------------------------
 
-class Distribution(ModelSQL, ModelView):
+class Distribution(ModelSQL, ModelView, CurrencyDigits):
     'Distribution'
     __name__ = 'distribution'
-    _rec_name = 'code'
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        })
-    date = fields.Date(
-        'Distribution Date', required=True,
-        help='The date of the distribution')
-    from_date = fields.Date(
-        'From Date',
-        help='Include utilisations equal or after from date')
-    thru_date = fields.Date(
-        'Thru Date', help='Include utilisations until thru date')
+
+    uuid = fields.Char(
+        'UUID', required=True, help='The uuid of the allocation')
+    # TODO: function field 'state' -> min allocation state
+
+    start = fields.DateTime(
+        'Start', states={'required': True},
+        help='Start of the collection')
+    end = fields.DateTime(
+        'End', help='End of the collection')
+    utilisations = fields.One2Many(
+        'utilisation', 'distribution', 'Utilisations',
+        help='The distributed utilisations')
     allocations = fields.One2Many(
         'allocation', 'distribution', 'Allocations',
-        help='All allocations in this distributon')
+        help='The distributed allocations')
+
+    entity_origin = fields.Selection(
+        [
+            ('automatic', 'Automatic'),
+            ('manually', 'Manually'),
+        ], 'Entity Origin', states={'required': True}, sort=False,
+        help='Defines, if an object was created manually (e.g. staff) or '
+             'automatic (e.g. cronjob).')
+    entity_creator = fields.Many2One(
+        'res.user', 'Entity Creator', states={'required': True})
+
+    invoice_amount = fields.Numeric(
+        'General Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The invoice amount for the distribution')
+    initial_general_amount = fields.Numeric(
+        'General Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The initial general amount for the distribution')
+    initial_distribution_amount = fields.Numeric(
+        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The initial distribution amount for the distribution')
+    adjusted_general_amount = fields.Numeric(
+        'Adjusted General Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The adjusted general amount for the distribution')
+    adjusted_distribution_amount = fields.Numeric(
+        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The adjusted distribution amount for the distribution')
+    social_fund_amount = fields.Numeric(
+        'Social Fund Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The social fund amount')
+    cultural_fund_amount = fields.Numeric(
+        'Cultural Fund Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The cultural fund amount')
+    reserve_fund_amount = fields.Numeric(
+        'Reserve Fund Amount', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
+        help='The reserve fund amount')
 
     @classmethod
     def __setup__(cls):
         super().__setup__()
+        cls._order.insert(1, ('start', 'ASC'))
+        # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the distribution must be unique.')
+            ('uuid_uniq', Unique(table, table.uuid),
+             'The UUID of the allocation must be unique.'),
         ]
-        cls._order.insert(1, ('date', 'ASC'))
 
     @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
+    def default_uuid():
+        return str(uuid.uuid4())
 
-    @staticmethod
-    def default_date():
-        Date = Pool().get('ir.date')
-        return Date.today()
+    def distribute_allocations(self):
+        # sanity checks
+        assert all([
+            allocation.state == 'collected'
+            for allocation in self.allocations
+        ]), f"not all allocations in {self} have the state 'collected'"
 
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
+        # amounts
+        invoice_amount = Decimal('0')
+        general_amount = Decimal('0')
+        distribution_amount = Decimal('0')
+        for allocation in self.allocations:
+            invoice_amount += allocation.invoice_amount
+            for utilisation in allocation.utilisations:
+                if utilisation.creation_list:
+                    distribution_amount += utilisation.confirmed_invoice_amount
+                else:
+                    general_amount += utilisation.confirmed_invoice_amount
 
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.distribution_sequence.get()
-        return super().create(vlist)
+        assert invoice_amount == general_amount + distribution_amount, (
+               f"invoice amount in distribution {self} is not the sum of "
+               "general amount and distributed amount")
 
-    @classmethod
-    def copy(cls, distributions, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(distributions, default=default)
+        self.invoice_amount = invoice_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+        self.initial_general_amount = general_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+        self.initial_distribution_amount = distribution_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
 
-    @classmethod
-    def search_rec_name(cls, name, clause):
-        return [
-            'OR',
-            ('code',) + tuple(clause[1:]),
-            ('date',) + tuple(clause[1:]),
-        ]
+        # generate list of creation shares in invoice amount
+        creation_shares = []
+        for allocation in self.allocations:
+            for utilisation in allocation.utilisations:
+                creation_list = utilisation.creation_list
+                if not creation_list:
+                    continue
+                total_weight = sum(
+                    [item.weight for item in creation_list.billable])
+                for item in creation_list.billable:
+                    weight = (
+                        utilisation.confirmed_invoice_amount
+                        / distribution_amount
+                        * Decimal(item.weight)
+                        / Decimal(total_weight)
+                    )
+                    if not weight:
+                        # exclude 0 amounts
+                        continue
+                    creation_shares.append({
+                        'creation': item.creation,
+                        'weight': weight,
+                        'utilisation': utilisation,
+                    })
+
+        assert math.isclose(1, sum([share['weight']
+                                    for share in creation_shares])), (
+               "sum of creation shares is not close to 1")
+
+        # caclulate corrected general/distribution amount
+        general_ratio = general_amount / invoice_amount
+        if general_ratio < Decimal('0.1'):
+            general_amount = invoice_amount * Decimal('0.1')
+            distribution_amount = invoice_amount - general_amount
+        elif general_ratio > Decimal('0.15'):
+            general_amount = invoice_amount * Decimal('0.15')
+            distribution_amount = invoice_amount - general_amount
+
+        assert math.isclose(general_amount + distribution_amount,
+                            invoice_amount), (
+               "sum of general and distribution amount differs from "
+               "invoice amount")
+
+        self.adjusted_general_amount = general_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+        self.adjusted_distribution_amount = distribution_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+
+        # calcualte amounts for shares with adjusted distribution amount
+        for creation_share in creation_shares:
+            creation_share['amount'] = (
+                distribution_amount * creation_share['weight'])
+
+        assert math.isclose(distribution_amount,
+                            sum([share['amount']
+                                 for share in creation_shares])), (
+               "sum of share amounts is not close to distribution amount")
+
+        # caclulate fonds/reserve amounts
+        social_fund_amount = general_amount / Decimal(3)
+        cultural_fund_amount = general_amount / Decimal(3)
+        reserve_fund_amount = general_amount / Decimal(3)
+
+        assert math.isclose(general_amount,
+                            sum([social_fund_amount,
+                                 cultural_fund_amount,
+                                 reserve_fund_amount])), (
+               "sum of funds is not close to general amount")
+
+        self.social_fund_amount = social_fund_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+        self.cultural_fund_amount = cultural_fund_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+        self.reserve_fund_amount = reserve_fund_amount.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits(''))
+
+        # generate list of licenser share amounts
+        licenser_shares = []
+        for creation_share in creation_shares:
+            creation = creation_share['creation']
+            amount = creation_share['amount']
+            version = utils.convert_version(
+                utilisation.distribution_plan.version)
+            get_roles = getattr(distribution, f'roles__{version}')
+            roles = get_roles(utilisation, creation)
+            split = distribution.Split(roles)
+            if split.contains_rightsholders():
+                licenser_shares += split.distribute(amount)
+            return [{
+                'licenser': None,
+                'amount': amount,
+                'meta': {
+                    'utilisation': utilisation.code,
+                    'creation': creation.code,
+                    'undistributable': 'nolicenser'
+                },
+            }]
+
+        assert math.isclose(distribution_amount,
+                            sum([share['amount']
+                                 for share in licenser_shares])), (
+               "sum of licenser shares is not close to general amount")
+
+        # post move lines for fonds (distribution.move_lines?)
+        #
+        # distribute the licenser shares
+        # - add adjustemnts for
+        #     - retirement provisions
+        #     - membership fee
+        #     - administration fee
+        # - create and save invoices (distribution.invoices?)
+
+        # save
+        self.save()
+        for allocation in self.allocations:
+            allocation.state = 'distributed'
+            allocation.save()
 
 
 class DistributionPlan(ModelSQL, ModelView):
@@ -1224,9 +1377,11 @@ class DistributionPlan(ModelSQL, ModelView):
     version = fields.Char(
         'Version', required=True)
     valid_from = fields.Date(
-        'Valid from', help='Date from which the tariff is valid.')
+        'Valid from',
+        help='Date from which the distribution plan is valid.')
     valid_through = fields.Date(
-        'Valid through', help='Date thorugh which the tariff is valid.')
+        'Valid through',
+        help='Date thorugh which the distribution plan is valid.')
     transitional_through = fields.Date(
         'Transitional through',
         help='Date of the end of the transitinal phase, through which the '
@@ -1281,31 +1436,20 @@ class DistributeStart(ModelView):
     'Distribute Start'
     __name__ = 'distribution.distribute.start'
 
-    date = fields.Date(
-        'Distribution Date', required=True,
-        help='The date of the distribution')
-    from_date = fields.Date(
-        'From Date', required=True,
-        help='The earliest date to distribute utilisations')
-    thru_date = fields.Date(
-        'Thru Date', required=True,
-        help='The latest date to distribute utilisations')
+    allocations = fields.One2Many(
+        'allocation', None, 'Allocations',
+        states={'required': True}, help='The Allocations to distribute')
+    entity_origin = fields.Selection(
+        [
+            ('automatic', 'Automatic'),
+            ('manually', 'Manually'),
+        ], 'Entity Origin', states={'required': True, 'invisible': True},
+        help='Defines, if an object was created manually (e.g. staff) or '
+             'automatic (e.g. cronjob).')
 
     @staticmethod
-    def default_date():
-        Date = Pool().get('ir.date')
-        return Date.today()
-
-    @staticmethod
-    def default_from_date():
-        Date = Pool().get('ir.date')
-        t = Date.today()
-        return datetime.date(t.year, t.month, 1) - relativedelta(months=1)
-
-    @staticmethod
-    def default_thru_date():
-        Date = Pool().get('ir.date')
-        return Date.today() - relativedelta(months=1) + relativedelta(day=31)
+    def default_entity_origin():
+        return 'manually'
 
 
 class Distribute(Wizard):
@@ -1321,7 +1465,42 @@ class Distribute(Wizard):
         ])
     distribute = StateTransition()
 
+    def default_start(self, fields):
+        allocations = []
+        if self.records:
+            allocations = [
+                allocation for allocation in self.records
+                if allocation.state == 'collected'
+            ]
+        else:
+            pool = Pool()
+            Allocation = pool.get('allocation')
+            allocations = Allocation.search(['state', '=', 'collected'])
+        if not allocations:
+            if self.records:
+                raise UserError('No Distributable Allocations',
+                                'No collected allocations among %s'
+                                % self.records)
+            raise UserError('No Distributable Allocations',
+                            'No collected allocations available')
+        return {
+            'allocations': [allocation.id for allocation in allocations]
+        }
+
     def transition_distribute(self):
+        pool = Pool()
+        Distribution = pool.get('distribution')
+        distribution = Distribution(
+            start=datetime.datetime.now(),
+            entity_origin=self.start.entity_origin,
+            entity_creator=Pool().get('res.user')(Transaction().user),
+            allocations=self.start.allocations,
+        )
+        distribution.save()
+        distribution.distribute_allocations()
+        return 'end'
+
+    def _transition_distribute(self):
         pool = Pool()
         Company = pool.get('company.company')
         Distribution = pool.get('distribution')
@@ -2561,6 +2740,13 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'website.resource-creation', 'creation', 'resource'
         'Website Resource',
         help='The website resources, in which the creation was used')
+    distribution_type = fields.Function(
+        fields.Selection([
+            ('original', 'Original'),
+            ('cover', 'Cover'),
+            ('adaption', 'Adaption'),
+            ('remix', 'Remix'),
+        ], 'Creation Type'), 'get_distribution_type')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -2706,6 +2892,29 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'OR',
             ('code',) + tuple(clause[1:]),
             ('title',) + tuple(clause[1:]),
+        ]
+
+    def get_distribution_type(self, name):
+        if not self.original_relations:
+            return 'original'
+        originals = self.original_relations
+        if len(originals) == 1:
+            allocation_type = self.original_relations[0].allocation_type
+            if allocation_type == "cover":
+                return 'cover'
+            if allocation_type == "adaption":
+                return 'adaption'
+        else:
+            if all(original.allocation_type == "remix"
+                   for original in originals):
+                return "remix"
+        raise f"Can't derive the distribution type from creation: {self}"
+
+    def get_rightsholders(self, right_type, contribution):
+        return [
+            right for right in self.rights
+            if right.type_of_right == right_type
+            and right.contribution == contribution
         ]
 
     def permits(self, web_user, code, derive=True):
@@ -5021,6 +5230,10 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'allocation', 'Allocation',
         states=STATES, depends=DEPENDS,
         help='The allocation of the utilisation')
+    distribution = fields.Many2One(
+        'distribution', 'Distribution',
+        states=STATES, depends=DEPENDS,
+        help='The distribution of the utilisation')
 
     # context dependend fields: location
     confirmed_location_indicators = fields.Many2One(
@@ -5577,6 +5790,26 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
         'Creation List Items',
         help='The items within the utilisation creation list')
 
+    # creation filter
+    known = fields.Function(
+        fields.One2Many(
+            'utilisation.creationlist.item', None,
+            'Known Creation List Items',
+            help="The known creation list items"),
+        'get_known')
+    represented = fields.Function(
+        fields.One2Many(
+            'utilisation.creationlist.item', None,
+            'Represented Creation List Items',
+            help="The represented known creation list items"),
+        'get_represented')
+    billable = fields.Function(
+        fields.One2Many(
+            'utilisation.creationlist.item', None,
+            'Billable Creation List Items',
+            help="The billable represented known creation list items"),
+        'get_billable')
+
     # calculated values
     known_ratio = fields.Numeric(
         'Known Ratio', digits=(16, 16),
@@ -5599,6 +5832,35 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
         'Fingerprint Creationlists',
         # TODO: visible only for context WebsiteResource|LocationSpace
         help='The merged fingerprint creation lists')
+
+    def get_known(self, name=None):
+        items = []
+        for item in self.items:
+            if item.creation.claim_state == 'revised':
+                items.append(item)
+        return items
+
+    def get_represented(self, name=None):
+        pool = Pool()
+        _CollectingSociety = pool.get('collecting_society')
+        tariff = self.utilisations[0].tariff  # TODO: many2one
+        collecting_society = _CollectingSociety(1)  # TODO: get from context
+
+        items = []
+        for item in self.known:
+            for ctc in item.creation.tariff_categories:
+                if (ctc.category.code == tariff.category.code
+                        and ctc.collecting_society == collecting_society):
+                    items.append(item)
+                    break
+        return items
+
+    def get_billable(self, name=None):
+        items = []
+        for item in self.represented:
+            if item.creation.license.billable:
+                items.append(item)
+        return items
 
     def calculate_items(self, save=False):
         # sanity checks
@@ -5636,58 +5898,26 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
             return
 
         # ratios
-        pool = Pool()
-        _CollectingSociety = pool.get('collecting_society')
-        tariff = self.utilisations[0].tariff
-        collecting_society = _CollectingSociety(1)  # TODO: get from context
-
-        weights = {
-            'all': 0,
-            'known': 0,
-            'represented': 0,
-            'billable': 0,
-        }
-        for item in self.items:
-            creation = item.creation
-
-            # all
-            weights['all'] += 1
-
-            # known
-            if creation.claim_state != 'revised':
-                continue
-            weights['known'] += 1
-
-            # represented
-            represented = False
-            for ctc in creation.tariff_categories:
-                if (ctc.category.code == tariff.category.code
-                        and ctc.collecting_society == collecting_society):
-                    represented = True
-                    break
-            if not represented:
-                continue
-            weights['represented'] += 1
-
-            # billable
-            if not creation.license.billable:
-                continue
-            weights['billable'] += 1
+        weights = {}
+        for category in ['items', 'known', 'represented', 'billable']:
+            weights[category] = Decimal(sum([
+                item.weight for item in getattr(self, category)
+            ]))
 
         self.known_ratio = (
-            Decimal(weights['known']) / Decimal(weights['all'])
+            weights['known'] / weights['items']
         ).quantize(
             Decimal(1) / 10 ** self.__class__.known_ratio.digits[1]
         )
 
         self.represented_ratio = (
-            Decimal(weights['represented']) / Decimal(weights['all'])
+            weights['represented'] / weights['items']
         ).quantize(
             Decimal(1) / 10 ** self.__class__.represented_ratio.digits[1]
         )
 
         self.billable_ratio = (
-            Decimal(weights['billable']) / Decimal(weights['all'])
+            weights['billable'] / weights['items']
         ).quantize(
             Decimal(1) / 10 ** self.__class__.billable_ratio.digits[1]
         )
