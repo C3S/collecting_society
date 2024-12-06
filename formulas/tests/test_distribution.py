@@ -1,12 +1,13 @@
 # flake8: noqa: E501
 
+import sys
 import distribution
 from decimal import Decimal
 from fractions import Fraction
 from pprint import pprint
 
 roles = [{
-    'plan': '0.1',
+    'plan': '0.0',
     'type': 'original',
     'creation': 'C00001',
     'meta': {
@@ -52,7 +53,7 @@ roles = [{
             'rightsholders': [],
         },
         'newcover': [{
-            'plan': '0.2',
+            'plan': '0.0',
             'type': 'cover',
             'creation': 'C00002',
             'meta': {
@@ -65,7 +66,7 @@ roles = [{
         }],
         'multiplecover': [
             {
-                'plan': '0.3',
+                'plan': '0.0',
                 'type': 'cover',
                 'creation': 'C00004',
                 'meta': {
@@ -76,7 +77,7 @@ roles = [{
                     'coversplit2': {'rightsholders': []},
                 },
             }, {
-                'plan': '0.3',
+                'plan': '0.0',
                 'type': 'cover',
                 'creation': 'C00005',
                 'meta': {
@@ -131,9 +132,8 @@ def generate_split(roles, length=1):
             fractions["split"][item] = generate_split(roles[item], len(roles))
     return fractions
 
-
 generate_fractions(roles)
-distribution.fractions__0_1 = fractions
+distribution.fractions__0_0 = fractions
 pprint(fractions)
 
 split = distribution.Split(roles, Decimal('0.0001'), debug=True, verbose=False)

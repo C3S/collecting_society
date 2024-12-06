@@ -3,7 +3,10 @@ from math import isclose
 from decimal import Decimal
 from fractions import Fraction
 
-from .utils import convert_version
+try:
+    from utils import convert_version
+except ModuleNotFoundError:
+    from .utils import convert_version
 
 
 # === Distribution ============================================================
