@@ -2,7 +2,7 @@
 # Repository: https://github.com/C3S/collecting_society
 from trytond.model import fields
 from trytond.pool import PoolMeta
-from trytond.exceptions import UserError
+# from trytond.exceptions import UserError
 
 __all__ = ['AccountMove', 'AccountMoveLine']
 
