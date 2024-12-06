@@ -70,8 +70,9 @@ class Party(metaclass=PoolMeta):
         return 'no'
 
     @staticmethod
-    def default_account_receivable(company=None, party=None):
-        company = company or Transaction().context.get('company')
+    def default_account_receivable(**pattern):
+        company = pattern.get('company') or \
+            Transaction().context.get('company')
         pool = Pool()
         Account = pool.get('account.account')
         accounts = Account.search([
@@ -84,8 +85,9 @@ class Party(metaclass=PoolMeta):
             return accounts[0]
 
     @staticmethod
-    def default_account_payable(company=None, party=None):
-        company = company or Transaction().context.get('company')
+    def default_account_payable(**pattern):
+        company = pattern.get('company') or \
+            Transaction().context.get('company')
         pool = Pool()
         Account = pool.get('account.account')
         accounts = Account.search([
@@ -98,7 +100,7 @@ class Party(metaclass=PoolMeta):
             return accounts[0]
 
     @staticmethod
-    def default_customer_payment_term(party=None):
+    def default_customer_payment_term(**pattern):
         pool = Pool()
         PaymentTerm = pool.get('account.invoice.payment_term')
         payment_terms = PaymentTerm.search([])
