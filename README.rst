@@ -11,6 +11,10 @@ Installing
 
 See :doc:`the Installation Manual<INSTALL>`.
 
+Workflows
+---------
+
+- :doc:`Collection<doc/collection>`
 
 Support
 -------

@@ -8,6 +8,10 @@
     <field name="end"/>
     <label name="attendants"/>
     <field name="attendants"/>
+    <label name="max_attendants"/>
+    <field name="max_attendants"/>
+    <label name="max_admission"/>
+    <field name="max_admission"/>
     <label name="turnover_tickets"/>
     <field name="turnover_tickets"/>
     <label name="turnover_benefit"/>

@@ -18,43 +18,69 @@
 
     <notebook colspan="6">
         <page string="Indicators" id="indicators" col="4">
-            <separator string="Estimated" id="estimated" colspan="2"/>
-            <separator string="Confirmed" id="confirmed" colspan="2"/>
 
-            <label name="estimated_start"/>
-            <field name="estimated_start"/>
-            <label name="confirmed_start"/>
-            <field name="confirmed_start"/>
+            <group col="2" id="estimated_indicators">
+                <separator string="Estimated" id="estimated" colspan="2"/>
 
-            <label name="estimated_end"/>
-            <field name="estimated_end"/>
-            <label name="confirmed_end"/>
-            <field name="confirmed_end"/>
+                <label name="estimated_start"/>
+                <field name="estimated_start"/>
 
-            <label name="estimated_attendants"/>
-            <field name="estimated_attendants"/>
-            <label name="confirmed_attendants"/>
-            <field name="confirmed_attendants"/>
+                <label name="estimated_end"/>
+                <field name="estimated_end"/>
 
-            <label name="estimated_turnover_tickets"/>
-            <field name="estimated_turnover_tickets"/>
-            <label name="confirmed_turnover_tickets"/>
-            <field name="confirmed_turnover_tickets"/>
-            
-            <label name="estimated_turnover_benefit"/>
-            <field name="estimated_turnover_benefit"/>
-            <label name="confirmed_turnover_benefit"/>
-            <field name="confirmed_turnover_benefit"/>
-            
-            <label name="estimated_expenses_musicians"/>
-            <field name="estimated_expenses_musicians"/>
-            <label name="confirmed_expenses_musicians"/>
-            <field name="confirmed_expenses_musicians"/>
-            
-            <label name="estimated_expenses_production"/>
-            <field name="estimated_expenses_production"/>
-            <label name="confirmed_expenses_production"/>
-            <field name="confirmed_expenses_production"/>
+                <label name="estimated_attendants"/>
+                <field name="estimated_attendants"/>
+
+                <label name="estimated_max_attendants"/>
+                <field name="estimated_max_attendants"/>
+
+                <label name="estimated_max_admission"/>
+                <field name="estimated_max_admission"/>
+
+                <label name="estimated_turnover_tickets"/>
+                <field name="estimated_turnover_tickets"/>
+
+                <label name="estimated_turnover_benefit"/>
+                <field name="estimated_turnover_benefit"/>
+
+                <label name="estimated_expenses_musicians"/>
+                <field name="estimated_expenses_musicians"/>
+
+                <label name="estimated_expenses_production"/>
+                <field name="estimated_expenses_production"/>
+            </group>
+
+            <group col="2" id="confirmed_indicators">
+                <separator string="Confirmed" id="confirmed" colspan="2"/>
+
+                <label name="confirmed_start"/>
+                <field name="confirmed_start"/>
+
+                <label name="confirmed_end"/>
+                <field name="confirmed_end"/>
+
+                <label name="confirmed_attendants"/>
+                <field name="confirmed_attendants"/>
+
+                <label name="confirmed_max_attendants"/>
+                <field name="confirmed_max_attendants"/>
+
+                <label name="confirmed_max_admission"/>
+                <field name="confirmed_max_admission"/>
+
+                <label name="confirmed_turnover_tickets"/>
+                <field name="confirmed_turnover_tickets"/>
+
+                <label name="confirmed_turnover_benefit"/>
+                <field name="confirmed_turnover_benefit"/>
+
+                <label name="confirmed_expenses_musicians"/>
+                <field name="confirmed_expenses_musicians"/>
+
+                <label name="confirmed_expenses_production"/>
+                <field name="confirmed_expenses_production"/>
+            </group>
+
         </page>
     </notebook>
 </form>

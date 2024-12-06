@@ -765,90 +765,6 @@
                   id="menu_tariff_relevance"/>
 
 
-        <!-- Menue: Allocation -->
-        <record model="ir.ui.view" id="allocation_form">
-            <field name="model">allocation</field>
-            <field name="type">form</field>
-            <field name="name">allocation_form</field>
-        </record>
-        <record model="ir.ui.view" id="allocation_tree">
-            <field name="model">allocation</field>
-            <field name="type">tree</field>
-            <field name="name">allocation_tree</field>
-        </record>
-        <record model="ir.action.act_window" id="act_allocation">
-            <field name="name">Allocations</field>
-            <field name="res_model">allocation</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_allocation_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="allocation_tree"/>
-            <field name="act_window" ref="act_allocation"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_allocation_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="allocation_form"/>
-            <field name="act_window" ref="act_allocation"/>
-        </record>
-        <menuitem parent="menu_collecting_society" sequence="40"
-                  action="act_allocation"
-                  id="menu_allocation"/>
-
-        <record model="ir.action.wizard" id="invoice_allocation">
-            <field name="name">Invoice</field>
-            <field name="wiz_name">allocation.invoice</field>
-            <field name="model">allocation</field>
-        </record>
-        <record model="ir.action.keyword" id="invoice_allocation_keyword">
-            <field name="keyword">form_action</field>
-            <field name="model">allocation,-1</field>
-            <field name="action" ref="invoice_allocation"/>
-        </record>
-
-        <record model="ir.action.act_window" id="act_invoice_form">
-            <field name="name">Invoices</field>
-            <field name="res_model">account.invoice</field>
-            <field name="domain" pyson="1"
-                   eval="[('lines.origin.allocation', 'in', Eval('active_ids'), 'utilisation')]"/>
-        </record>
-        <record model="ir.action.keyword"
-                id="act_open_invoice_keyword1">
-            <field name="keyword">form_relate</field>
-            <field name="model">allocation,-1</field>
-            <field name="action" ref="act_invoice_form"/>
-        </record>
-
-        <!-- Menu: Allocation / Collect Wizard -->
-        <record model="ir.action.wizard" id="act_utilisation_allocation_collect">
-            <!-- define the wizard: name and reference to the Python model -->
-            <field name="name">Collect</field>
-            <field name="wiz_name">utilisation.allocation.collect</field>
-        </record>
-        <record model="ir.action.keyword"
-                id="act_utilisation_allocation_collect_keyword1">
-            <!-- add the wizard to the forms propeller icon -->
-            <field name="action" ref="act_utilisation_allocation_collect"/>
-            <field name="keyword">form_action</field>
-            <field name="model">utilisation,-1</field>
-        </record>
-        <record model="ir.ui.view"
-                id="utilisation_allocation_collect_start_view_form">
-            <!-- associate the client view with the more abstract model view
-                of the Python class and utilisation_allocation_collect_start_form.xml-->
-            <field name="model">utilisation.allocation.collect.start</field>
-            <field name="type">form</field>
-            <field name="name">utilisation_allocation_collect_start_form</field>
-        </record>
-        <!-- define under which parent menu (on the left navigation area of the
-            client) the wizard action can be found -->
-        <menuitem name="Collect" parent="menu_allocation"
-                  sequence="10"
-                  action="act_utilisation_allocation_collect"
-                  id="menu_utilisation_allocation_collect"/>
-
         <!-- Menue: Collection -->
         <record model="ir.ui.view" id="collection_form">
             <field name="model">collection</field>
@@ -880,6 +796,84 @@
         <menuitem parent="menu_collecting_society" sequence="45"
                   action="act_collection"
                   id="menu_collection"/>
+
+        <!-- Menue: Collection / Allocation -->
+        <record model="ir.ui.view" id="allocation_form">
+            <field name="model">allocation</field>
+            <field name="type">form</field>
+            <field name="name">allocation_form</field>
+        </record>
+        <record model="ir.ui.view" id="allocation_tree">
+            <field name="model">allocation</field>
+            <field name="type">tree</field>
+            <field name="name">allocation_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_allocation">
+            <field name="name">Allocations</field>
+            <field name="res_model">allocation</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_allocation_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="allocation_tree"/>
+            <field name="act_window" ref="act_allocation"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_allocation_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="allocation_form"/>
+            <field name="act_window" ref="act_allocation"/>
+        </record>
+        <menuitem parent="menu_collection" sequence="10"
+                  action="act_allocation"
+                  id="menu_allocation"/>
+
+        <record model="ir.action.wizard" id="invoice_allocation">
+            <field name="name">Invoice</field>
+            <field name="wiz_name">allocation.invoice</field>
+            <field name="model">allocation</field>
+        </record>
+        <record model="ir.action.keyword" id="invoice_allocation_keyword">
+            <field name="keyword">form_action</field>
+            <field name="model">allocation,-1</field>
+            <field name="action" ref="invoice_allocation"/>
+        </record>
+
+        <record model="ir.action.act_window" id="act_invoice_form">
+            <field name="name">Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="domain" pyson="1"
+                   eval="[('lines.origin.allocation', 'in', Eval('active_ids'), 'utilisation')]"/>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_open_invoice_keyword1">
+            <field name="keyword">form_relate</field>
+            <field name="model">allocation,-1</field>
+            <field name="action" ref="act_invoice_form"/>
+        </record>
+
+        <!-- Menu: Collection / Collect Wizard -->
+        <record model="ir.action.wizard" id="act_utilisation_allocation_collect">
+            <field name="name">Collect</field>
+            <field name="wiz_name">utilisation.allocation.collect</field>
+        </record>
+        <record model="ir.action.keyword"
+                id="act_utilisation_allocation_collect_keyword1">
+            <field name="action" ref="act_utilisation_allocation_collect"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
+        <record model="ir.ui.view"
+                id="utilisation_allocation_collect_start_view_form">
+            <field name="model">utilisation.allocation.collect.start</field>
+            <field name="type">form</field>
+            <field name="name">utilisation_allocation_collect_start_form</field>
+        </record>
+        <menuitem name="Collect" parent="menu_collection"
+                  sequence="20"
+                  action="act_utilisation_allocation_collect"
+                  id="menu_utilisation_allocation_collect"/>
 
         <!-- Menue: Distribution -->
         <record model="ir.ui.view" id="distribution_form">
@@ -1572,72 +1566,6 @@
         <menuitem parent="menu_creation" sequence="40"
                   action="act_creation_derivative"
                   id="menu_creation_derivative"/>
-
-        <!-- Menue: Creations / Contributions -->
-        <record model="ir.ui.view" id="creation_contribution_form">
-            <field name="model">creation.contribution</field>
-            <field name="type">form</field>
-            <field name="name">creation_contribution_form</field>
-        </record>
-        <record model="ir.ui.view" id="creation_contribution_list">
-            <field name="model">creation.contribution</field>
-            <field name="type">tree</field>
-            <field name="name">creation_contribution_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_creation_contribution">
-            <field name="name">Contributions</field>
-            <field name="res_model">creation.contribution</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_contribution_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_contribution_list"/>
-            <field name="act_window" ref="act_creation_contribution"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_contribution_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_contribution_form"/>
-            <field name="act_window" ref="act_creation_contribution"/>
-        </record>
-        <menuitem parent="menu_creation" sequence="50"
-                  action="act_creation_contribution"
-                  id="menu_creation_contribution"/>
-
-        <!-- Menue: Creations / Roles -->
-        <record model="ir.ui.view" id="creation_contribution_role_form">
-            <field name="model">creation.role</field>
-            <field name="type">form</field>
-            <field name="name">creation_contribution_role_form</field>
-        </record>
-        <record model="ir.ui.view" id="creation_contribution_role_list">
-            <field name="model">creation.role</field>
-            <field name="type">tree</field>
-            <field name="name">creation_contribution_role_list</field>
-        </record>
-        <record model="ir.action.act_window"
-                id="act_creation_contribution_role">
-            <field name="name">Roles</field>
-            <field name="res_model">creation.role</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_contribution_role_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_contribution_role_list"/>
-            <field name="act_window" ref="act_creation_contribution_role"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_contribution_role_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_contribution_role_form"/>
-            <field name="act_window" ref="act_creation_contribution_role"/>
-        </record>
-        <menuitem parent="menu_creation" sequence="60"
-                  action="act_creation_contribution_role"
-                  id="menu_creation_contribution_role"/>
-
 
         <!-- Menue: Licenses -->
         <record model="ir.ui.view" id="release_track_license_form">
@@ -2614,37 +2542,6 @@
                   action="act_declaration_group"
                   id="menu_declaration_group"/>
 
-        <!-- Menue: Declarations / Collections -->
-        <record model="ir.ui.view" id="declaration_collection_form">
-            <field name="model">declaration.collection</field>
-            <field name="type">form</field>
-            <field name="name">declaration_collection_form</field>
-        </record>
-        <record model="ir.ui.view" id="declaration_collection_tree">
-            <field name="model">declaration.collection</field>
-            <field name="type">tree</field>
-            <field name="name">declaration_collection_tree</field>
-        </record>
-        <record model="ir.action.act_window" id="act_declaration_collection">
-            <field name="name">Declaration Collections</field>
-            <field name="res_model">declaration.collection</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view" id="act_declaration_collection_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="declaration_collection_tree"/>
-            <field name="act_window" ref="act_declaration_collection"/>
-        </record>
-        <record model="ir.action.act_window.view" id="act_declaration_collection_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="declaration_collection_form"/>
-            <field name="act_window" ref="act_declaration_collection"/>
-        </record>
-        <menuitem name="Collections" parent="menu_declaration" sequence="20"
-                  action="act_declaration_collection"
-                  id="menu_declaration_collection"/>
-
-
         <!-- Menue: Utilisations -->
         <record model="ir.ui.view" id="utilisation_form">
             <field name="model">utilisation</field>
@@ -2674,6 +2571,36 @@
         <menuitem parent="menu_licensee" sequence="120"
                   action="act_utilisation"
                   id="menu_utilisation"/>
+
+        <record model="ir.action.wizard" id="act_utilisation_calculate">
+            <field name="name">Calculate</field>
+            <field name="wiz_name">utilisation.calculate</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_calculate_keyword">
+            <field name="action" ref="act_utilisation_calculate"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
+
+        <record model="ir.action.wizard" id="act_utilisation_confirm">
+            <field name="name">Confirm</field>
+            <field name="wiz_name">utilisation.confirm</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_confirm_keyword">
+            <field name="action" ref="act_utilisation_confirm"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
+
+        <record model="ir.action.wizard" id="act_utilisation_finalize">
+            <field name="name">Finalize</field>
+            <field name="wiz_name">utilisation.finalize</field>
+        </record>
+        <record model="ir.action.keyword" id="act_utilisation_finalize_keyword">
+            <field name="action" ref="act_utilisation_finalize"/>
+            <field name="keyword">form_action</field>
+            <field name="model">utilisation,-1</field>
+        </record>
 
         <!-- Menue: Utilisations / Creationslist -->
         <record model="ir.ui.view" id="utilisation_creationlist_form">

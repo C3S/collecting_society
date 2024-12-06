@@ -1,7 +1,7 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
 from trytond.pool import PoolMeta
-from trytond.model import fields
+from trytond.model import fields, Workflow
 
 __all__ = ['Invoice', 'InvoiceLine']
 
@@ -14,8 +14,16 @@ class Invoice(metaclass=PoolMeta):
         'Invoice Allocation',
         help='The allocation of the invoice')
 
-    # TODO: set allocation.state = 'collected', when invoice is payed
-    # optimal: in atomic transaction context, so rollbacks roll back both
+    @classmethod
+    @Workflow.transition('paid')
+    def paid(cls, invoices):
+        # TODO: atomic transaction context
+        super(Invoice, cls).paid(invoices)
+        for invoice in invoices:
+            if not invoice.allocation:
+                continue
+            invoice.allocation.state = 'collected'
+            invoice.allocation.save()
 
 
 class InvoiceLine(metaclass=PoolMeta):
@@ -24,6 +32,5 @@ class InvoiceLine(metaclass=PoolMeta):
     @classmethod
     def _get_origin(cls):
         models = super(InvoiceLine, cls)._get_origin()
-        # TODO: maybe allocation?
         models.append('utilisation')
         return models

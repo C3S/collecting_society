@@ -3,7 +3,8 @@
 
 import uuid
 from trytond.model import ModelView, ModelSQL, fields, Unique
-from trytond.pool import PoolMeta
+from trytond.pool import PoolMeta, Pool
+from trytond.transaction import Transaction
 from .collecting_society import MixinIdentifier
 
 __all__ = [
@@ -67,6 +68,44 @@ class Party(metaclass=PoolMeta):
     @staticmethod
     def default_common_public_interest():
         return 'no'
+
+    @staticmethod
+    def default_account_receivable(**pattern):
+        company = pattern.get('company') or \
+            Transaction().context.get('company')
+        pool = Pool()
+        Account = pool.get('account.account')
+        accounts = Account.search([
+            ('closed', '!=', True),
+            ('type.receivable', '=', True),
+            ('party_required', '=', True),
+            ('company', '=', company),
+        ])
+        if accounts:
+            return accounts[0]
+
+    @staticmethod
+    def default_account_payable(**pattern):
+        company = pattern.get('company') or \
+            Transaction().context.get('company')
+        pool = Pool()
+        Account = pool.get('account.account')
+        accounts = Account.search([
+            ('closed', '!=', True),
+            ('type.payable', '=', True),
+            ('party_required', '=', True),
+            ('company', '=', company),
+        ])
+        if accounts:
+            return accounts[0]
+
+    @staticmethod
+    def default_customer_payment_term(**pattern):
+        pool = Pool()
+        PaymentTerm = pool.get('account.invoice.payment_term')
+        payment_terms = PaymentTerm.search([])
+        if payment_terms:
+            return payment_terms[0]
 
 
 class PartyIdentifier(ModelSQL, ModelView, MixinIdentifier):

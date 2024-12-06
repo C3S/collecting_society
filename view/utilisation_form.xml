@@ -29,21 +29,27 @@
 
     <label name="declaration"/>
     <field name="declaration"/>
-    <label name="declaration_collection"/>
-    <field name="declaration_collection"/>
+
+    <newline/>
 
     <label name="tariff"/>
     <field name="tariff"/>
     <label name="context"/>
     <field name="context"/>
 
-    <label name="distribution_plan"/>
-    <field name="distribution_plan"/>
+    <label name="creation_list"/>
+    <field name="creation_list"/>
     <label name="allocation"/>
     <field name="allocation"/>
 
+    <label name="distribution_plan"/>
+    <field name="distribution_plan"/>
+
     <notebook colspan="4">
         <page string="Indicators" id="indicators" col="4">
+            <field name="estimated_indicators" colspan="2"/>
+            <field name="confirmed_indicators" colspan="2"/>
+
             <separator string="Estimated" id="estimated" colspan="2"/>
             <separator string="Confirmed" id="confirmed" colspan="2"/>
 

@@ -6,8 +6,6 @@
     <field name="uuid"/>
     <label name="state"/>
     <field name="state"/>
-    <label name="locked"/>
-    <field name="locked"/>
     <newline/>
 
     <!--field name="date" widget="date"/-->

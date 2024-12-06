@@ -2,10 +2,15 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree>
-    <field name="uuid"/>
-    <field name="time" widget="time"/>
-    <!--field name="state"/-->
-    <!--field name="amount"/-->
+    <field name="uuid" expand="1"/>
+
+    <field name="start" widget="date"/>
+    <field name="start" widget="time"/>
+    <field name="end" widget="date"/>
+    <field name="end" widget="time"/>
+
+    <field name="utilisations"/>
     <field name="allocations"/>
+
     <field name="entity_origin"/>
 </tree>

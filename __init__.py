@@ -120,7 +120,6 @@ def register():
         CollectStart,
         DeclarationGroup,
         Declaration,
-        DeclarationCollection,
         Utilisation,
         DistributeStart,
         Configuration,
@@ -138,4 +137,7 @@ def register():
         DeviceMessageFingerprintMatch,
         DeviceMessageFingerprintMerge,
         AllocationInvoice,
+        UtilisationCalculate,
+        UtilisationConfirm,
+        UtilisationFinalize,
         module='collecting_society', type_='wizard')
