@@ -482,7 +482,8 @@ def test_tariff_live_fixtures(version, fixture):
     version = collection.convert_version(version)
     formula_base = getattr(collection, f"tariff_base__L{version}")
     formula_relevance = getattr(collection, f"tariff_relevance__L{version}")
-    formula_adjustments = getattr(collection, f"tariff_adjustments__L{version}")
+    formula_adjustments = getattr(collection,
+                                  f"tariff_adjustments__L{version}")
     formula_total = getattr(collection, f"tariff_total__{version}")
     assert formula_total(
         utilisation={
