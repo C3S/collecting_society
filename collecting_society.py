@@ -6,6 +6,7 @@ import uuid
 import datetime
 import requests
 import json
+import copy
 from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from collections import Counter, defaultdict
@@ -14,7 +15,7 @@ from sql import Table
 from sql.functions import CharLength
 import hurry.filesize
 
-from trytond.model import ModelView, ModelSQL, fields, Unique
+from trytond.model import Model, ModelView, ModelSQL, fields, Unique
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
@@ -24,6 +25,8 @@ from trytond.exceptions import UserError, UserWarning
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond.pyson import Eval, Bool, Or, And
+
+from .formulas import collection
 
 
 __all__ = [
@@ -132,8 +135,10 @@ __all__ = [
     'DeviceMessageUsagereport',
     'Declaration',
     'DeclarationGroup',
-    'DeclarationCollection',
     'Utilisation',
+    'UtilisationCalculate',
+    'UtilisationConfirm',
+    'UtilisationFinalize',
     'UtilisationCreationlist',
     'UtilisationCreationlistItem',
 
@@ -558,32 +563,23 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
     name = fields.Char(
         'Name', states={'required': True}, depends=DEPENDS,
         help='The name of the category')
-    value_min = fields.Float(
-        'Minimum', states={
+    code = fields.Char(
+        'Code', required=True, states={'readonly': True})
+    value_min = fields.Numeric(
+        'Minimum', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The minimum value')
-    value_max = fields.Float(
-        'Maximum', states={
+    value_max = fields.Numeric(
+        'Maximum', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The maximum value')
-    value_default = fields.Float(
-        'Default', states={
+    value_default = fields.Numeric(
+        'Default', digits=(3, 6), states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS, help='The default value')
-    priority = fields.Integer(
-        'Priority', required=True,
-        states=STATES, depends=DEPENDS,
-        help='The calculation priority (higher values have higher priority)')
-    operation = fields.Selection(
-        [
-            ('addition', 'Addition'),
-            ('multiplication', 'Multiplication'),
-            ('percentage', 'Percentage'),
-        ], 'Operation', required=True, sort=False,
-        help='The mathematical operation of the category')
     tariff_categories = fields.Many2Many(
         'tariff_category-tariff_adjustment_category',
         'tariff_adjustment_category', 'tariff_category', 'Tariff Categories',
@@ -623,8 +619,9 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
             ('rejected', 'Rejected'),
         ], 'Status', required=True, sort=False,
         help='The approval status of the adjustment')
-    value = fields.Float(
-        'Value', required=True, help='The value of the adjustment')
+    value = fields.Numeric(
+        'Value', digits=(3, 6),
+        required=True, help='The value of the adjustment')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
@@ -650,18 +647,18 @@ class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The name of the category')
-    value_min = fields.Float(
-        'Minimum', help='The minimum value', states={
+    value_min = fields.Numeric(
+        'Minimum', digits=(3, 6), help='The minimum value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    value_max = fields.Float(
-        'Maximum', help='The maximum value', states={
+    value_max = fields.Numeric(
+        'Maximum', digits=(3, 6), help='The maximum value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
-    value_default = fields.Float(
-        'Default', help='The default value', states={
+    value_default = fields.Numeric(
+        'Default', digits=(3, 6), help='The default value', states={
             'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS)
@@ -697,8 +694,9 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
         'tariff_system.tariff.relevance.category', 'Category',
         states={'required': True},
         help='The category of the relevance')
-    value = fields.Float(
-        'Value', help='The value of the relevance', required=True)
+    value = fields.Numeric(
+        'Value', digits=(3, 6),
+        required=True, help='The value of the relevance')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
@@ -712,6 +710,12 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
     utilisation_indicators = fields.One2Many(
         'utilisation.indicators', 'relevance', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff relevance')
+
+    def get_rec_name(self, name):
+        rec_name = f"{self.category.name}: {self.value:.2f}"
+        if self.deviation:
+            rec_name += " *"
+        return rec_name
 
 
 class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
@@ -742,15 +746,32 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def search_code(cls, name, clause):
         return [('tariff_system.tariff.' + clause[0],) + tuple(clause[1:])]
 
+    def get_base_formula(self):
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_base__{version}")
+
+    def get_relevance_formula(self):
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_relevance__{version}")
+
+    def get_share_formula(self):
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_share__{version}")
+
+    def get_adjustments_formula(self):
+        version = collection.convert_version(self.code)
+        return getattr(collection, f"tariff_adjustments__{version}")
+
+    def get_total_formula(self):
+        version = collection.convert_version(self.system.version)
+        return getattr(collection, f"tariff_total__{version}")
+
+    def get_fee_formula(self):
+        version = collection.convert_version(self.system.version)
+        return getattr(collection, f"tariff_fee__{version}")
+
 
 # --- Collection --------------------------------------------------------------
-# TODO:
-# - rename 'allocation' to 'collection.allocation' / 'collection_allocation'
-# - rename Allocate to Collect (and tryton ids / xml views accordingly
-# - add function fields to utilisatin to calculate (preview, not write)
-#   the utilisation amounts
-# - Mixins: Uuid (uuid), ~AutoProcessing (locked)
-# - no manual creation of allocations via tryton client (tryton ACLs)
 
 class Collection(ModelSQL, ModelView):
     """
@@ -760,17 +781,16 @@ class Collection(ModelSQL, ModelView):
 
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the allocation')
-    # TODO: function field state: collected -> all allocations >= collected
-    locked = fields.Boolean(
-        'Locked', states={'readonly': True},
-        help='Locked state for processing purposes')
+    # TODO: function field 'state' -> min allocation state
 
-    date = fields.Date(
-        'Collection Date', required=True,
-        help='The date of the collection run (Tryton needs this somehow...)')
-    time = fields.DateTime(
-        'Collection Time', required=True,
-        help='The time of the collection run')
+    start = fields.DateTime(
+        'Start', states={'required': True},
+        help='Start of the collection')
+    end = fields.DateTime(
+        'End', help='End of the collection')
+    utilisations = fields.One2Many(
+        'utilisation', 'collection', 'Utilisations',
+        help='The collected utilisations')
     allocations = fields.One2Many(
         'allocation', 'collection', 'Allocations',
         help='The collected allocations')
@@ -788,7 +808,7 @@ class Collection(ModelSQL, ModelView):
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('date', 'ASC'))
+        cls._order.insert(1, ('start', 'ASC'))
         # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [
@@ -803,66 +823,41 @@ class Collection(ModelSQL, ModelView):
     def default_uuid():
         return str(uuid.uuid4())
 
-    def __collect_finish_allocation(self, allocation: 'Allocation',
-                                    utilisations: list['Utilisation']) -> None:
-        """
-        just a helper for collect(); see below'
+    def create_allocations(self):
+        # sanity checks
+        if self.allocations:
+            return
 
-        Args:
-            allocation:   the Allocation record to finish before continuing
-                          with the next licensee
-            utilisations: list of Utlisisation IDs (int) of utilisations that
-                          are associated with this licensee resp. allocation to
-                          be assigned to the allocation and cleared afterwards
-        """
-        allocation.utilisations = utilisations
-        allocation.save()
-        utilisations.clear()
-        allocation.create_invoice()  # TODO: on error reset 'invoiced' state
+        # map utilisations to licensee
+        licensee_utilisations = {}
+        for utilisation in self.utilisations:
+            licensee = utilisation.licensee.id
+            if licensee not in licensee_utilisations:
+                licensee_utilisations[licensee] = []
+            licensee_utilisations[licensee].append(utilisation)
 
-    def collect(self, from_utilisations: tuple['Utilisation', ...]) -> None:
-        """
-        collects money from licensees
+        # allocations
+        pool = Pool()
+        Allocation = pool.get('allocation')
+        for licensee, utilisations in licensee_utilisations.items():
+            allocation = Allocation(
+                collection=self.id,
+                state='created',
+                licensee=licensee,
+                utilisations=utilisations
+            )
+            allocation.save()
+            for utilisation in utilisations:
+                utilisation.state = 'allocated'
+                utilisation.save()
 
-        scans utilisations and creates allocations to invoice the respective
-        licensees
+    def calculate_allocations(self):
+        for allocation in self.allocations:
+            allocation.calculate_amounts()
 
-        Args:
-            from_utilisations: utilisations to collect from
-        """
-        Allocation = Pool().get('allocation')
-        from_utilisations_by_licensee = sorted(from_utilisations,
-                                               key=lambda x: x.licensee)
-        current_allocation: AllocationAlias | None = None
-        current_utilisations: list['Utilisation'] = []
-        for utilisation in from_utilisations_by_licensee:  # one allocation for
-            if (current_allocation is None or              # each new licensee
-                    utilisation.licensee != current_allocation.licensee):
-                if current_allocation is not None:       # finish old allo-
-                    self.__collect_finish_allocation(current_allocation,
-                                                     current_utilisations)
-                current_licensee = utilisation.licensee  # cation before
-                new_allocation: AllocationAlias = Allocation()  # new instance
-                new_allocation.state = 'calculated'  # 'invoiced'      new one
-                new_allocation.licensee = current_licensee
-                new_allocation.invoice_amount = 0
-                new_allocation.distribution_amount = 0
-                new_allocation.administration_fee = 0
-                new_allocation.collection = self
-                current_allocation = new_allocation
-
-            # add utilisation to allocation and increase amounts
-            current_utilisations.append(utilisation.id)
-            current_allocation.invoice_amount = (
-                    current_allocation.invoice_amount + 1)
-            current_allocation.distribution_amount = (
-                    current_allocation.distribution_amount + Decimal('0.9'))
-            current_allocation.administration_fee = (
-                    current_allocation.administration_fee + Decimal('0.1'))
-
-        if current_allocation is not None:  # finish last allocation
-            self.__collect_finish_allocation(current_allocation,
-                                             current_utilisations)
+    def create_invoices(self):
+        for allocation in self.allocations:
+            allocation.create_invoice()
 
 
 class CollectStart(ModelView):
@@ -875,6 +870,17 @@ class CollectStart(ModelView):
     utilisations = fields.One2Many(
         'utilisation', None, 'Utilisations',
         states={'required': True}, help='The utilisations to allocate')
+    entity_origin = fields.Selection(
+        [
+            ('automatic', 'Automatic'),
+            ('manually', 'Manually'),
+        ], 'Entity Origin', states={'required': True, 'invisible': True},
+        help='Defines, if an object was created manually (e.g. staff) or '
+             'automatic (e.g. cronjob).')
+
+    @staticmethod
+    def default_entity_origin():
+        return 'manually'
 
 
 class Collect(Wizard):
@@ -901,34 +907,40 @@ class Collect(Wizard):
             List of Utilization that are preselected for collection in the
             wizard
         """
-        Utilisation = Pool().get('utilisation')
-        active_model = Transaction().context.get('active_model', '')
-        if active_model == 'utilisation':
-            utilisations = Transaction().context['active_ids']
-        else:
+        utilisations = []
+        if self.records:
             utilisations = [
-                utilisation.id for utilisation
-                in Utilisation.search([])
-                ]
+                utilisation for utilisation in self.records
+                if utilisation.state == 'finalized'
+            ]
+        else:
+            pool = Pool()
+            Utilisation = pool.get('utilisation')
+            utilisations = Utilisation.search(['state', '=', 'finalized'])
+        if not utilisations:
+            if self.records:
+                raise UserError('No Allocatable Utilisations',
+                                'No finalized utilisations among %s'
+                                % self.records)
+            raise UserError('No Allocatable Utilisations',
+                            'No finalized utilisations available')
         return {
-            'utilisations': utilisations
+            'utilisations': [utilisation.id for utilisation in utilisations]
         }
 
     def transition_collect(self):
-        Collection = Pool().get('collection')
-        collection = Collection()
-        collection.locked = False
-        collection.date = datetime.date.today()
-        collection.time = datetime.datetime.now()
-        collection.entity_origin = 'manually'
-        collection.entity_creator = Pool().get('res.user')(Transaction().user)
-        collection.collect(self.start.utilisations)
+        pool = Pool()
+        Collection = pool.get('collection')
+        collection = Collection(
+            start=datetime.datetime.now(),
+            entity_origin=self.start.entity_origin,
+            entity_creator=Pool().get('res.user')(Transaction().user),
+            utilisations=self.start.utilisations,
+        )
         collection.save()
-        # collection.allocations = ...
-
-        # Notes
-        # - default case: 'write invoice' as form field (default: False)
-
+        collection.create_allocations()
+        collection.calculate_allocations()
+        collection.create_invoices()
         return 'end'
 
 
@@ -952,9 +964,6 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         '*Invoiced*: An invoice for this allocation has been issued.\n'
         '*Collected*: The invoice has been payed and the allocation '
         'is ready to be distributed.')
-    locked = fields.Boolean(
-        'Locked', states={'readonly': True},
-        help='Locked state for processing purposes')
 
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={'required': True},
@@ -962,18 +971,22 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     utilisations = fields.One2Many(
         'utilisation', 'allocation', 'Utilisations',
         help='The allocated utilisations')
+
     invoice_amount = fields.Numeric(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
         help='The sum of invoice amounts over all utilisations')
-    distribution_amount = fields.Numeric(
-        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
-        help='The sum of distribution amounts over all utilisations')
     administration_fee = fields.Numeric(
         'Administration Fee', digits=(16, Eval('currency_digits', 2)),
         depends=['currency_digits'],
         help='The sum of adminstration fees over all utilisations')
+    distribution_amount = fields.Function(
+        fields.Numeric(
+            'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+            states={'readonly': True}, depends=['currency_digits'],
+            help='The amount to distribute'),
+        'on_change_with_distribution_amount')
+
     # TODO: attach the created invoice in _get_invoice() etc
     company = fields.Many2One('company.company', 'Company', required=True)
     invoice = fields.One2One(
@@ -986,7 +999,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     # Collection.
     move_lines = fields.One2Many(
         'account.move.line', 'origin', 'Account Move Lines',
-        domain=[('origin', 'like', 'distribution.allocation,%')],
+        domain=[('origin', 'like', 'allocation,%')],
         help='The account move lines of the allocation')
 
     collection = fields.Many2One(
@@ -996,12 +1009,10 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         'distribution', 'Distribution',
         help='The distribution of the allocation')
 
-    # TODO: function field date: allocation.date
-
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order.insert(1, ('collection.date', 'ASC'))
+        cls._order.insert(1, ('collection.start', 'ASC'))
         # Write email on collision to congratulate the uuid issuer
         table = cls.__table__()
         cls._sql_constraints = [
@@ -1011,16 +1022,32 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
 
     @staticmethod
     def default_company():
-        return Transaction().context.get('company')
+        return Transaction().context.get('company') or 1
 
     @staticmethod
     def default_uuid():
         return str(uuid.uuid4())
 
-    def calculate_amounts(self, sample, update=False):
-        # TODO: https://redmine.c3s.cc/issues/1140
-        # as discussed: one function to calculate all amounts, no split
-        pass
+    @fields.depends('invoice_amount', 'administration_fee')
+    def on_change_with_distribution_amount(self, name=None):
+        if not self.invoice_amount or not self.administration_fee:
+            return None
+        return self.invoice_amount - self.administration_fee
+
+    def calculate_amounts(self):
+        # sanity checks
+        if self.state != 'created':
+            return
+        # amounts
+        invoice_amount = Decimal('0')
+        administration_fee = Decimal('0')
+        for utilisation in self.utilisations:
+            invoice_amount += utilisation.confirmed_invoice_amount
+            administration_fee += utilisation.confirmed_administration_fee
+        self.state = 'calculated'
+        self.invoice_amount = invoice_amount
+        self.administration_fee = administration_fee
+        self.save()
 
     def _get_invoice(self):
         pool = Pool()
@@ -1036,6 +1063,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             journal = None
 
         data = {
+            'allocation': self,
             'company': self.company,
             'type': 'out',
             'journal': journal,
@@ -1044,11 +1072,7 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
             'currency': self.company.currency,
             'account': self.licensee.account_receivable,
             'payment_term': self.licensee.customer_payment_term,
-            # TODO: fetch from right objects
-            # 'description': self.distribution.rec_name,
-            'description': "TODO",
-            # TODO: get from form field (default today)?
-            # 'invoice_date': self.distribution.date,
+            'description': "Invoice Description",
             'invoice_date': datetime.date.today(),
         }
         return Invoice(**data)
@@ -1060,6 +1084,11 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         pool = Pool()
         Invoice = pool.get('account.invoice')
 
+        if not self.licensee.address_get('invoice'):
+            raise UserError('Missing Invoice Address',
+                            'The Licensee "%s" has no invoice address '
+                            'assigned, so the allocation can\'t be invoiced.' %
+                            self.licensee.rec_name,)
         if not self.licensee.account_receivable:
             raise UserError('Missing Account Receivable',
                             'The Licensee "%s" has no account receivable '
@@ -1075,25 +1104,10 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
         invoice.lines = invoice_lines
         invoice.save()
         Invoice.update_taxes([invoice])
+        if invoice.allocation:
+            invoice.allocation.state = 'invoiced'
+            invoice.allocation.save()
         return invoice
-
-    # TODO: delete as soon as everything works out
-    # -> artifact from imp
-    # type = fields.Selection(
-    #     [
-    #         ('pocket2hats', 'Pocket to Hats'),
-    #         ('hat2pockets', 'Hat to Pockets'),
-    #     ], 'Type', required=True, sort=False, help='The allocation type:\n'
-    #     '*Pocket to Hats*: Allocates amount from a pocket to many hats\n'
-    #     '*Hat to Pockets*: Allocates amount from a hat to many pockets')
-    # -> artifact from imp
-    # @staticmethod
-    # def default_type():
-    #     return 'pocket2hats'
-    # -> probably artifact from imp, we have utilisation.licensee
-    # party = fields.Many2One(
-    #     'party.party', 'Party', required=True,
-    #     help='The party which utilises creations')
 
 
 class AllocationAccountInvoice(ModelSQL):
@@ -1510,7 +1524,13 @@ class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
     end = fields.DateTime(
         'End', help='End of the event')
     attendants = fields.Integer(
-        'Attendants', help='The number of attendants of the event')
+        'Attendants', help='The number of attendants')
+    max_attendants = fields.Integer(
+        'Max Attendants', help='The maximum number of attendants')
+    max_admission = fields.Numeric(
+        'Max Admission', depends=['currency_digits'],
+        digits=(16, Eval('currency_digits', 2)),
+        help='The maxiumum entrance fee')
     turnover_tickets = fields.Numeric(
         'Turnover Tickets', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
@@ -1527,6 +1547,20 @@ class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Expenses Production', depends=['currency_digits'],
         digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the production')
+
+    @classmethod
+    def write(cls, records, values, *args):
+        super().write(records, values, *args)
+        # recalculate estimated utilisations
+        domain = [('context.estimated_indicators', 'in', records, 'event')]
+        for utilisation in Utilisation.search(domain):
+            if utilisation.state == 'estimated':
+                utilisation.calculate_all('estimated', save=True)
+        # recalculate confirmed utilisations
+        domain = [('context.confirmed_indicators', 'in', records, 'event')]
+        for utilisation in Utilisation.search(domain):
+            if utilisation.state == 'confirmed':
+                utilisation.calculate_all('confirmed', save=True)
 
 
 class LocationIndicators(ModelSQL, ModelView, CurrencyDigits):
@@ -1661,8 +1695,8 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
     _history = True
 
     base = fields.Numeric(
-        'Base', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        'Base', digits=(16, Eval('currency_digits', 2)),
+        states={'readonly': True}, depends=['currency_digits'],
         help='The base value')
     relevance = fields.Many2One(
         'tariff_system.tariff.relevance', 'Relevance',
@@ -1680,10 +1714,40 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The fee for administration')
-    distribution_amount = fields.Numeric(
-        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
-        states={'readonly': False}, depends=['currency_digits'],
-        help='The amount to distribute')
+    distribution_amount = fields.Function(
+        fields.Numeric(
+            'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+            states={'readonly': True}, depends=['currency_digits'],
+            help='The amount to distribute'),
+        'on_change_with_distribution_amount')
+
+    @fields.depends('invoice_amount', 'administration_fee')
+    def on_change_with_distribution_amount(self, name=None):
+        if not self.invoice_amount or not self.administration_fee:
+            return None
+        return self.invoice_amount - self.administration_fee
+
+    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    def on_change_adjustments(self):
+        samples = ['estimated', 'confirmed']
+        for sample in samples:
+            for utilisation in getattr(self, f'{sample}_utilisations', []):
+                setattr(utilisation, f'{sample}_indicators', self)
+                self.invoice_amount = \
+                    utilisation.calculate_invoice_amount(sample)
+                self.administration_fee = \
+                    utilisation.calculate_administration_fee(sample)
+
+    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    def on_change_relevance(self):
+        samples = ['estimated', 'confirmed']
+        for sample in samples:
+            for utilisation in getattr(self, f'{sample}_utilisations', []):
+                setattr(utilisation, f'{sample}_indicators', self)
+                self.invoice_amount = \
+                    utilisation.calculate_invoice_amount(sample)
+                self.administration_fee = \
+                    utilisation.calculate_administration_fee(sample)
 
 
 class IndicatorsMeta(ModelMeta):
@@ -1723,8 +1787,9 @@ class IndicatorsMeta(ModelMeta):
 
     - Adds fields for the indicators for each sample
         - [fields.Many2One] <SAMPLE_NAME>_indicators
-    - Adds create/copy classmethods to autocreate the indicators objects
+    - Adds create classmethod to autocreate the indicators objects
         - [classmethod] create
+    - Adds copy classmethod to prevent copy of One2Many indicator fields
         - [classmethod] copy
     - Adds shortcut function fields with setter/getter for indicator attributes
         - [fields.Function] <SAMPLE_NAME>_<ATTRIBUTE_NAME>
@@ -1737,61 +1802,77 @@ class IndicatorsMeta(ModelMeta):
     Changes to the indicators model:
     - Adds back reference field to the measured for each sample
         - [fields.One2Many] <SAMPLE_NAME>_<MEASURED_MODEL_NAME>
+    - Add set of measured field names to the indicator model
+        - [set] _measured_field_names
+    - Adds copy classmethod to prevent copy of One2Many indicator fields
+        - [classmethod] copy
 
     Note: The class name of the indicator model is expected to be the
     capitalized model name without dots.
     """
 
     @staticmethod
-    def _create(measured_class_name):
+    def dummy_create():
         """Dummy create method added, if none is present"""
         def create(cls, vlist):
-            # MeasuredClass = getattr(
-            #     sys.modules[__name__], measured_class_name)
             return super().create(vlist)
         return classmethod(create)
 
     @staticmethod
-    def _copy(measured_class_name):
+    def dummy_copy():
         """Dummy copy method added, if none is present"""
-        def copy(cls, measured_instances, default=None):
-            # MeasuredClass = getattr(
-            #     sys.modules[__name__], measured_class_name)
-            super().copy(measured_instances, default=default)
+        def copy(cls, instances, default=None):
+            super().copy(instances, default=default)
         return classmethod(copy)
 
     @staticmethod
-    def create(indicators_model_name, samples):
-        """This copy method wraps the copy method of the measured class"""
+    def indicator__copy():
+        """This create method wraps the copy method of the indicator class"""
+        def copy(cls, indicator_instances, default=None):
+            if default is None:
+                default = {}
+            default = default.copy()
+            # prevent copy of One2Many indicator fields
+            for field_name in cls._measured_field_names:
+                default[field_name] = None
+            return cls._copy(indicator_instances, default=default)
+        return classmethod(copy)
+
+    @staticmethod
+    def measured__create(indicators_model_name, samples):
+        """This copy method wraps the create method of the measured class"""
         def create(cls, vlist):
             for entry in vlist:
                 # autocreate indicator model
                 for sample_name in samples:
+                    if sample_name == 'confirmed':
+                        continue
                     IndicatorsModel = Pool().get(indicators_model_name)
                     indicators, = IndicatorsModel.create([{}])
                     indicators.save()
-                    entry['%s_indicators' % sample_name] = indicators.id
+                    entry[f'{sample_name}_indicators'] = indicators.id
             return cls._create(vlist)
         return classmethod(create)
 
     @staticmethod
-    def copy(samples):
-        """This create method wraps the create method of the measured class"""
+    def measured__copy(samples):
+        """This create method wraps the copy method of the measured class"""
         def copy(cls, measured_instances, default=None):
             if default is None:
                 default = {}
             default = default.copy()
+            # prevent copy of One2Many indicator fields
             for sample_name in samples:
-                field_name = '%s_indicators' % sample_name
+                field_name = f'{sample_name}_indicators'
                 if field_name in default:
                     default[field_name] = None
-            cls._copy(measured_instances, default=default)
+            return cls._copy(measured_instances, default=default)
         return classmethod(copy)
 
     @staticmethod
-    def get_attribute(sample_name):
+    def measured__get_attribute(sample_name):
         def get_value(self, name):
-            indicators = getattr(self, '%s_indicators' % sample_name)
+            indicators = getattr(self, f'{sample_name}_indicators')
             if indicators:
                 attribute_name = getattr(self.__class__, name)._attribute_name
                 value = getattr(indicators, attribute_name)
@@ -1803,21 +1884,20 @@ class IndicatorsMeta(ModelMeta):
         return get_value
 
     @staticmethod
-    def set_attribute(sample_name):
+    def measured__set_attribute(sample_name):
         def set_value(cls, measured_instances, name, value):
             for instance in measured_instances:
                 attribute_name = getattr(cls, name)._attribute_name
-                indicators = getattr(instance, '%s_indicators' % sample_name)
+                indicators = getattr(instance, f'{sample_name}_indicators')
                 if indicators:
-                    indicators.write([indicators], {
-                        attribute_name: value})
+                    indicators.write([indicators], {attribute_name: value})
         return classmethod(set_value)
 
     @staticmethod
-    def search_attribute(sample_name):
+    def measured__search_attribute(sample_name):
         def search(cls, name, clause):
             attribute_name = getattr(cls, name)._attribute_name
-            key = '%s_indicators.%s' % (sample_name, attribute_name)
+            key = f'{sample_name}_indicators.{attribute_name}'
             return [
                 (key,) + tuple(clause[1:]),
             ]
@@ -1839,26 +1919,36 @@ class IndicatorsMeta(ModelMeta):
             part.capitalize() for part in indicators_model_name.split('.')])
         IndicatorsClass = getattr(sys.modules[__name__], indicators_class_name)
 
-        # add create/copy classmethods to autocreate the indicators objects
-        # reassign present create/copy functions or create dummies
+        # add copy classmethod to indicator class to prevent copy of backlinks
+        if not hasattr(IndicatorsClass, '_copy'):
+            if hasattr(IndicatorsClass, 'copy'):
+                IndicatorsClass._copy = IndicatorsClass.copy
+            else:
+                setattr(IndicatorsClass, '_copy', cls.dummy_copy())
+            setattr(IndicatorsClass, 'copy', cls.indicator__copy())
+
+        # add create classmethod to autocreate the indicators objects
         if hasattr(new, 'create'):
             new._create = new.create
         else:
-            setattr(new, '_create', cls._create(measured_class_name))
-        setattr(new, 'create', cls.create(indicators_model_name, samples))
+            setattr(new, '_create', cls.dummy_create())
+        setattr(new, 'create', cls.measured__create(
+                indicators_model_name, samples))
+        # add copy classmethod to prevent copy of One2Many indicator fields
         if hasattr(new, 'copy'):
             new._copy = new.copy
         else:
-            setattr(new, '_copy', cls._copy(measured_class_name))
-        setattr(new, 'copy', cls.copy(samples))
+            setattr(new, '_copy', cls.dummy_copy())
+        setattr(new, 'copy', cls.measured__copy(samples))
 
         # for each sample
         for sample_name in samples:
 
             # add indicators field to the measured model
-            indicators_field_name = '%s_indicators' % sample_name
-            indicators_field_description = '%s Indicators' % (
-                sample_name.capitalize())
+            indicators_field_name = f'{sample_name}_indicators'
+            indicators_field_description = (
+                f'{sample_name.capitalize()} Indicators'
+            )
             setattr(new, indicators_field_name,
                     fields.Many2One(
                         indicators_model_name, indicators_field_description))
@@ -1870,24 +1960,34 @@ class IndicatorsMeta(ModelMeta):
                     if getattr(field, '_backreference', False):
                         continue
                     # function field name (e.g. estimated_turnover)
-                    field_name = '%s_%s' % (sample_name, attribute_name)
+                    field_name = f'{sample_name}_{attribute_name}'
                     # add function field
+                    function_field = copy.deepcopy(field)
+                    if 'readonly' not in function_field.states:
+                        function_field.states['readonly'] = ~Bool(
+                            Eval(indicators_field_name))
+                    getter_name = f'get_{field_name}'
+                    setter_name = f'set_{field_name}'
+                    searcher_name = f'search_{field_name}'
                     setattr(new, field_name,
-                            fields.Function(field,
-                                            'get_%s' % field_name,
-                                            'set_%s' % field_name,
-                                            'search_%s' % field_name))
+                            fields.Function(function_field,
+                                            getter_name,
+                                            setter=setter_name,
+                                            searcher=searcher_name))
                     # save original field name in field to ease later access
                     getattr(new, field_name)._attribute_name = attribute_name
                     # getter
-                    setattr(new, 'get_%s' % field_name,
-                            cls.get_attribute(sample_name))
+                    if not getattr(new, getter_name, False):
+                        setattr(new, getter_name,
+                                cls.measured__get_attribute(sample_name))
                     # setter
-                    setattr(new, 'set_%s' % field_name,
-                            cls.set_attribute(sample_name))
+                    if not getattr(new, setter_name, False):
+                        setattr(new, setter_name,
+                                cls.measured__set_attribute(sample_name))
                     # searcher
-                    setattr(new, 'search_%s' % field_name,
-                            cls.search_attribute(sample_name))
+                    if not getattr(new, searcher_name, False):
+                        setattr(new, searcher_name,
+                                cls.measured__search_attribute(sample_name))
 
             # add back reference to the indicator model
             measured_field_name = '%s_%ss' % (
@@ -1903,6 +2003,11 @@ class IndicatorsMeta(ModelMeta):
             field._backreference = True
             setattr(IndicatorsClass, measured_field_name, field)
 
+            # add set of measured field names to the indicator model
+            if not getattr(IndicatorsClass, '_measured_field_names', False):
+                setattr(IndicatorsClass, '_measured_field_names', set())
+            IndicatorsClass._measured_field_names.add(measured_field_name)
+
         return new
 
 
@@ -1916,6 +2021,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
     _history = True
     name = fields.Char('Name', required=True)
     code = fields.Char('Code', required=True)
+    billable = fields.Boolean('Billable')
     freedom_rank = fields.Integer('Freedom Rank')
     version = fields.Char('Version', required=True)
     country = fields.Char('Country', required=True)
@@ -3389,7 +3495,7 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         'event', 'Event', states={
             'required': True,
             'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
+        }, depends=DEPENDS, ondelete='CASCADE',
         help='The event of the performance')
     artist = fields.Many2One(
         'artist', 'Artist', states={
@@ -4767,11 +4873,6 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         'Context', context_list, states=STATES, depends=DEPENDS,
         help='The context object of the planned utilisation')
 
-    collections = fields.One2Many(
-        'declaration.collection', 'declaration', 'Collections',
-        states=STATES, depends=DEPENDS,
-        help='The processes, in which utilisations were created for the '
-             'declaration')
     utilisations = fields.One2Many(
         'utilisation', 'declaration', 'Utilisations',
         states=STATES, depends=DEPENDS,
@@ -4817,29 +4918,6 @@ class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The declarations in this group')
 
 
-class DeclarationCollection(ModelSQL, ModelView):
-    'Declaration Collection'
-    __name__ = 'declaration.collection'
-    _history = True
-
-    trigger = fields.Selection(
-        [
-            ('declaration_creation', 'Declaration Creation'),
-            ('start_of_period', 'Start of Period'),
-            ('after_event', 'After Event'),
-            ('manually', 'Manually'),
-        ], 'Trigger', states={'required': True}, sort=False,
-        help='The trigger, which created the utilisations')
-    timestamp = fields.DateTime(
-        'Timestamp', help='The timestamp of the declaration collection')
-    declaration = fields.Many2One(
-        'declaration', 'Declaration', states={'required': True},
-        help='The declaration, which created the utilisations')
-    utilisations = fields.One2Many(
-        'utilisation', 'declaration_collection', 'Utilisatons',
-        help='The utilisations created from the declaration')
-
-
 # --- Utilisation ------------------------------------------------------------
 
 class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
@@ -4862,6 +4940,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('created', 'Created'),
             ('estimated', 'Estimated'),
             ('confirmed', 'Confirmed'),
+            ('finalized', 'Finalized'),
             ('allocated', 'Allocated'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
@@ -4869,10 +4948,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         '*Created*: Default state for new utilisations.\n'
         '*Estimated*: All indicators are present and the utilisation is '
         'awaiting confirmation.\n'
-        '*Confirmed*: The utilisation was confirmed.\n'
-        '*Invoiced*: An invoice for the utilisation was created.\n'
-        '*Payed*: The invoice amount was received.\n'
-        '*Distributed*: The distribution amount was distributed.')
+        '*Confirmed*: All indicators were confirmed.\n'
+        '*Finalized*: The utilisation is ready to be allocated.\n'
+        '*Allocated*: The utilisation was allocated.')
     start_override = fields.DateTime(
         'Start',
         help='Start of the period of utilisation, if setter is used')
@@ -4908,10 +4986,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The declaration, which created this utilisation')
-    declaration_collection = fields.Many2One(
-        'declaration.collection', 'Declaration Collection',
-        states={'readonly': True},
-        help='The declaration collection, which created the utilisation')
 
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={
@@ -4939,6 +5013,10 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The distribution plan for the utilisation')
+    collection = fields.Many2One(
+        'collection', 'Collection',
+        states=STATES, depends=DEPENDS,
+        help='The collection of the utilisation')
     allocation = fields.Many2One(
         'allocation', 'Allocation',
         states=STATES, depends=DEPENDS,
@@ -4964,13 +5042,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             ('code_uniq', Unique(table, table.code),
              'The code of the utilisation must be unique.')
         ]
-        # cls._order.insert(1, ('start', 'ASC'))
-        # cls._error_messages.update({
-        #     'missing_account_revenue': 'Product "%(product)s" misses a '
-        #     'revenue account.',
-        #     'missing_tariff_product': 'Tariff category "%(tariff_category)s"'
-        #     ' is missing a distribution product or administration product.',
-        # })
 
     @staticmethod
     def default_state():
@@ -5045,6 +5116,128 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         # all other tariffs get the end date from a manually entered date
         return self.end_override
 
+    # --- collection ----------------------------------------------------------
+
+    def context_indicators_as_dict(self, sample):
+        if self.tariff.category.code == 'L':
+            indicators = getattr(self.context, f"{sample}_indicators")
+            return {
+                'start': indicators.start,
+                'end': indicators.end,
+                'attendants': indicators.attendants,
+                'turnover_tickets': indicators.turnover_tickets,
+                'turnover_benefit': indicators.turnover_benefit,
+                'expenses_musicians': indicators.expenses_musicians,
+                'expenses_production': indicators.expenses_production,
+            }
+        elif self.tariff.category.code == 'C':
+            return {}
+        elif self.tariff.category.code == 'P':
+            return {}
+        elif self.tariff.category.code == 'O':
+            return {}
+        raise NotImplementedError()
+
+    def calculate_base(self, sample, save=False):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # represented ratio
+        billable_ratio = 1  # TODO: define default
+        if self.creation_list:
+            billable_ratio = self.creation_list.billable_ratio
+        # base
+        formula = self.tariff.get_base_formula()
+        base = formula(
+            context=context_indicators_dict,
+            billable_ratio=billable_ratio
+        )
+        indicators = getattr(self, f"{sample}_indicators")
+        indicators.base = base.quantize(
+            Decimal(1) / 10 ** self.get_currency_digits('')
+        )
+        if save:
+            indicators.save()
+        return base
+
+    def calculate_relevance(self, sample):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # relevance
+        formula = self.tariff.get_relevance_formula()
+        utilisation_indicators = getattr(self, f'{sample}_indicators')
+        relevance = utilisation_indicators.relevance.value
+        return formula(
+            context=context_indicators_dict,
+            relevance=relevance
+        )
+
+    def calculate_share(self, sample):
+        # sanity checks
+        assert sample in ['estimated', 'confirmed']
+        # indicators dict
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        # share
+        formula = self.tariff.get_share_formula()
+        return formula(context=context_indicators_dict)
+
+    def calculate_adjustments(self, sample):
+        context_indicators_dict = self.context_indicators_as_dict(sample)
+        indicators = getattr(self, f"{sample}_indicators")
+        # adjustments_dict
+        adjustments_dict = {
+            adjustment.category.code: adjustment.value
+            for adjustment in indicators.adjustments
+            if adjustment.status == "approved"
+        }
+        # adjustments
+        formula = self.tariff.get_adjustments_formula()
+        return formula(
+            context=context_indicators_dict,
+            adjustments=adjustments_dict
+        )
+
+    def calculate_invoice_amount(self, sample, save=False):
+        indicators = getattr(self, f"{sample}_indicators")
+        formula = self.tariff.get_total_formula()
+        utilisation_dict = {
+            'base': indicators.base,
+            'relevance': self.calculate_relevance(sample),
+            'share': self.calculate_share(sample),
+            'adjustments': self.calculate_adjustments(sample),
+        }
+        invoice_amount = round(
+            formula(utilisation=utilisation_dict),
+            self.get_currency_digits('')
+        )
+        indicators.invoice_amount = invoice_amount
+        if save:
+            indicators.save()
+        return invoice_amount
+
+    def calculate_administration_fee(self, sample, save=False):
+        indicators = getattr(self, f"{sample}_indicators")
+        formula = self.tariff.get_fee_formula()
+        administration_fee = round(
+            formula(total=indicators.invoice_amount),
+            self.get_currency_digits('')
+        )
+        indicators.administration_fee = administration_fee
+        if save:
+            indicators.save()
+        return administration_fee
+
+    def calculate_all(self, sample, save=False):
+        # TODO: implement calculations for other tariffs
+        if self.tariff.category.code not in ['L']:
+            return
+        self.calculate_base(sample, save)
+        self.calculate_invoice_amount(sample, save)
+        self.calculate_administration_fee(sample, save)
+
     def _get_invoice_lines(self):
         '''
         Returns invoice lines for each utilisation
@@ -5052,7 +5245,7 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         pool = Pool()
         InvoiceLine = pool.get('account.invoice.line')
 
-        if self.state != 'confirmed':
+        if self.state != 'allocated':
             return []
 
         distribution_product = self.tariff.category.distribution_product
@@ -5106,6 +5299,253 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         return [distribution_invoice_line, administration_invoice_line]
 
 
+class UtilisationCalculate(Wizard):
+    'Utilisation Calculate'
+    __name__ = 'utilisation.calculate'
+    start_state = 'calculate'
+    calculate = StateTransition()
+
+    def transition_calculate(self):
+        if self.record.state in ['estimated', 'confirmed']:
+            self.record.calculate_all(self.record.state, save=True)
+        return 'end'
+
+
+class UtilisationConfirm(Wizard):
+    'Utilisation Confirm'
+    __name__ = 'utilisation.confirm'
+
+    start_state = 'choose_context'
+    choose_context = StateTransition()
+    review_event_indicators = StateView(
+        'event.indicators',
+        'collecting_society.event_indicators_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Confirm Event Indicators', 'review_utilisation_indicators',
+                   'tryton-go-next', default=True),
+        ])
+    review_utilisation_indicators = StateView(
+        'utilisation.indicators',
+        'collecting_society.utilisation_indicators_form',
+        [
+            Button('Cancel', 'end', 'tryton-cancel'),
+            Button('Confirm Utilisation', 'save',
+                   'tryton-go-next', default=True),
+        ])
+    save = StateTransition()
+
+    @staticmethod
+    def _record_as_dict(record, fields):
+        values = {}
+        for fieldname in fields:
+            value = getattr(record, fieldname)
+            if isinstance(value, Model):
+                if getattr(record.__class__, fieldname)._type == 'reference':
+                    value = str(value)
+                else:
+                    value = value.id
+            elif isinstance(value, (list, tuple)):
+                value = [r.id for r in value]
+            values[fieldname] = value
+        return values
+
+    def transition_choose_context(self):
+        # sanity checks
+        if self.record.state != 'estimated':
+            return 'end'
+        # choose context
+        if self.record.tariff.category.code == 'L':
+            return 'review_event_indicators'
+        elif self.record.tariff.category.code == 'C':
+            return 'end'
+        elif self.record.tariff.category.code == 'P':
+            return 'end'
+        elif self.record.tariff.category.code == 'O':
+            return 'end'
+        return 'end'
+
+    def value_review_event_indicators(self, fields):
+        values = self._record_as_dict(
+            self.record.context.estimated_indicators,
+            fields
+        )
+        values['confirmed_events'] = []
+        values['estimated_events'] = []
+        return values
+
+    def value_review_utilisation_indicators(self, fields):
+        pool = Pool()
+        self.record.context.confirmed_indicators = self.review_event_indicators
+        # copy estimated utilisation indicators
+        _UtilisationIndicators = pool.get('utilisation.indicators')
+        self.record.confirmed_indicators = _UtilisationIndicators(
+            **self._record_as_dict(self.record.estimated_indicators, fields))
+        # calculate confirmed utilisation indicators
+        self.record.state = 'confirmed'
+        self.record.calculate_all('confirmed')
+
+        values = self._record_as_dict(
+            self.record.confirmed_indicators,
+            fields
+        )
+        values['confirmed_utilisations'] = []
+        values['estimated_utilisations'] = []
+        return values
+
+    def transition_save(self):
+        if self.record.tariff.category.code == 'L':
+            event_indicators = self.review_event_indicators
+            event_indicators.confirmed_events = [self.record.context]
+            event_indicators.save()
+        elif self.record.tariff.category.code == 'C':
+            pass
+        elif self.record.tariff.category.code == 'P':
+            pass
+        elif self.record.tariff.category.code == 'O':
+            pass
+
+        pool = Pool()
+        _TariffAdjustment = pool.get('tariff_system.tariff.adjustment')
+        _TariffRelevance = pool.get('tariff_system.tariff.relevance')
+
+        utilisation_indicators = self.review_utilisation_indicators
+        utilisation_indicators.confirmed_utilisations = [self.record]
+        # create new adjustments
+        adjustments = []
+        for adjustment in utilisation_indicators.adjustments:
+            if adjustment.id > 0:
+                adjustments.append(_TariffAdjustment(
+                    category=adjustment.category,
+                    status=adjustment.status,
+                    value=adjustment.value,
+                    deviation=adjustment.deviation,
+                    deviation_reason=adjustment.deviation_reason,
+                    utilisation_indicators=adjustment.utilisation_indicators,
+                ))
+            else:
+                adjustments.append(adjustment)
+        utilisation_indicators.adjustments = adjustments
+        # create new relevance
+        relevance = utilisation_indicators.relevance
+        utilisation_indicators.relevance = _TariffRelevance(
+            category=relevance.category,
+            value=relevance.value,
+            deviation=relevance.deviation,
+            deviation_reason=relevance.deviation_reason,
+            utilisation_indicators=relevance.utilisation_indicators,
+        )
+        utilisation_indicators.save()
+
+        # recalculate indicators
+        self.record.state = 'confirmed'
+        self.record.confirmed_indicators.adjustments = adjustments
+        self.record.confirmed_indicators.relevance = relevance
+        self.record.calculate_all('confirmed', save=True)
+        self.record.save()
+        return 'end'
+
+
+class UtilisationFinalize(Wizard):
+    'Utilisation Finalize'
+    __name__ = 'utilisation.finalize'
+    start_state = 'finalize'
+    finalize = StateTransition()
+
+    # TODO: configuration setting
+    grace_period_days = 6 * 7
+
+    def transition_finalize(self):
+        # sanity checks
+        if self.record.state != 'confirmed':
+            raise UserError(
+                'Utilisation not "Confirmed"',
+                'The utilisation "%s" is not in the state "confirmed" '
+                % (self.record.id))
+        # condition: adjustments not on approval
+        adjustments = self.record.confirmed_indicators.adjustments
+        adjustments_on_approval = []
+        for adjustment in adjustments:
+            if adjustment.status == "on_approval":
+                adjustments_on_approval.append(adjustment)
+        if adjustments_on_approval:
+            raise UserError(
+                'Adjustment on approval',
+                'The utilisation "%s" can\'t be finalized as long as '
+                'the following adjustments wait for approval: %s'
+                % (self.record.id,
+                   ", ".join([adjustment.category.name
+                              for adjustment in adjustments_on_approval])))
+        # choose context
+        if self.record.tariff.category.code == 'L':
+            self.finalize_live()
+        elif self.record.tariff.category.code == 'C':
+            return 'end'
+        elif self.record.tariff.category.code == 'P':
+            return 'end'
+        elif self.record.tariff.category.code == 'O':
+            return 'end'
+        return 'end'
+
+    def finalize_live(self):
+        pool = Pool()
+        Warning = pool.get('res.user.warning')
+        # missing playlists
+        performances = self.record.context.performances
+        playlist_missing = (
+            not performances
+            and not any([performance.playlist for performance in performances])
+        )
+        if playlist_missing:
+            # wait until the grace period is over
+            grace_period_deadline = (
+                self.record.context.confirmed_end
+                + datetime.timedelta(days=self.grace_period_days)
+            )
+            if datetime.datetime.now() < grace_period_deadline:
+                warning_name = 'utilisationgraceperiod,%s' % self.record.id
+                if Warning.check(warning_name):
+                    raise UserWarning(
+                        warning_name, 'Playlists not submitted yet',
+                        'The playlists for utilisation "%s" have not been '
+                        'submitted yet. The grace period will end on %s'
+                        % (self.record.id, grace_period_deadline))
+            # add missing playlist fee
+            missing_playlist_fee = any([
+                adjustment.category.code == 'missing_playlist_fee'
+                for adjustment in self.record.confirmed_indicators.adjustments
+            ])
+            if not missing_playlist_fee:
+                AdjustmentCategory = pool.get(
+                    'tariff_system.tariff.adjustment.category')
+                Adjustment = pool.get('tariff_system.tariff.adjustment')
+                missing_playlist_fee, = AdjustmentCategory.search(
+                    ['code', '=', 'missing_playlist_fee'])
+                adjustment = Adjustment(
+                    category=missing_playlist_fee,
+                    status='approved',
+                    value=missing_playlist_fee.value_default,
+                    utilisation_indicators=self.record.confirmed_indicators
+                )
+                adjustment.save()
+
+        # generate creation list
+        if not playlist_missing:
+            _UtilisationCreationlist = pool.get('utilisation.creationlist')
+            creation_list = self.record.creation_list
+            if not creation_list:
+                creation_list = _UtilisationCreationlist(
+                    utilisations=[self.record.id])
+                creation_list.save()
+            creation_list.calculate_all(save=True)
+            self.record.creation_list = creation_list
+        self.record.calculate_all('confirmed', save=True)
+        self.record.state = 'finalized'
+        self.record.save()
+
+        return 'end'
+
+
 class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
                               metaclass=IndicatorsMeta):
     'Utilisation Creationlist'
@@ -5120,19 +5560,16 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
     utilisations = fields.One2Many(
         'utilisation', 'creation_list', 'Utilisations',
         help='The utilisations, in which the list is used to distribute')
-    start = fields.DateTime(
-        'Start', states={'required': True},
-        help='Start of the period of utilisation')
-    end = fields.DateTime(
-        'End', help='End of the period of utilisation')
     complete = fields.Boolean(
         'Complete', help='Is the creation list complete?')
+    # TODO: context still needed?
     context = fields.Reference(
         'Context', [
             ('event.performance', 'Event Performance'),
             ('location.space', 'Location Space'),
             ('website.resource', 'Website Resource'),
             ('release', 'Release'),
+            (None, 'None'),
         ],
         help='The context object of the utilisation creation list')
     items = fields.One2Many(
@@ -5142,13 +5579,14 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
 
     # calculated values
     known_ratio = fields.Numeric(
-        'Unknown Ratio', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
-        help='The ratio of known / unknown creations [0-1]')
+        'Known Ratio', digits=(16, 16),
+        help='The ratio of known / all creations [0-1]')
     represented_ratio = fields.Numeric(
-        'Represented Ratio', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
-        help='The ratio of represented / unrepresented known creations [0-1]')
+        'Represented Ratio', digits=(16, 16),
+        help='The ratio of represented / all creations [0-1]')
+    billable_ratio = fields.Numeric(
+        'Billable Ratio', digits=(16, 16),
+        help='The ratio of billable / all creations [0-1]')
 
     # context dependend fields
     performer = fields.Many2One(
@@ -5156,10 +5594,111 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
         # TODO: visible only for context EventPerformance
         help='The performing artist')
     fingerprint_creationlists = fields.One2Many(
-        'device.message.fingerprint.creationlist', 'utilisation_creationlist',
+        'device.message.fingerprint.creationlist',
+        'utilisation_creationlist',
         'Fingerprint Creationlists',
         # TODO: visible only for context WebsiteResource|LocationSpace
         help='The merged fingerprint creation lists')
+
+    def calculate_items(self, save=False):
+        # sanity checks
+        if not self.utilisations:
+            return
+        pool = Pool()
+        # items
+        utilisation = self.utilisations[0]
+        if utilisation.tariff.category.code == 'L':
+            Item = pool.get('utilisation.creationlist.item')
+            items = {}
+            performances = utilisation.context.performances
+            for performance in performances:
+                for playlist_item in performance.playlist.items:
+                    creation_id = playlist_item.creation.id
+                    if creation_id not in items:
+                        items[creation_id] = Item(
+                            creationlist=self,
+                            creation=creation_id,
+                            weight=0,
+                        )
+                    items[creation_id].weight += 1
+        else:
+            return
+        # save
+        if save:
+            Item.delete(self.items)
+        self.items = items.values()
+        if save:
+            self.save()
+
+    def calculate_ratios(self, save=False):
+        # sanity checks
+        if not self.utilisations:
+            return
+
+        # ratios
+        pool = Pool()
+        _CollectingSociety = pool.get('collecting_society')
+        tariff = self.utilisations[0].tariff
+        collecting_society = _CollectingSociety(1)  # TODO: get from context
+
+        weights = {
+            'all': 0,
+            'known': 0,
+            'represented': 0,
+            'billable': 0,
+        }
+        for item in self.items:
+            creation = item.creation
+
+            # all
+            weights['all'] += 1
+
+            # known
+            if creation.claim_state != 'revised':
+                continue
+            weights['known'] += 1
+
+            # represented
+            represented = False
+            for ctc in creation.tariff_categories:
+                if (ctc.category.code == tariff.category.code
+                        and ctc.collecting_society == collecting_society):
+                    represented = True
+                    break
+            if not represented:
+                continue
+            weights['represented'] += 1
+
+            # billable
+            if not creation.license.billable:
+                continue
+            weights['billable'] += 1
+
+        self.known_ratio = (
+            Decimal(weights['known']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.known_ratio.digits[1]
+        )
+
+        self.represented_ratio = (
+            Decimal(weights['represented']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.represented_ratio.digits[1]
+        )
+
+        self.billable_ratio = (
+            Decimal(weights['billable']) / Decimal(weights['all'])
+        ).quantize(
+            Decimal(1) / 10 ** self.__class__.billable_ratio.digits[1]
+        )
+
+        # save
+        if save:
+            self.save()
+
+    def calculate_all(self, save=False):
+        self.calculate_items(save)
+        self.calculate_ratios(save)
 
 
 class UtilisationCreationlistItem(ModelSQL, ModelView):

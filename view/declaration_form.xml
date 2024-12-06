@@ -28,9 +28,6 @@
     <newline/>
 
     <notebook colspan="8">
-        <page string="Collections" id="collections" col="1">
-            <field name="collections"/>
-        </page>
         <page string="Utilisations" id="utilisations" col="1">
             <field name="utilisations"/>
         </page>
