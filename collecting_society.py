@@ -590,6 +590,7 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
         help='The tariff categories, for which the adjustment category can '
              'be applied')
 
+
 class TariffCategoryTariffAdjustmentCategory(ModelSQL):
     'Tariff Category - Tariff Adjustment Category'
     __name__ = 'tariff_category-tariff_adjustment_category'
@@ -620,7 +621,16 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
         help='The approval status of the adjustment')
     value = fields.Numeric(
         'Value', digits=(3, 6),
-        required=True, help='The value of the adjustment')
+        required=True,
+        domain=[
+            ['OR',
+                ('category', '=', None),
+                ('category.value_min', '<', Eval('value')),],
+            ['OR',
+                ('category', '=', None),
+                ('category.value_max', '>', Eval('value')),],
+            ],
+        help='The value of the adjustment')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
