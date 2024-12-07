@@ -54,39 +54,39 @@
             <separator string="Confirmed" id="confirmed" colspan="2"/>
 
             <label name="estimated_base"/>
-            <field name="estimated_base"/>
+            <field name="estimated_base" readonly="1" />
             <label name="confirmed_base"/>
-            <field name="confirmed_base"/>
+            <field name="confirmed_base" readonly="1" />
 
             <label name="estimated_relevance"/>
-            <field name="estimated_relevance"/>
+            <field name="estimated_relevance" readonly="1" />
             <label name="confirmed_relevance"/>
-            <field name="confirmed_relevance"/>
+            <field name="confirmed_relevance" readonly="1" />
 
             <label name="estimated_adjustments"/>
-            <field name="estimated_adjustments"/>
+            <field name="estimated_adjustments" readonly="1" />
             <label name="confirmed_adjustments"/>
-            <field name="confirmed_adjustments"/>
+            <field name="confirmed_adjustments" readonly="1" />
 
             <separator string="Estimated Calculation" id="estimated_calculation" colspan="2"/>
             <separator string="Confirmed Calculation" id="confirmed_calculation" colspan="2"/>
 
             <label name="estimated_invoice_amount"/>
-            <field name="estimated_invoice_amount"/>
+            <field name="estimated_invoice_amount" readonly="1" />
             <label name="confirmed_invoice_amount"/>
-            <field name="confirmed_invoice_amount"/>
+            <field name="confirmed_invoice_amount" readonly="1" />
 
             <label name="estimated_administration_fee"/>
-            <field name="estimated_administration_fee"/>
+            <field name="estimated_administration_fee" readonly="1" />
             <label name="confirmed_administration_fee"/>
-            <field name="confirmed_administration_fee"/>
+            <field name="confirmed_administration_fee" readonly="1" />
 
             <label name="estimated_distribution_amount"/>
-            <field name="estimated_distribution_amount"/>
+            <field name="estimated_distribution_amount" readonly="1" />
             <label name="confirmed_distribution_amount"/>
-            <field name="confirmed_distribution_amount"/>
+            <field name="confirmed_distribution_amount" readonly="1" />
         </page>
-        <!-- TODO: visible only for context = Location -->
+        <!-- TODO: visible only for context = Location >
         <page string="Location Indicators" id="location_indicators" col="2">
             <separator string="Confirmed" id="confirmed" colspan="2"/>
 
@@ -94,6 +94,6 @@
             <field name="confirmed_location_indicators"/>
             <label name="confirmed_location_space_indicators"/>
             <field name="confirmed_location_space_indicators"/>
-        </page>
+        </page-->
     </notebook>
 </form>

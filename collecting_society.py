@@ -5004,8 +5004,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         help='The resulting tariff for the utilisation')
 
     creation_list = fields.Many2One(
-        'utilisation.creationlist', 'Creationlist',
-        states=STATES, depends=DEPENDS,
+        'utilisation.creationlist', 'Creationlist', states={
+            'readonly': True,
+        }, depends=DEPENDS,
         help='The creation list for the distribution process')
     distribution_plan = fields.Many2One(
         'distribution.plan', 'Distribution Plan', states={
