@@ -323,12 +323,23 @@ roles__0_3 = roles__0_1
 # --- Split -------------------------------------------------------------------
 
 class Rightsholder():
+    """
+    Represents a rigthsholder in a Split tree.
+
+    Args:
+        licenser (obj): the licenser
+        fraction (dict): the fraction of the amount
+        amount (Decimal): optional - the amount for the licenser
+    """
     def __init__(self, licenser, fraction, amount=None):
         self.licenser = licenser
         self.fraction = fraction
         self.amount = amount
 
     def print(self, level=1):
+        """
+        Prints the state of the rightsholder.
+        """
         output = f"- {self.fraction} {self.licenser}".ljust(40-level*2)
         if self.amount:
             output += f"{self.amount:.40f}".rjust(50)
@@ -339,6 +350,361 @@ class Rightsholder():
 
 
 class Split():
+    """
+    Helper class to distribute money among rightsholders.
+
+    This class generates a tree of role splits and rightsholder leaves to
+    distribute an amount of money to. Roles containing no rightsholders are
+    redistributed among its siblings relative to their weights. The
+    redistribution starts at the leaves and ends at the root node and operates
+    on the node fraction.Fractions. On distribution, a decimals.Decimal amount
+    is distributed with respect to the fractions.
+
+    There are many checks in place to ensure the correctness of the
+    calculations for both redistribution and distribution as well as to ensure,
+    that the role structure matches the distribution plan.
+
+    The init expects two dictionaries:
+
+    - fractions: a dictionary with a definition of the available roles and
+        their split fractions according to the distribution plan, e.g.
+    - roles: a dictionary mapping rightsholders to the roles given in fractions
+
+    Args:
+        roles (dict): the mapping of rightsholders to roles
+        amount (Decimal): optional - the amount to distribute
+        fractions (dict): the mapping of roles to fractions
+
+        key (str): the key of the tree node
+        parent (Split): the parent of the tree node
+
+        redistribute (bool): redistribute fractions of nodes without
+          rightsholders after init
+        log (bool): log each redistribution
+        debug (bool): debug flag to print the final state of the tree
+        verbose (bool): debug flag for more verbose prints of redistributions
+
+    Returns:
+        a list of dictionaries for each rightsholder, e.g.
+
+        [
+            {
+                'licenser': licenser1
+                'amount': Decimal('1234.56')
+                'meta': {
+                    'creation': 'C00001',
+                    'utilisation': 'U00001',
+                },
+            },
+            {
+                'licenser': licenser2
+                'amount': Decimal('6543.21')
+                'meta': {
+                    'creation': 'C00002',
+                    'utilisation': 'U00001',
+                    'redistributed': 'root.role1'
+                },
+            },
+        ]
+
+    Attributes:
+        key (str): key of the tree node
+        parent (Split): parent of the tree node
+
+        fraction (fractions.Fraction): fraction for the split
+        initial_fraction (fractions.Fraction): initial fraction for the split
+        amount (Decimal): amount to be splitted
+
+        splits ([Split]): children of the tree node
+        rightsholders ([Rightsholder]): rightsholders of a leave node
+
+        reentry (bool): another full distribution type split (recursion)
+        redistributed (bool): indicator, if the split was redistributed
+
+        References to the next distribution split node:
+            meta (dict): meta information passed to the returned share list
+            creation (str): creation identifier,
+            distribution_plan (str): version of the distribution plan
+            distribution_type (str): type of the distribution
+
+        References to the root node:
+            config (dict): configuration flags
+            log (list): distribution log
+
+    Raises:
+        AssertionError:
+          - key contains a dot
+          - distribution nodes contain other non-distribution nodes
+          - mismatch between roles and fraction hierarchy
+          - sum of split/rightsholder fractions/amounts don't add up
+          - no rightsholders in the whole tree
+
+    Fractions:
+        The fraction dict structure:
+
+            fractions = {
+                '<DISTRIBUTION_TYPE_1>': {
+                    'fraction': fractions.Fraction(),
+                    'split': {
+                        '<ROLENAME_1>': {
+                            'fraction': fractions.Fraction(),
+                            'split': {
+                                '<ROLENAME_2>': {
+                                    'fraction': fractions.Fraction(),
+                                    'split': [...]
+                                },
+                                '<ROLENAME_3>': {
+                                    'fraction': fractions.Fraction(),
+                                },
+                                [...]
+                            },
+                        },
+                        '<ROLENAME_4>': {
+                            'fraction': fractions.Fraction(),
+                            'split': [...]
+                        },
+                        '<ROLENAME_5>': {
+                            'fraction': fractions.Fraction(),
+                            'distribution': '<DISTRIBUTION_NAME_1>'
+                        },
+                        [...]
+                    },
+                },
+            }
+
+        The first level of the fractions defines the available distribution
+        types given by the distribution plan (e.g. 'original', 'adaption',
+        'remix'). All other levels
+
+        - must define a 'fraction'
+        - may contain either
+            - another 'split'
+            - or a 'distribution'
+
+        Notes:
+          - If only 'fraction' is defined, the role represents a split among
+            rightsholders (leaves). By default the amount is split evenly.
+          - If 'split' is defined, the role represents a split among other
+            split nodes (non-leaves).
+          - If 'distribution' is defined, the role represents another full
+            distribution node (recursion). The distribution name must exist
+            in the fractions definition. By default the amount is split evenly.
+          - The first level of a Split must be a distribution node.
+
+        The fraction dict must be defined in the distribution module
+        and must have the name 'fraction__<DISTRIBUTION_PLAN>', e.g.
+        'fraction__0_1 = {...}' in order to support dynamic choice of
+        different distribution plan versions in one run.
+
+    Roles:
+        The roles dict structure:
+
+            roles = [
+                {
+                    'plan': '<DISTRIBUTION_PLAN_1>',
+                    'type': '<DISTRIBUTION_TYPE_1>',
+                    'creation': '<CREATION_IDENTIFIER_1>',
+                    'meta': {
+                        '<KEY_1>': <VALUE_1>,
+                        '<KEY_2>': <VALUE_2>,
+                    },
+                    'split': {
+                        '<ROLENAME_1>': {
+                            'rightsholders': [
+                                <RIGHTSHOLDER_1>,
+                                <RIGHTSHOLDER_2>,
+                                [...]
+                            ],
+                        },
+                        '<ROLENAME_2>': {
+                            '<ROLENAME_3>': {
+                                'rightsholders': [
+                                    <RIGHTSHOLDER_3>,
+                                    <RIGHTSHOLDER_4>,
+                                    [...]
+                                ],
+                            },
+                            [...]
+                        },
+                        '<ROLENAME_4>': {
+                            'rightsholders': [
+                                {
+                                    'licensee': <RIGHTSHOLDER_5>,
+                                    'fraction': fractions.Fraction()
+                                }
+                                {
+                                    'licensee': <RIGHTSHOLDER_6>,
+                                    'fraction': fractions.Fraction()
+                                }
+                                [...]
+                            ],
+                        },
+                        '<ROLENAME_5>': [
+                            {
+                                'plan': '<DISTRIBUTION_PLAN_2>',
+                                'type': '<DISTRIBUTION_TYPE_2>',
+                                'creation': '<CREATION_IDENTIFIER_2>',
+                                'meta': {},
+                                'split': [...]
+                            }, {
+                                'plan': '<DISTRIBUTION_PLAN_3>',
+                                'type': '<DISTRIBUTION_TYPE_3>',
+                                'creation': '<CREATION_IDENTIFIER_3>',
+                                'meta': {},
+                                'split': [...]
+                            }
+                        ],
+                        [...]
+                    },
+                },
+                [...]
+            ]
+
+        The first level of the roles defines a list of distribution nodes with
+        all information needed to pick the right fractions.
+
+        Distribution Node:
+            plan (str): the distribution plan verion
+            type (str): the distribution type for the split
+            creation (str): arbitrary identifier for the creation
+            meta (dict): arbitrary meta infos passed to the returned share list
+            split (dict): mapping from roles to rightsholders, must match the
+              structure of the fractions of the distrbution
+
+        Depending on the fractions, the 'split' need to have different forms:
+
+            - Only '<ROLENAME>' defined for splits among other split nodes
+
+                {
+                    '<ROLENAME>': [...],
+                }
+
+            - Only 'rightsholders' defined for leave nodes
+
+                {
+                    'rightsholders': [
+                        <RIGHTSHOLDER_1>,
+                        <RIGHTSHOLDER_2>,
+                        {
+                            'licenser': <RIGHTSHOLDER_3>,
+                            'fraction': fractions.Fraction(),
+                        }
+                    ],
+                }
+
+              which must contain a (possibly empty) list of rightsholders.
+              The list might contain the rightsholder object (arbitrary, but no
+              dicts), or a dict with 'licenser' and 'fraction', to be able to
+              change the default of even distribution (if given by contracts).
+              Note: All fractions of a level must equal 1.
+
+            - A list of new distributions for distribution nodes (recursion).
+              For a definition see "distribution node" above.
+
+    Example:
+        >>> import distribution
+        >>> from fractions import Fraction
+        >>> distribution.fractions__0_0_1 = {
+        ...     'original': {
+        ...         'fraction': 1,
+        ...         'split': {
+        ...             'copyright': {
+        ...                 'fraction': Fraction(1, 2),
+        ...             },
+        ...             'ancillary': {
+        ...                 'fraction': Fraction(1, 2),
+        ...             },
+        ...         },
+        ...     },
+        ... }
+        >>> roles = [{
+        ...    'plan': '0.0.1',
+        ...    'type': 'original',
+        ...    'creation': 'C00001',
+        ...    'meta': {'utilisation': 'U00001'},
+        ...    'split': {
+        ...        'copyright': {
+        ...            'rightsholders': ['licenser1', 'licenser2'],
+        ...        },
+        ...        'ancillary': {
+        ...            'rightsholders': ['licenser3', 'licenser4'],
+        ...        },
+        ...    },
+        ... }]
+        >>> split = distribution.Split(roles)
+        >>> split.distribute(Decimal(1000))
+        ... [{'amount': Decimal('250'),
+        ...   'licenser': 'licenser1',
+        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...  {'amount': Decimal('250'),
+        ...   'licenser': 'licenser2',
+        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...  {'amount': Decimal('250'),
+        ...   'licenser': 'licenser3',
+        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...  {'amount': Decimal('250'),
+        ...   'licenser': 'licenser4',
+        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}}]
+
+        >>> roles = [{
+        ...    'plan': '0.0.1',
+        ...    'type': 'original',
+        ...    'creation': 'C00001',
+        ...    'meta': {'utilisation': 'U00001'},
+        ...    'split': {
+        ...        'copyright': {
+        ...            'rightsholders': ['licenser1', 'licenser2'],
+        ...        },
+        ...        'ancillary': {
+        ...            'rightsholders': [],
+        ...        },
+        ...    },
+        ... }]
+        >>> split = distribution.Split(roles)
+        >>> split.distribute(Decimal(1000))
+        ... [{'amount': Decimal('500'),
+        ...   'licenser': 'licenser1',
+        ...   'meta': {'redistributed': ['root.C00001.copyright'],
+        ...            'utilisation': 'U00001'}},
+        ...  {'amount': Decimal('500'),
+        ...   'licenser': 'licenser2',
+        ...   'meta': {'redistributed': ['root.C00001.copyright'],
+        ...            'utilisation': 'U00001'}}]
+
+        >>> roles = [{
+        ...    'plan': '0.0.1',
+        ...    'type': 'original',
+        ...    'creation': 'C00001',
+        ...    'meta': {'utilisation': 'U00001'},
+        ...    'split': {
+        ...        'copyright': {
+        ...            'rightsholders': [
+        ...                {
+        ...                    'licenser': 'licenser1',
+        ...                    'fraction': Fraction(2, 3)],
+        ...                }, {
+        ...                    'licenser': 'licenser2',
+        ...                    'fraction': Fraction(1, 3)],
+        ...                },
+        ...            ],
+        ...        },
+        ...        'ancillary': {
+        ...            'rightsholders': [],
+        ...        },
+        ...    },
+        ... }]
+        >>> split = distribution.Split(roles)
+        >>> split.distribute(Decimal(1000))
+        ... [{'amount': Decimal('666.6666666666666666666666667'),
+        ...   'licenser': 'licenser1',
+        ...   'meta': {'redistributed': ['root.C00001.copyright'],
+        ...            'utilisation': 'U00001'}},
+        ...  {'amount': Decimal('333.3333333333333333333333333'),
+        ...   'licenser': 'licenser2',
+        ...   'meta': {'redistributed': ['root.C00001.copyright'],
+        ...            'utilisation': 'U00001'}}]
+
+    """
     def __init__(self, roles, amount=None, fractions={},
                  key='root', parent=None,
                  redistribute=True, log=True, debug=False, verbose=False):
@@ -471,6 +837,10 @@ class Split():
     # --- actions -------------------------------------------------------------
 
     def redistribute(self):
+        """
+        Reverse recursive redistribution of split fractions without
+        rightsholders.
+        """
         # redistribute
         for role in self.pre_leaves:
             role._redistribute()
@@ -523,6 +893,9 @@ class Split():
             self.parent._redistribute()
 
     def distribute(self, amount):
+        """
+        Distribution of an amount among the splits.
+        """
         # ensure at least one rightsholder exists to distribute to
         assert self.contains_rightsholders(), (
           "the provided rightsholders list contain no rightsholders")
@@ -562,6 +935,9 @@ class Split():
                 )
 
     def print(self, msg="", level=1):
+        """
+        Prints the state of the tree.
+        """
         output = ""
         if msg:
             output += f"\n{msg}\n" + "-" * 86 + "\n"
@@ -582,6 +958,9 @@ class Split():
 
     @property
     def licenser_shares(self):
+        """
+        Generates a list of licenser shares from the current state of the tree.
+        """
         if self.is_leaf():
             shares = []
             for rightsholder in self.rightsholders:
@@ -598,6 +977,9 @@ class Split():
 
     @property
     def redistributed_roles(self):
+        """
+        Returns all redistributed roles along the path of the current node.
+        """
         roles = []
         if self.redistributed:
             roles.append(self.path)
@@ -607,10 +989,16 @@ class Split():
 
     @property
     def distribution(self):
+        """
+        Returns a simple dict of the fractions of the children splits.
+        """
         return {split.key: split.fraction for split in self.splits}
 
     @property
     def fraction_sum(self):
+        """
+        Returns the sum of the fractions of the children splits.
+        """
         if self.is_leaf():
             return sum([rightsholder.fraction
                         for rightsholder in self.rightsholders])
@@ -618,6 +1006,9 @@ class Split():
 
     @property
     def all_rightsholders(self):
+        """
+        Returns rightsholders contained by the current branch including itself.
+        """
         return [
             rightsholder
             for split in self.leaves
@@ -626,6 +1017,9 @@ class Split():
 
     @property
     def meta(self):
+        """
+        Returns meta of first distribution node among parents.
+        """
         if self._meta:
             return self._meta
         if self.is_root():
@@ -634,6 +1028,9 @@ class Split():
 
     @property
     def creation(self):
+        """
+        Returns creation of first distribution node among parents.
+        """
         if self._creation:
             return self._creation
         if self.is_root():
@@ -642,6 +1039,9 @@ class Split():
 
     @property
     def distribution_plan(self):
+        """
+        Returns distribution plan of first distribution node among parents.
+        """
         if self._distribution_plan:
             return self._distribution_plan
         if self.is_root():
@@ -650,6 +1050,9 @@ class Split():
 
     @property
     def distribution_type(self):
+        """
+        Returns distribution type of first distribution node among parents.
+        """
         if self._distribution_type:
             return self._distribution_type
         if self.is_root():
@@ -657,6 +1060,9 @@ class Split():
         return self.parent.distribution_type
 
     def contains_rightsholders(self):
+        """
+        Checks if the current branch including itself contains rightsholders.
+        """
         if self.rightsholders:
             return True
         for split in self.splits:
@@ -668,40 +1074,65 @@ class Split():
 
     @property
     def root(self):
+        """
+        Returns the root node.
+        """
         if self.is_root():
             return self
         return self.parent.root
 
     def is_root(self):
+        """
+        Checks if current node is the root node.
+        """
         return self.parent is None
 
     @property
     def leaves(self):
+        """
+        Returns all leaves of the current branch starting from itself.
+        """
         if self.is_leaf():
             return [self]
         return sum([split.leaves for split in self.splits], [])
 
     @property
     def pre_leaves(self):
+        """
+        Returns pre-leaves nodes of the current branch starting from itself
+        (nodes with child leaves).
+        """
         return set([leaf.parent for leaf in self.leaves])
 
     def is_leaf(self):
+        """
+        Checks if current node is a leaf.
+        """
         return not self.splits
 
     @property
     def path(self):
+        """
+        Returns the current path in dot notation.
+        """
         if self.is_root():
             return f"{self.key}"
         return f"{self.parent.path}.{self.key}"
 
     @property
     def config(self):
+        """
+        Returns the config dict of the root node.
+        """
         if self.is_root():
             return self._config
         return self.parent.config
 
     @property
     def log(self):
+        """
+        Returns the log dict of the root node.
+        """
         if self.is_root():
             return self._log
         return self.parent.log
