@@ -590,7 +590,6 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
         help='The tariff categories, for which the adjustment category can '
              'be applied')
 
-
 class TariffCategoryTariffAdjustmentCategory(ModelSQL):
     'Tariff Category - Tariff Adjustment Category'
     __name__ = 'tariff_category-tariff_adjustment_category'
@@ -634,6 +633,15 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
     utilisation_indicators = fields.Many2One(
         'utilisation.indicators', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff adjustment')
+
+    @fields.depends('category')
+    def on_change_category(self):
+        if self.category:
+            self.value = self.category.value_default
+
+    @staticmethod
+    def default_status():
+        return 'on_approval'
 
 
 class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
@@ -716,6 +724,11 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
         if self.deviation:
             rec_name += " *"
         return rec_name
+
+    @fields.depends('category')
+    def on_change_category(self):
+        if self.category:
+            self.value = self.category.value_default
 
 
 class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
