@@ -1299,6 +1299,10 @@ class DistributionPlan(ModelSQL, ModelView):
             ('version',) + tuple(clause[1:]),
         ]
 
+    def get_rec_name(self, name):
+        rec_name = f"v{self.version}"
+        return rec_name
+
 
 class DistributeStart(ModelView):
     'Distribute Start'
