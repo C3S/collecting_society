@@ -4924,6 +4924,10 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             utilisation.save()
         return elist
 
+    def get_rec_name(self, name):
+        rec_name = f"{self.context.rec_name}"
+        return rec_name
+
 
 class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
     'Declaration Group'
