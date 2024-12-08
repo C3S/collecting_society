@@ -1,4 +1,5 @@
 import sys
+from copy import deepcopy
 from math import isclose
 from decimal import Decimal
 from fractions import Fraction
@@ -705,6 +706,9 @@ class Split():
         ...            'utilisation': 'U00001'}}]
 
     """
+
+    # --- Behaviour -----------------------------------------------------------
+
     def __init__(self, roles, amount=None, fractions={},
                  key='root', parent=None,
                  redistribute=True, log=True, debug=False, verbose=False):
@@ -738,12 +742,12 @@ class Split():
                 sys.modules[__name__], f"fractions__{version}")
             fractions = all_fractions[self.distribution_type]
 
-        self._config = {
-            'log': log,
-            'debug': debug,
-            'verbose': verbose,
-        }
         if self.is_root():
+            self._config = {
+                'log': log,
+                'debug': debug,
+                'verbose': verbose,
+            }
             self._log = []
 
         # new distribution
@@ -756,12 +760,16 @@ class Split():
                 for distribution in distributions:
                     assert distribution['type'] == fractions['distribution'], (
                         f"distribution type '{distribution['type']}' "
-                        f"of {self.path}.{distribution['creation']} does not"
+                        f"of {self.path}.{distribution['creation']} does not "
                         f"match the type '{fractions['distribution']}' "
                         f"expected in the fractions of the distribution plan "
                         f"{self.root.distribution_plan}")
-            fraction = Fraction(1, len(distributions))
+            num_distributions = len(distributions)
+            if not num_distributions:
+                return
+            fraction = Fraction(1, num_distributions)
             for distribution in distributions:
+                fractions = deepcopy(fractions)
                 fractions['fraction'] = distribution.get('fraction', fraction)
                 creation = Split(roles=distribution,
                                  fractions=fractions,
@@ -834,7 +842,36 @@ class Split():
         assert self.fraction_sum == 1, (
             f"sums of split fractions in {self.path} don't equal 1")
 
-    # --- actions -------------------------------------------------------------
+    def __contains__(self, item):
+        for split in self.splits:
+            if item == split.key:
+                return True
+        return False
+
+    def __getitem__(self, key):
+        for split in self.splits:
+            if key == split.key:
+                return split
+        raise KeyError(f"split {key} not found in {self.path}")
+
+    def __iter__(self):
+        return iter(self.splits[::-1])
+
+    def __len__(self):
+        return len(self.splits)
+
+    def __str__(self):
+        return f"{self.key}"
+
+    def __repr__(self):
+        attributes = f"path={self.path}"
+        attributes += f" splits={[split.key for split in self.splits]}"
+        attributes += f" fraction={self.fraction}"
+        if self.amount:
+            attributes += f" amount={self.amount}"
+        return (f"<Split {attributes}>")
+
+    # --- Actions -------------------------------------------------------------
 
     def redistribute(self):
         """
@@ -906,12 +943,14 @@ class Split():
             self.print(f'distribution: {amount}')
         assert isclose(self.amount,
                        sum([rightsholder.amount
-                            for rightsholder in self.all_rightsholders])), (
+                            for rightsholder in self.all_rightsholders
+                            if rightsholder.amount])), (
                f"sum of rightsholder amounts not equal to amount in {self}")
         licenser_shares = self.licenser_shares
         assert isclose(self.amount,
                        sum([share['amount']
-                            for share in licenser_shares])), (
+                            for share in licenser_shares
+                            if share['amount']])), (
                f"sum of licenser share amounts not equal to amount in {self}")
         return licenser_shares
 
@@ -954,7 +993,7 @@ class Split():
             return output
         print(output)
 
-    # --- domain --------------------------------------------------------------
+    # --- Domain --------------------------------------------------------------
 
     @property
     def licenser_shares(self):
@@ -965,7 +1004,7 @@ class Split():
             shares = []
             for rightsholder in self.rightsholders:
                 meta = self.meta.copy()
-                meta['creation']: self.creation
+                meta['creation'] = self.creation
                 meta['redistributed'] = self.redistributed_roles
                 shares.append({
                     'licenser': rightsholder.licenser,
@@ -1070,7 +1109,7 @@ class Split():
                 return True
         return False
 
-    # --- tree ----------------------------------------------------------------
+    # --- Tree ----------------------------------------------------------------
 
     @property
     def root(self):
@@ -1136,34 +1175,3 @@ class Split():
         if self.is_root():
             return self._log
         return self.parent.log
-
-    # --- behaviour -----------------------------------------------------------
-
-    def __contains__(self, item):
-        for split in self.splits:
-            if item == split.key:
-                return True
-        return False
-
-    def __getitem__(self, key):
-        for split in self.splits:
-            if key == split.key:
-                return split
-        raise KeyError(f"split {key} not found in {self.path}")
-
-    def __iter__(self):
-        return iter(self.splits[::-1])
-
-    def __len__(self):
-        return len(self.splits)
-
-    def __str__(self):
-        return f"{self.key}"
-
-    def __repr__(self):
-        attributes = f"path={self.path}"
-        attributes += f" splits={[split.key for split in self.splits]}"
-        attributes += f" fraction={self.fraction}"
-        if self.amount:
-            attributes += f" amount={self.amount}"
-        return (f"<Split {attributes}>")

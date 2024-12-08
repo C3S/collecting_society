@@ -1,6 +1,9 @@
 # flake8: noqa: E501
+#
+# Usage:
+#   cd formulas
+#   PYTHONSTARTUP=tests/test_distribution.py python
 
-import sys
 import distribution
 from decimal import Decimal
 from fractions import Fraction
@@ -132,46 +135,10 @@ def generate_split(roles, length=1):
             fractions["split"][item] = generate_split(roles[item], len(roles))
     return fractions
 
-#### docstring example
-# distribution.fractions__0_0_1 = {
-#     'original': {
-#         'fraction': 1,
-#         'split': {
-#             'copyright': {
-#                 'fraction': Fraction(1, 2),
-#             },
-#             'ancillary': {
-#                 'fraction': Fraction(1, 2),
-#             },
-#         },
-#     },
-# }
-# roles = [{
-#    'plan': '0.0.1',
-#    'type': 'original',
-#    'creation': 'C00001',
-#    'meta': {'utilisation': 'U00001'},
-#    'split': {
-#        'copyright': {
-#            'rightsholders': [
-#                {'licenser': 'licenser1', 'fraction': Fraction(2, 3)},
-#                {'licenser': 'licenser2', 'fraction': Fraction(1, 3)},
-#             ],
-#        },
-#        'ancillary': {
-#            'rightsholders': [],
-#        },
-#    },
-# }]
-# split = distribution.Split(roles)
-# shares = split.distribute(Decimal(1000))
-
 generate_fractions(roles)
 distribution.fractions__0_0 = fractions
-pprint(fractions
+pprint(fractions)
 
 split = distribution.Split(roles, Decimal('0.0001'), debug=True, verbose=False)
 split.distribute(Decimal(1))
 split.distribute(Decimal(10000))
-
-
