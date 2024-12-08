@@ -1778,7 +1778,8 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         if not utilisation:
             return None
         declaration = utilisation.declaration
-        rec_name = f"{sample} Indicators of Declaration {declaration.get_rec_name('')}"
+        rec_name = (f"{sample} Indicators of Declaration "
+                    f"{declaration.get_rec_name('')}")
         return rec_name
 
     # @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
@@ -2063,7 +2064,6 @@ class IndicatorsMeta(ModelMeta):
             IndicatorsClass._measured_field_names.add(measured_field_name)
 
         return new
-
 
 
 ##############################################################################
