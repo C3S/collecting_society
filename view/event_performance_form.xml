@@ -13,12 +13,18 @@
     </group>
 
     <label name="start"/>
-    <field name="start"/>
+    <group col="2" colspan="1" id="start">
+        <field name="start" widget="date"/>
+        <field name="start" widget="time"/>
+    </group>
     <label name="playlist"/>
     <field name="playlist"/>
 
     <newline/>
 
     <label name="end"/>
-    <field name="end"/>
+    <group col="2" colspan="1" id="end">
+        <field name="end" widget="date"/>
+        <field name="end" widget="time"/>
+    </group>
 </form>
