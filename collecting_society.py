@@ -481,6 +481,10 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
             ('version',) + tuple(clause[1:]),
         ]
 
+    def get_rec_name(self, name):
+        rec_name = f"v{self.version}"
+        return rec_name
+
 
 class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff Category'
@@ -553,6 +557,10 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
             ('name',) + tuple(clause[1:]),
             ('code',) + tuple(clause[1:]),
         ]
+
+    def get_rec_name(self, name):
+        rec_name = f"{self.name}"
+        return rec_name
 
 
 class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
@@ -792,6 +800,10 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def get_fee_formula(self):
         version = collection.convert_version(self.system.version)
         return getattr(collection, f"tariff_fee__{version}")
+
+    def get_rec_name(self, name):
+        rec_name = self.category.code + self.system.version
+        return rec_name
 
 
 # --- Collection --------------------------------------------------------------
@@ -1754,6 +1766,21 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
             return None
         return self.invoice_amount - self.administration_fee
 
+    def get_rec_name(self, name):
+        sample = None
+        utilisation = None
+        if self.confirmed_utilisations:
+            utilisation = self.confirmed_utilisations[0]
+            sample = "Confirmed"
+        elif self.estimated_utilisations:
+            utilisation = self.estimated_utilisations[0]
+            sample = "Estimated"
+        if not utilisation:
+            return None
+        declaration = utilisation.declaration
+        rec_name = f"{sample} Indicators of Declaration {declaration.get_rec_name('')}"
+        return rec_name
+
     # @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
     # def on_change_adjustments(self):
     #     samples = ['estimated', 'confirmed']
@@ -2036,6 +2063,7 @@ class IndicatorsMeta(ModelMeta):
             IndicatorsClass._measured_field_names.add(measured_field_name)
 
         return new
+
 
 
 ##############################################################################
