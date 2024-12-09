@@ -1258,128 +1258,156 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
         self.initial_distribution_amount = distribution_amount.quantize(
             Decimal(1) / 10 ** self.get_currency_digits(''))
 
-        # generate list of creation shares in invoice amount
-        creation_shares = []
-        for allocation in self.allocations:
-            for utilisation in allocation.utilisations:
-                creation_list = utilisation.creation_list
-                if not creation_list:
-                    continue
-                total_weight = sum(
-                    [item.weight for item in creation_list.billable])
-                for item in creation_list.billable:
-                    weight = (
-                        utilisation.confirmed_invoice_amount
-                        / distribution_amount
-                        * Decimal(item.weight)
-                        / Decimal(total_weight)
-                    )
-                    if not weight:
-                        # exclude 0 amounts
+        # distribution without shares
+        if distribution_amount == 0:
+
+            # caclulate corrected general/distribution amount
+            self.adjusted_general_amount = self.initial_general_amount
+            self.adjusted_distribution_amount = 0
+
+            # caclulate fonds/reserve amounts
+            social_fund_amount = general_amount / Decimal(3)
+            cultural_fund_amount = general_amount / Decimal(3)
+            reserve_fund_amount = general_amount / Decimal(3)
+
+            assert math.isclose(general_amount,
+                                sum([social_fund_amount,
+                                     cultural_fund_amount,
+                                     reserve_fund_amount])), (
+                   "sum of funds is not close to general amount")
+
+            self.social_fund_amount = social_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.cultural_fund_amount = cultural_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.reserve_fund_amount = reserve_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+
+        # distribute with shares
+        else:
+
+            # generate list of creation shares in invoice amount
+            creation_shares = []
+            for allocation in self.allocations:
+                for utilisation in allocation.utilisations:
+                    creation_list = utilisation.creation_list
+                    if not creation_list:
                         continue
-                    creation_shares.append({
-                        'creation': item.creation,
-                        'weight': weight,
-                        'utilisation': utilisation,
-                    })
+                    total_weight = sum(
+                        [item.weight for item in creation_list.billable])
+                    for item in creation_list.billable:
+                        weight = (
+                            utilisation.confirmed_invoice_amount
+                            / distribution_amount
+                            * Decimal(item.weight)
+                            / Decimal(total_weight)
+                        )
+                        if not weight:
+                            # exclude 0 amounts
+                            continue
+                        creation_shares.append({
+                            'creation': item.creation,
+                            'weight': weight,
+                            'utilisation': utilisation,
+                        })
 
-        assert math.isclose(1, sum([share['weight']
-                                    for share in creation_shares])), (
-               "sum of creation shares is not close to 1")
+            assert math.isclose(1, sum([share['weight']
+                                        for share in creation_shares])), (
+                   "sum of creation shares is not close to 1")
 
-        # caclulate corrected general/distribution amount
-        general_ratio = general_amount / invoice_amount
-        if general_ratio < Decimal('0.1'):
-            general_amount = invoice_amount * Decimal('0.1')
-            distribution_amount = invoice_amount - general_amount
-        elif general_ratio > Decimal('0.15'):
-            general_amount = invoice_amount * Decimal('0.15')
-            distribution_amount = invoice_amount - general_amount
+            # caclulate corrected general/distribution amount
+            general_ratio = general_amount / invoice_amount
+            if general_ratio < Decimal('0.1'):
+                general_amount = invoice_amount * Decimal('0.1')
+                distribution_amount = invoice_amount - general_amount
+            elif general_ratio > Decimal('0.15'):
+                general_amount = invoice_amount * Decimal('0.15')
+                distribution_amount = invoice_amount - general_amount
 
-        assert math.isclose(general_amount + distribution_amount,
-                            invoice_amount), (
-               "sum of general and distribution amount differs from "
-               "invoice amount")
+            assert math.isclose(general_amount + distribution_amount,
+                                invoice_amount), (
+                   "sum of general and distribution amount differs from "
+                   "invoice amount")
 
-        self.adjusted_general_amount = general_amount.quantize(
-            Decimal(1) / 10 ** self.get_currency_digits(''))
-        self.adjusted_distribution_amount = distribution_amount.quantize(
-            Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.adjusted_general_amount = general_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.adjusted_distribution_amount = distribution_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
 
-        # calcualte amounts for shares with adjusted distribution amount
-        for creation_share in creation_shares:
-            creation_share['amount'] = (
-                distribution_amount * creation_share['weight'])
+            # calcualte amounts for shares with adjusted distribution amount
+            for creation_share in creation_shares:
+                creation_share['amount'] = (
+                    distribution_amount * creation_share['weight'])
 
-        assert math.isclose(distribution_amount,
-                            sum([share['amount']
-                                 for share in creation_shares])), (
-               "sum of share amounts is not close to distribution amount")
+            assert math.isclose(distribution_amount,
+                                sum([share['amount']
+                                     for share in creation_shares])), (
+                   "sum of share amounts is not close to distribution amount")
 
-        # caclulate fonds/reserve amounts
-        social_fund_amount = general_amount / Decimal(3)
-        cultural_fund_amount = general_amount / Decimal(3)
-        reserve_fund_amount = general_amount / Decimal(3)
+            # caclulate fonds/reserve amounts
+            social_fund_amount = general_amount / Decimal(3)
+            cultural_fund_amount = general_amount / Decimal(3)
+            reserve_fund_amount = general_amount / Decimal(3)
 
-        assert math.isclose(general_amount,
-                            sum([social_fund_amount,
-                                 cultural_fund_amount,
-                                 reserve_fund_amount])), (
-               "sum of funds is not close to general amount")
+            assert math.isclose(general_amount,
+                                sum([social_fund_amount,
+                                     cultural_fund_amount,
+                                     reserve_fund_amount])), (
+                   "sum of funds is not close to general amount")
 
-        self.social_fund_amount = social_fund_amount.quantize(
-            Decimal(1) / 10 ** self.get_currency_digits(''))
-        self.cultural_fund_amount = cultural_fund_amount.quantize(
-            Decimal(1) / 10 ** self.get_currency_digits(''))
-        self.reserve_fund_amount = reserve_fund_amount.quantize(
-            Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.social_fund_amount = social_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.cultural_fund_amount = cultural_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
+            self.reserve_fund_amount = reserve_fund_amount.quantize(
+                Decimal(1) / 10 ** self.get_currency_digits(''))
 
-        # generate list of licenser share amounts
-        licenser_shares = []
-        for share in creation_shares:
-            version = utils.convert_version(
-                utilisation.distribution_plan.version)
-            get_roles = getattr(distribution, f'roles__{version}')
-            roles = get_roles(utilisation, share['creation'])
-            split = distribution.Split(roles)
-            if split.contains_rightsholders():
-                licenser_shares += split.distribute(share['amount'])
-                continue
-            licenser_shares.append({
-                'licenser': None,
-                'amount': share['amount'],
-                'meta': {
-                    'utilisation': utilisation.code,
-                    'creation': share['creation'].code,
-                    'undistributable': 'nolicenser'
-                },
-            })
+            # generate list of licenser share amounts
+            licenser_shares = []
+            for share in creation_shares:
+                version = utils.convert_version(
+                    utilisation.distribution_plan.version)
+                get_roles = getattr(distribution, f'roles__{version}')
+                roles = get_roles(utilisation, share['creation'])
+                split = distribution.Split(roles)
+                if split.contains_rightsholders():
+                    licenser_shares += split.distribute(share['amount'])
+                    continue
+                licenser_shares.append({
+                    'licenser': None,
+                    'amount': share['amount'],
+                    'meta': {
+                        'utilisation': utilisation.code,
+                        'creation': share['creation'].code,
+                        'undistributable': 'nolicenser'
+                    },
+                })
 
-        assert math.isclose(distribution_amount,
-                            sum([share['amount']
-                                 for share in licenser_shares])), (
-               "sum of licenser shares is not close to distribution amount")
+            assert math.isclose(distribution_amount,
+                                sum([share['amount']
+                                     for share in licenser_shares])), (
+                   "sum of licenser shares not close to distribution amount")
 
-        # group shares by licenser and tariff
-        grouped_shares = {}
-        for share in licenser_shares:
-            licenser = share['licenser']
-            tariff = share['utilisation'].tariff
-            if licenser not in grouped_shares:
-                grouped_shares[licenser] = {}
-            if tariff not in grouped_shares[licenser]:
-                grouped_shares[licenser][tariff] = {
-                    'distribution': self,
-                    'tariff': tariff,
-                    'amount': Decimal(0),
-                }
-            grouped_shares[licenser][tariff]['amount'] += share['amount']
+            # group shares by licenser and tariff
+            grouped_shares = {}
+            for share in licenser_shares:
+                licenser = share['licenser']
+                tariff = share['utilisation'].tariff
+                if licenser not in grouped_shares:
+                    grouped_shares[licenser] = {}
+                if tariff not in grouped_shares[licenser]:
+                    grouped_shares[licenser][tariff] = {
+                        'distribution': self,
+                        'tariff': tariff,
+                        'amount': Decimal(0),
+                    }
+                grouped_shares[licenser][tariff]['amount'] += share['amount']
 
-        assert math.isclose(distribution_amount,
-                            sum([share['amount']
-                                 for tariffs in grouped_shares.values()
-                                 for share in tariffs.values()])), (
-               "sum of grouped shares is not close to distribution amount")
+            assert math.isclose(distribution_amount,
+                                sum([share['amount']
+                                     for tariffs in grouped_shares.values()
+                                     for share in tariffs.values()])), (
+                   "sum of grouped shares is not close to distribution amount")
 
         # post move for fonds
         pool = Pool()
@@ -1405,28 +1433,29 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
         self.funds_account_move = move
 
         # post invoices for licenser shares
-        Invoice = pool.get('account.invoice')
-        invoices = []
-        for licenser, tariffs in grouped_shares.items():
-            _invoice = {
-                'distribution': self,
-                'company': company,
-                'type': 'in',
-                'journal': journal,
-                'party': licenser,
-                'invoice_address': licenser.address_get('invoice'),
-                'currency': company.currency,
-                'account': licenser.account_payable,
-                'description': "Invoice Description",
-                'invoice_date': datetime.date.today(),
-                'lines': self._get_share_invoice_lines(tariffs)
-            }
-            invoices.append(Invoice(**_invoice))
-        Invoice.save(invoices)
-        Invoice.update_taxes(invoices)
-        Invoice.validate(invoices)
-        Invoice.post(invoices)
-        self.licenser_invoices = invoices
+        if distribution_amount > 0:
+            Invoice = pool.get('account.invoice')
+            invoices = []
+            for licenser, tariffs in grouped_shares.items():
+                _invoice = {
+                    'distribution': self,
+                    'company': company,
+                    'type': 'in',
+                    'journal': journal,
+                    'party': licenser,
+                    'invoice_address': licenser.address_get('invoice'),
+                    'currency': company.currency,
+                    'account': licenser.account_payable,
+                    'description': "Invoice Description",
+                    'invoice_date': datetime.date.today(),
+                    'lines': self._get_share_invoice_lines(tariffs)
+                }
+                invoices.append(Invoice(**_invoice))
+            Invoice.save(invoices)
+            Invoice.update_taxes(invoices)
+            Invoice.validate(invoices)
+            Invoice.post(invoices)
+            self.licenser_invoices = invoices
 
         # save
         self.save()
