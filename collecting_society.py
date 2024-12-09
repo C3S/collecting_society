@@ -9,7 +9,6 @@ import json
 import copy
 import math
 from decimal import Decimal
-from collections import Counter, defaultdict
 from typing import Protocol, Any
 from sql import Table
 from sql.functions import CharLength
@@ -59,6 +58,7 @@ __all__ = [
     'AllocationInvoice',
     'Collection',
     'Distribution',
+    'DistributionAccountMove',
     'DistributionPlan',
     'DistributeStart',
     'Distribute',
@@ -83,8 +83,6 @@ __all__ = [
     'ArtistPlaylistItem',
     'Creation',
     'CreationDerivative',
-    'CreationContribution',
-    'CreationContributionRole',
     'CreationRole',
     'CreationTariffCategory',
     'CreationIdentifier',
@@ -1203,6 +1201,14 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
         states={'readonly': True}, depends=['currency_digits'],
         help='The reserve fund amount')
 
+    funds_account_move = fields.One2One(
+        'distribution-account.move', 'distribution', 'move',
+        'Funds Account Move',
+        help='The account move for the funds')
+    licenser_invoices = fields.One2Many(
+        'account.invoice', 'distribution', 'Licenser Invoices',
+        help='The invoices for the distribution')
+
     @classmethod
     def __setup__(cls):
         super().__setup__()
@@ -1217,6 +1223,10 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
     @staticmethod
     def default_uuid():
         return str(uuid.uuid4())
+
+    @staticmethod
+    def default_start():
+        return datetime.datetime.now()
 
     def distribute_allocations(self):
         # sanity checks
@@ -1326,45 +1336,211 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
 
         # generate list of licenser share amounts
         licenser_shares = []
-        for creation_share in creation_shares:
-            creation = creation_share['creation']
-            amount = creation_share['amount']
+        for share in creation_shares:
             version = utils.convert_version(
                 utilisation.distribution_plan.version)
             get_roles = getattr(distribution, f'roles__{version}')
-            roles = get_roles(utilisation, creation)
+            roles = get_roles(utilisation, share['creation'])
             split = distribution.Split(roles)
             if split.contains_rightsholders():
-                licenser_shares += split.distribute(amount)
-            return [{
+                licenser_shares += split.distribute(share['amount'])
+                continue
+            licenser_shares.append({
                 'licenser': None,
-                'amount': amount,
+                'amount': share['amount'],
                 'meta': {
                     'utilisation': utilisation.code,
-                    'creation': creation.code,
+                    'creation': share['creation'].code,
                     'undistributable': 'nolicenser'
                 },
-            }]
+            })
 
         assert math.isclose(distribution_amount,
                             sum([share['amount']
                                  for share in licenser_shares])), (
-               "sum of licenser shares is not close to general amount")
+               "sum of licenser shares is not close to distribution amount")
 
-        # post move lines for fonds (distribution.move_lines?)
-        #
-        # distribute the licenser shares
-        # - add adjustemnts for
-        #     - retirement provisions
-        #     - membership fee
-        #     - administration fee
-        # - create and save invoices (distribution.invoices?)
+        # group shares by licenser and tariff
+        grouped_shares = {}
+        for share in licenser_shares:
+            licenser = share['licenser']
+            tariff = share['utilisation'].tariff
+            if licenser not in grouped_shares:
+                grouped_shares[licenser] = {}
+            if tariff not in grouped_shares[licenser]:
+                grouped_shares[licenser][tariff] = {
+                    'distribution': self,
+                    'tariff': tariff,
+                    'amount': Decimal(0),
+                }
+            grouped_shares[licenser][tariff]['amount'] += share['amount']
+
+        assert math.isclose(distribution_amount,
+                            sum([share['amount']
+                                 for tariffs in grouped_shares.values()
+                                 for share in tariffs.values()])), (
+               "sum of grouped shares is not close to distribution amount")
+
+        # post move for fonds
+        pool = Pool()
+        Move = pool.get('account.move')
+        Journal = pool.get('account.journal')
+        Company = pool.get('company.company')
+        Period = pool.get('account.period')
+
+        company = Company(Transaction().context['company'])
+        period = Period.find(company.id, date=self.start.date())
+        journal, = Journal.search([('code', '=', 'EXP')], limit=1)
+        _move = {
+            'journal': journal,
+            'period': period,
+            'date': self.start.date(),
+            'origin': self,
+            'company': company,
+            'lines': self._get_funds_lines(),
+        }
+        move = Move(**_move)
+        move.save()
+        Move.post([move])
+        self.funds_account_move = move
+
+        # post invoices for licenser shares
+        Invoice = pool.get('account.invoice')
+        invoices = []
+        for licenser, tariffs in grouped_shares.items():
+            _invoice = {
+                'distribution': self,
+                'company': company,
+                'type': 'in',
+                'journal': journal,
+                'party': licenser,
+                'invoice_address': licenser.address_get('invoice'),
+                'currency': company.currency,
+                'account': licenser.account_payable,
+                'description': "Invoice Description",
+                'invoice_date': datetime.date.today(),
+                'lines': self._get_share_invoice_lines(tariffs)
+            }
+            invoices.append(Invoice(**_invoice))
+        Invoice.save(invoices)
+        Invoice.update_taxes(invoices)
+        Invoice.validate(invoices)
+        Invoice.post(invoices)
+        self.licenser_invoices = invoices
 
         # save
         self.save()
         for allocation in self.allocations:
             allocation.state = 'distributed'
             allocation.save()
+
+    def _get_funds_lines(self):
+        pool = Pool()
+        Account = pool.get('account.account')
+        account_debit, = Account.search([('code', '=', '8200')])
+        account_social, = Account.search([('code', '=', '0950')])
+        account_cultural, = Account.search([('code', '=', '0970')])
+        account_reserve, = Account.search([('code', '=', '0974')])
+        return [{
+            # debit
+            'account': account_debit,
+            'debit': sum([
+                self.social_fund_amount,
+                self.cultural_fund_amount,
+                self.reserve_fund_amount,
+            ]),
+            'credit': Decimal(0),
+            'state': 'draft',
+        }, {
+            # credit: social fund
+            'account': account_social,
+            'debit': Decimal(0),
+            'credit': self.social_fund_amount,
+            'state': 'draft',
+        }, {
+            # credit: cultural fund
+            'account': account_cultural,
+            'debit': Decimal(0),
+            'credit': self.cultural_fund_amount,
+            'state': 'draft',
+        }, {
+            # credit: reserve fund
+            'account': account_reserve,
+            'debit': Decimal(0),
+            'credit': self.reserve_fund_amount,
+            'state': 'draft',
+        }]
+
+    def _get_share_invoice_lines(self, tariffs):
+        pool = Pool()
+        Account = pool.get('account.account')
+        # Tax = pool.get('account.invoice.tax')
+
+        account_royalties, = Account.search([('code', '=', '4126')])
+        # tax7, = Tax.search(
+        #     [('name', '=', "Umsatzsteuer – Ermäßigter Satz")], limit=1)
+
+        lines = []
+        total_amount = Decimal(0)
+        for tariff, share in tariffs.items():
+            amount = share['amount'].quantize(Decimal('0.00'))
+            total_amount += amount
+            # royalties
+            lines.append({
+                'account': account_royalties,
+                'type': 'line',
+                'description': f"Royalties {share['tariff'].code}",
+                'origin': share['distribution'],
+                'quantity': 1,
+                'unit_price': amount,
+                # 'taxes': [tax7],
+                'invoice_type': 'in',
+            })
+        # administration fee
+        lines.append({
+            'account': account_royalties,
+            'type': 'line',
+            'description': "Administration Fee",
+            'origin': share['distribution'],
+            'quantity': 1,
+            'unit_price': amount * Decimal('-0.1'),
+            # 'taxes': None,
+            'invoice_type': 'in',
+        })
+        # membership fee
+        lines.append({
+            'account': account_royalties,
+            'type': 'line',
+            'description': "Membership Fee",
+            'origin': share['distribution'],
+            'quantity': 1,
+            'unit_price': Decimal('-123.45'),
+            # 'taxes': None,
+            'invoice_type': 'in',
+        })
+        # retirement provisions
+        lines.append({
+            'account': account_royalties,
+            'type': 'line',
+            'description': "Retirement Provisions",
+            'origin': share['distribution'],
+            'quantity': 1,
+            'unit_price': Decimal('-12.34'),
+            # 'taxes': None,
+            'invoice_type': 'in',
+        })
+        return lines
+
+
+class DistributionAccountMove(ModelSQL):
+    'Distribution - AccountMove'
+    __name__ = 'distribution-account.move'
+    _history = True
+
+    distribution = fields.Many2One(
+        'distribution', 'Distribution', required=True, ondelete='CASCADE')
+    move = fields.Many2One(
+        'account.move', 'Move', required=True, ondelete='CASCADE')
 
 
 class DistributionPlan(ModelSQL, ModelView):
@@ -1465,6 +1641,11 @@ class Distribute(Wizard):
         ])
     distribute = StateTransition()
 
+    # @classmethod
+    # def __setup__(cls):
+    #     super().__setup__()
+    #     cls.__rpc__['create'].fresh_session = True
+
     def default_start(self, fields):
         allocations = []
         if self.records:
@@ -1499,196 +1680,6 @@ class Distribute(Wizard):
         distribution.save()
         distribution.distribute_allocations()
         return 'end'
-
-    def _transition_distribute(self):
-        pool = Pool()
-        Company = pool.get('company.company')
-        Distribution = pool.get('distribution')
-        Allocation = pool.get('allocation')
-        Utilisation = pool.get('utilisation')
-        Account = pool.get('account.account')
-        AccountMove = pool.get('account.move')
-        AccountJournal = pool.get('account.journal')
-        Party = pool.get('party.party')
-        Period = pool.get('account.period')
-
-        company = Company(Transaction().context['company'])
-        currency = company.currency
-        # TODO:
-        # * Redistribution
-        # * Check if distribution period overlaps with existing distribution
-
-        # Collect utilisations
-        utilisations = Utilisation.search([
-            (
-                'timestamp', '>=', datetime.datetime.combine(
-                    self.start.from_date, datetime.time.min)
-            ), (
-                'timestamp', '<=', datetime.datetime.combine(
-                    self.start.thru_date, datetime.time.max)
-            ), ('state', '=', 'not_distributed'),
-        ])
-        if not utilisations:
-            return 'end'
-        # Create always a new distribution
-        distribution, = Distribution.create(
-            [
-                {
-                    'date': self.start.date,
-                    'from_date': self.start.thru_date,
-                    'thru_date': self.start.thru_date,
-                }
-            ]
-        )
-
-        party_utilisations = defaultdict(list)
-        for utilisation in utilisations:
-            party_utilisations[utilisation.party.id].append(utilisation)
-
-        account_moves = []
-        for party_id, utilisations in party_utilisations.items():
-            if not utilisations:
-                continue
-            party = Party(party_id)
-            amount = party.pocket_balance
-            if not amount:
-                continue
-
-            if party.pocket_budget < party.pocket_balance:
-                amount = party.pocket_budget
-            amount = currency.round(amount)
-            fee_amount = currency.round(amount * Decimal(10) / Decimal(100))
-            share_amount = currency.round(
-                (amount - fee_amount) / len(utilisations))
-            allocation = {
-                'party': party_id,
-                'distribution': distribution.id,
-                'type': 'pocket2hats',
-                'amount': amount,
-                'share_amount': share_amount,
-            }
-            # create allocation
-            allocation, = Allocation.create([allocation])
-
-            Utilisation.write(
-                utilisations,
-                {
-                    'state': 'processing',
-                    'allocation': allocation.id,
-                })
-            account_move_lines = [{
-                # Company fees move line
-                'party': company.party.id,
-                'artist': None,
-                'account': Account.search([('kind', '=', 'revenue')])[0],
-                'debit': Decimal(0),
-                'credit': fee_amount,
-                'state': 'draft',
-            }, {
-                # Pocket move line
-                'party': party.id,
-                'artist': None,
-                'account': party.pocket_account.id,
-                'debit': amount,
-                'credit': Decimal(0),
-                'state': 'draft',
-            }]
-            for utilisation in utilisations:
-                breakdown = self._allocate(
-                    utilisation.creation,
-                    share_amount)
-                for artist, amount in breakdown.items():
-                    account_move_lines += [{
-                        # Hat move lines
-                        'party': None,
-                        'artist': artist.id,
-                        'account': artist.hat_account.id,
-                        'debit': Decimal(0),
-                        'credit': currency.round(amount),
-                        'state': 'draft',
-                    }]
-            period_id = Period.find(company.id, date=self.start.date)
-            journal, = AccountJournal.search([('code', '=', 'TRANS')])
-            origin = 'allocation,%s' % (allocation.id)
-            account_moves.append({
-                'journal': journal.id,
-                'origin': origin,
-                'date': self.start.date,
-                'period': period_id,
-                'state': 'draft',
-                'lines': [('create', account_move_lines)],
-            })
-        AccountMove.create(account_moves)
-        Utilisation.write(utilisations, {'state': 'distributed'})
-        return 'end'
-
-    def _allocate(self, creation, amount, result=None):
-        '''
-        Allocates an amount to all involved artists of a creation.
-        The tree of original creations is traversed and every node creation is
-        allocated by the appropriate derivative types.
-
-        Returns a dictionary with artist as key and the sum of amounts
-        as value.
-        '''
-        amount = Decimal(amount)
-
-        if result is None:
-            result = Counter()
-
-        if not creation.contributions:
-            # Handle creations from unclaimed fingerprinting identification:
-            # allocate complete amount to creation artist
-            result[creation.artist] = amount
-            return result
-
-        composer = [
-            c.artist for c in creation.contributions
-            if c.type == 'composition']
-        texter = [
-            c.artist for c in creation.contributions if c.type == 'text']
-        performers = [
-            c.artist for c in creation.contributions
-            if c.type == 'performance']
-        creators = composer or texter
-
-        performer_amount = Decimal(0)
-        composer_amount = Decimal(0)
-        texter_amount = Decimal(0)
-
-        if performers and creators:
-            amount = amount / Decimal(2)
-
-        if composer and texter:
-            composer_amount = (
-                amount * Decimal(65) / Decimal(100) / Decimal(len(composer)))
-            texter_amount = (
-                amount * Decimal(35) / Decimal(100) / Decimal(len(texter)))
-        elif texter:
-            texter_amount = amount / Decimal(len(texter))
-        elif composer:
-            composer_amount = amount / Decimal(len(composer))
-
-        if performers:
-            performer_amount = amount / Decimal(len(performers))
-
-        for c in composer:
-            result[c] += composer_amount
-        for t in texter:
-            result[t] += texter_amount
-        for p in performers:
-            result[p] += performer_amount
-
-        # Traverse Originators
-        # for original in creation.original_creations:
-        #     if not original.derivative_type:
-        #         result = self._allocate(
-        #             creation=original.original_creation,
-        #             amount=amount / Decimal(
-        #                 len(creation.original_creations)),
-        #             result=result)
-
-        return result
 
 
 # --- Indicators --------------------------------------------------------------
@@ -2681,11 +2672,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     artist = fields.Many2One(
         'artist', 'Artist', states=STATES, depends=DEPENDS, help='The named '
         'artist for the creation')
-    contributions = fields.One2Many(
-        'creation.contribution', 'creation', 'Contributions', states=STATES,
-        depends=DEPENDS, help='All individual contributions to the creation '
-        'like composition and lyric creators, band members and singer/solo '
-        'artists and their role.')
     lyrics = fields.Text(
         'Lyrics', help='The lyrics of the creation.')
     licenses = fields.Function(
@@ -2912,7 +2898,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     def get_rightsholders(self, right_type, contribution):
         return [
-            right for right in self.rights
+            right.rightsholder for right in self.rights
             if right.type_of_right == right_type
             and right.contribution == contribution
         ]
@@ -2991,106 +2977,6 @@ class CreationDerivative(ModelSQL, ModelView, PublicApi):
         '*Remix*: \n')
 
 
-class CreationContribution(ModelSQL, ModelView, PublicApi):
-    'Creation Contribution'
-    __name__ = 'creation.contribution'
-    _history = True
-
-    creation = fields.Many2One(
-        'creation', 'Creation', required=True,
-        ondelete='CASCADE')
-    artist = fields.Many2One(
-        'artist', 'Artist', help='The involved artist contributing to the '
-        'creation', ondelete='CASCADE')
-    type = fields.Selection(
-        [
-            ('performance', 'Performance'),
-            ('composition', 'Composition'),
-            ('text', 'Text'),
-        ], 'Type', required=True,
-        help='The type of contribution of the artist.\n\n'
-        '*performer*: The artist contributes a performance.\n'
-        '*composer*: The artist contributes a composition.\n'
-        '*text*: The artist contributes text.')
-    performance = fields.Selection(
-        [
-            (None, ''),
-            ('recording', 'Recording'),
-            ('producing', 'Producing'),
-            ('mastering', 'Mastering'),
-            ('mixing', 'Mixing'),
-        ], 'Performance', depends=['type'], states={
-            'required': Eval('type') == 'performance',
-            'invisible': Eval('type') != 'performance'},
-        help='The type of performance of the performer.\n\n'
-        '*recording*: Recoding of voice or instruments for the creation.\n'
-        '*producing*: Producing of the creation.\n'
-        '*mastering*: Mastering of the creation.\n'
-        '*mixing*: Mixing of the creation')
-    collecting_society = fields.Many2One(
-        'collecting_society', 'Collecting Society',
-        domain=[('represents_copyright', '=', True)],
-        states={'invisible': Eval('type') != 'text'}, depends=['type'])
-    neighbouring_rights_society = fields.Many2One(
-        'collecting_society', 'Neighbouring Rights Society',
-        domain=[('represents_ancillary_copyright', '=', True)],
-        states={'invisible': Eval('type') != 'performance'}, depends=['type'])
-    roles = fields.Many2Many(
-        'creation.contribution-creation.role', 'contribution', 'role',
-        'Roles',
-        help='The roles the artist takes in this creation')
-    roles_list = fields.Function(
-        fields.Char('Roles List'), 'on_change_with_roles_list')
-
-    # TODO: still needed? reason?
-    # composition_copyright_date = fields.Date(
-    #     'Composition Copyright Date')
-    # composition_copyright_owner = fields.Many2One(
-    #     'party.party', 'Composition Copyright Owner')
-    # composition_license = fields.Many2One(
-    #     'license', 'License')
-    # composition_publishing_date = fields.Date(
-    #     'Composition Publishing Date')
-    # composition_publisher = fields.Many2One(
-    #     'party.party', 'Composition Publisher',
-    #     help='Composition Publishing Entity')
-    # lyrics_copyright_date = fields.Date(
-    #     'Lyrics Copyright Date')
-    # lyrics_copyright_artist = fields.Many2One(
-    #     'artist', 'Lyrics Copyright Artist')
-    # lyrics_license = fields.Many2One(
-    #     'license', 'License')
-    # lyrics_publishing_date = fields.Date(
-    #     'Lyrics Publishing Date')
-    # lyrics_publisher = fields.Many2One(
-    #     'party.party', 'Lyrics Publisher', help='Lyrics Publishing Entity')
-
-    @fields.depends('roles')
-    def on_change_with_roles_list(self, name=None):
-        roles = ''
-        for role in self.roles:
-            roles += '%s, ' % role.name
-        return roles.rstrip(', ')
-
-    def get_rec_name(self, name):
-        result = '[%s] %s' % (
-            self.type, self.creation.title)
-        return result
-
-
-class CreationContributionRole(ModelSQL, ModelView):
-    'Creation Contribution - Creation Role'
-    __name__ = 'creation.contribution-creation.role'
-    _history = True
-
-    contribution = fields.Many2One(
-        'creation.contribution', 'Contribution', required=True,
-        ondelete='CASCADE')
-    role = fields.Many2One(
-        'creation.role', 'Role', required=True,
-        ondelete='CASCADE')
-
-
 class CreationRole(ModelSQL, ModelView, EntityOrigin, PublicApi):
     'Creation Role'
     __name__ = 'creation.role'
@@ -3143,7 +3029,7 @@ class CreationRight(ModelSQL, ModelView, MixinRight, PublicApi):
     _history = True
 
     rightsholder = fields.Many2One(
-        'artist', 'Rightsholder', required=True, ondelete='CASCADE')
+        'party.party', 'Rightsholder', required=True, ondelete='CASCADE')
     rightsobject = fields.Many2One(
         'creation', 'Creation', required=True, ondelete='CASCADE')
     contribution = fields.Selection(
@@ -3268,11 +3154,11 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         'Copyright Date', help='Date of the copyright.')
     production_date = fields.Date(
         'Production Date', help='Date of production.')
-    producers = fields.Function(
-        fields.Many2Many(
-            'creation.contribution', 'creation', 'artist', 'Producer(s)',
-            help='Producers involved in the creations of the release.'),
-        'get_producers')
+    # producers = fields.Function(
+    #     fields.Many2Many(
+    #         'creation.contribution', 'creation', 'artist', 'Producer(s)',
+    #         help='Producers involved in the creations of the release.'),
+    #     'get_producers')
 
     # distribution
     release_date = fields.Date('Release Date', help='Date of (first) release.')
@@ -3292,12 +3178,12 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         help='The labels catalog number of the release.')
     publisher = fields.Many2One(
         'publisher', 'Publisher', help='The publisher of the release.')
-    neighbouring_rights_societies = fields.Function(
-        fields.Many2Many(
-            'collecting_society', None, None, 'Neighbouring Rights Societies',
-            help='Neighbouring Rights Societies involved in the creations of '
-            'the release.'),
-        'get_neighbouring_rights_societies')
+    # neighbouring_rights_societies = fields.Function(
+    #     fields.Many2Many(
+    #        'collecting_society', None, None, 'Neighbouring Rights Societies',
+    #        help='Neighbouring Rights Societies involved in the creations of '
+    #         'the release.'),
+    #     'get_neighbouring_rights_societies')
     cs_identifiers = fields.One2Many(
         'release.cs_identifier', 'release', '3rd-party identifier',)
     rights = fields.One2Many(
@@ -3389,25 +3275,25 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     #             medium_numbers.append(track)
     #     return list(set(medium_numbers))
 
-    def get_producers(self, name):
-        producers = []
-        for track in self.tracks:
-            for contribution in track.creation.contributions:
-                performance = (contribution.type == 'performance')
-                producing = (contribution.performance == 'producing')
-                if performance and producing:
-                    producers.append(contribution.artist.id)
-        return list(set(producers))
+    # def get_producers(self, name):
+    #     producers = []
+    #     for track in self.tracks:
+    #         for contribution in track.creation.contributions:
+    #             performance = (contribution.type == 'performance')
+    #             producing = (contribution.performance == 'producing')
+    #             if performance and producing:
+    #                 producers.append(contribution.artist.id)
+    #     return list(set(producers))
 
-    def get_neighbouring_rights_societies(self, name):
-        societies = []
-        for track in self.tracks:
-            for contribution in track.creation.contributions:
-                performance = (contribution.type == 'performance')
-                society = contribution.neighbouring_rights_society
-                if performance and society:
-                    societies.append(society.id)
-        return list(set(societies))
+    # def get_neighbouring_rights_societies(self, name):
+    #     societies = []
+    #     for track in self.tracks:
+    #         for contribution in track.creation.contributions:
+    #             performance = (contribution.type == 'performance')
+    #             society = contribution.neighbouring_rights_society
+    #             if performance and society:
+    #                 societies.append(society.id)
+    #     return list(set(societies))
 
     def permits(self, web_user, code, derive=True):
         if super().permits(web_user, code, derive):
@@ -3525,7 +3411,7 @@ class ReleaseRight(ModelSQL, ModelView, MixinRight):
     __name__ = 'release.right'
     _history = True
     rightsholder = fields.Many2One(
-        'artist', 'Artist', required=True, ondelete='CASCADE')
+        'party.party', 'Rightsholder', required=True, ondelete='CASCADE')
     rightsobject = fields.Many2One(
         'release', 'Release', required=True, ondelete='CASCADE')
     contribution = fields.Function(
@@ -5842,9 +5728,9 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
 
     def get_represented(self, name=None):
         pool = Pool()
-        _CollectingSociety = pool.get('collecting_society')
+        CollectingSociety = pool.get('collecting_society')
         tariff = self.utilisations[0].tariff  # TODO: many2one
-        collecting_society = _CollectingSociety(1)  # TODO: get from context
+        collecting_society = CollectingSociety(1)  # TODO: get from context
 
         items = []
         for item in self.known:

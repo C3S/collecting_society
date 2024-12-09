@@ -13,6 +13,9 @@ class Invoice(metaclass=PoolMeta):
         'allocation-account.invoice', 'invoice', 'allocation',
         'Invoice Allocation',
         help='The allocation of the invoice')
+    distribution = fields.Many2One(
+        'distribution', 'Distribution',
+        help='The allocation of the invoice')
 
     @classmethod
     @Workflow.transition('paid')
@@ -32,5 +35,5 @@ class InvoiceLine(metaclass=PoolMeta):
     @classmethod
     def _get_origin(cls):
         models = super(InvoiceLine, cls)._get_origin()
-        models.append('utilisation')
+        models += ['utilisation', 'distribution']
         return models

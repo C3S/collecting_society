@@ -117,9 +117,8 @@ def roles__0_1(utilisation, creation):
         'plan': utilisation.distribution_plan.version,
         'type': creation.distribution_type,
         'creation': creation.code,
-        'meta': {
-            'utilisation': utilisation.code,
-        },
+        'utilisation': utilisation,
+        'meta': {},
     }
 
     # split original
@@ -242,9 +241,8 @@ def roles__0_1(utilisation, creation):
                 'plan': utilisation.distribution_plan.version,
                 'type': 'original',
                 'creation': creation.code,
-                'meta': {
-                    'utilisation': utilisation.code,
-                },
+                'utilisation': utilisation,
+                'meta': {},
                 'split': {
                     'copyright': {
                         'composition': {
@@ -390,19 +388,18 @@ class Split():
 
         [
             {
-                'licenser': licenser1
-                'amount': Decimal('1234.56')
-                'meta': {
-                    'creation': 'C00001',
-                    'utilisation': 'U00001',
-                },
+                'licenser': licenser1,
+                'amount': Decimal('1234.56'),
+                'creation': 'C00001',
+                'utilisation': 'U00001',
+                'meta': {},
             },
             {
                 'licenser': licenser2
                 'amount': Decimal('6543.21')
+                'creation': 'C00002',
+                'utilisation': 'U00001',
                 'meta': {
-                    'creation': 'C00002',
-                    'utilisation': 'U00001',
                     'redistributed': 'root.role1'
                 },
             },
@@ -622,7 +619,8 @@ class Split():
         ...    'plan': '0.0.1',
         ...    'type': 'original',
         ...    'creation': 'C00001',
-        ...    'meta': {'utilisation': 'U00001'},
+        ...    'utilisation': 'U00001',
+        ...    'meta': {},
         ...    'split': {
         ...        'copyright': {
         ...            'rightsholders': ['licenser1', 'licenser2'],
@@ -636,22 +634,31 @@ class Split():
         >>> split.distribute(Decimal(1000))
         ... [{'amount': Decimal('250'),
         ...   'licenser': 'licenser1',
-        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': []}},
         ...  {'amount': Decimal('250'),
         ...   'licenser': 'licenser2',
-        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': []}},
         ...  {'amount': Decimal('250'),
         ...   'licenser': 'licenser3',
-        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}},
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': []}},
         ...  {'amount': Decimal('250'),
         ...   'licenser': 'licenser4',
-        ...   'meta': {'redistributed': [], 'utilisation': 'U00001'}}]
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': []}}]
 
         >>> roles = [{
         ...    'plan': '0.0.1',
         ...    'type': 'original',
         ...    'creation': 'C00001',
-        ...    'meta': {'utilisation': 'U00001'},
+        ...    'utilisation': 'U00001',
+        ...    'meta': {},
         ...    'split': {
         ...        'copyright': {
         ...            'rightsholders': ['licenser1', 'licenser2'],
@@ -665,18 +672,21 @@ class Split():
         >>> split.distribute(Decimal(1000))
         ... [{'amount': Decimal('500'),
         ...   'licenser': 'licenser1',
-        ...   'meta': {'redistributed': ['root.C00001.copyright'],
-        ...            'utilisation': 'U00001'}},
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': ['root.C00001.copyright']}},
         ...  {'amount': Decimal('500'),
         ...   'licenser': 'licenser2',
-        ...   'meta': {'redistributed': ['root.C00001.copyright'],
-        ...            'utilisation': 'U00001'}}]
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': ['root.C00001.copyright']}}]
 
         >>> roles = [{
         ...    'plan': '0.0.1',
         ...    'type': 'original',
         ...    'creation': 'C00001',
-        ...    'meta': {'utilisation': 'U00001'},
+        ...    'utilisation': 'U00001',
+        ...    'meta': {},
         ...    'split': {
         ...        'copyright': {
         ...            'rightsholders': [
@@ -698,12 +708,14 @@ class Split():
         >>> split.distribute(Decimal(1000))
         ... [{'amount': Decimal('666.6666666666666666666666667'),
         ...   'licenser': 'licenser1',
-        ...   'meta': {'redistributed': ['root.C00001.copyright'],
-        ...            'utilisation': 'U00001'}},
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': ['root.C00001.copyright']}},
         ...  {'amount': Decimal('333.3333333333333333333333333'),
         ...   'licenser': 'licenser2',
-        ...   'meta': {'redistributed': ['root.C00001.copyright'],
-        ...            'utilisation': 'U00001'}}]
+        ...   'creation': 'C00001',
+        ...   'utilisation': 'U00001',
+        ...   'meta': {'redistributed': ['root.C00001.copyright']}}]
 
     """
 
@@ -728,12 +740,14 @@ class Split():
 
         self._meta = None
         self._creation = None
+        self._utilisation = None
         self._distribution_plan = None
         self._distribution_type = None
         if isinstance(roles, dict) and 'split' in roles:
             distribution = roles
             self._meta = distribution.get('meta', {})
             self._creation = distribution['creation']
+            self._utilisation = distribution['utilisation']
             self._distribution_plan = distribution['plan']
             self._distribution_type = distribution['type']
             roles = distribution['split']
@@ -1004,10 +1018,11 @@ class Split():
             shares = []
             for rightsholder in self.rightsholders:
                 meta = self.meta.copy()
-                meta['creation'] = self.creation
                 meta['redistributed'] = self.redistributed_roles
                 shares.append({
                     'licenser': rightsholder.licenser,
+                    'creation': self.creation,
+                    'utilisation': self.utilisation,
                     'amount': rightsholder.amount,
                     'meta': meta,
                 })
@@ -1059,7 +1074,7 @@ class Split():
         """
         Returns meta of first distribution node among parents.
         """
-        if self._meta:
+        if self._meta is not None:
             return self._meta
         if self.is_root():
             return None
@@ -1075,6 +1090,17 @@ class Split():
         if self.is_root():
             return None
         return self.parent.creation
+
+    @property
+    def utilisation(self):
+        """
+        Returns utilisation of first distribution node among parents.
+        """
+        if self._utilisation:
+            return self._utilisation
+        if self.is_root():
+            return None
+        return self.parent.utilisation
 
     @property
     def distribution_plan(self):

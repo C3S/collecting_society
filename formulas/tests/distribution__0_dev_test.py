@@ -70,9 +70,8 @@ def role():
         'plan': '0.0',
         'type': 'original',
         'creation': 'C00001',
-        'meta': {
-            'utilisation': 'U00001',
-        },
+        'utilisation': 'U00001',
+        'meta': {},
         'split': {}
     }
 
@@ -122,7 +121,7 @@ def test_split_behaviour_init_unredistributed(set_fractions, role):
     assert len(node.rightsholders) == 0
     assert node.reentry is True
     assert node.redistributed is False
-    assert node._meta['utilisation'] == 'U00001'
+    assert node._utilisation == 'U00001'
     assert node._creation == 'C00001'
     assert node._distribution_plan == '0.0'
     assert node._distribution_type == 'original'
@@ -198,7 +197,7 @@ def test_split_behaviour_init_redistributed(set_fractions, role):
     assert len(node.rightsholders) == 0
     assert node.reentry is True
     assert node.redistributed is False
-    assert node._meta['utilisation'] == 'U00001'
+    assert node._utilisation == 'U00001'
     assert node._creation == 'C00001'
     assert node._distribution_plan == '0.0'
     assert node._distribution_type == 'original'
@@ -764,10 +763,10 @@ def test_split_domain_licenser_shares(set_fractions, role):
     assert len(shares) == 2 * 4
     assert len([share
                 for share in shares
-                if share['meta']['creation'] == 'C00001']) == 4
+                if share['creation'] == 'C00001']) == 4
     assert len([share
                 for share in shares
-                if share['meta']['creation'] == 'C00002']) == 4
+                if share['creation'] == 'C00002']) == 4
 
     assert sum([share['amount']
                 for share in shares]) == amount
@@ -1089,6 +1088,53 @@ def test_split_domain_creation(set_fractions, role):
                  dist3['1']['1-1'],
                  dist3['1']['1-2']]:
         assert node.creation == 'C00003'
+
+
+def test_split_domain_utilisation(set_fractions, role):
+    dist = role
+    dist['split'] = {
+        '1': {
+            '1-1': {
+                'rightsholders': [],
+            },
+        },
+    }
+    _dist = deepcopy(dist)
+    dist['split']['1']['1-2'] = [deepcopy(_dist)]
+
+    dist = dist['split']['1']['1-2'][0]
+    dist['utilisation'] = 'U00002'
+    dist['split']['1']['1-2'] = [deepcopy(_dist)]
+
+    dist = dist['split']['1']['1-2'][0]
+    dist['utilisation'] = 'U00003'
+    dist['split']['1']['1-2'] = []
+
+    set_fractions(role)
+    root = distribution.Split([role], redistribute=False)
+    dist1 = root['C00001']
+    dist2 = dist1['1']['1-2']['C00001']
+    dist3 = dist2['1']['1-2']['C00001']
+
+    assert root.utilisation is None
+
+    for node in [dist1,
+                 dist1['1'],
+                 dist1['1']['1-1'],
+                 dist1['1']['1-2']]:
+        assert node.utilisation == 'U00001'
+
+    for node in [dist2,
+                 dist2['1'],
+                 dist2['1']['1-1'],
+                 dist2['1']['1-2']]:
+        assert node.utilisation == 'U00002'
+
+    for node in [dist3,
+                 dist3['1'],
+                 dist3['1']['1-1'],
+                 dist3['1']['1-2']]:
+        assert node.utilisation == 'U00003'
 
 
 def test_split_domain_distribution_plan(set_fractions, role):
