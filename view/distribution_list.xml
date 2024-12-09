@@ -9,8 +9,16 @@
     <field name="end" widget="date"/>
     <field name="end" widget="time"/>
 
-    <field name="utilisations"/>
+    <field name="invoice_amount"/>
+    <field name="adjusted_distribution_amount"/>
+    <field name="adjusted_general_amount"/>
+
     <field name="allocations"/>
+
+    <field name="licenser_invoices"/>
+    <field name="licenser_invoices_unposted"/>
+    <field name="licenser_invoices_posted"/>
+    <field name="licenser_invoices_paid"/>
 
     <field name="entity_origin"/>
 </tree>

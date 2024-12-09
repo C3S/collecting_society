@@ -12,16 +12,46 @@
     <label name="entity_creator"/>
     <field name="entity_creator"/>
 
+    <label name="invoice_amount"/>
+    <field name="invoice_amount"/>
     <label name="uuid"/>
     <field name="uuid"/>
-    <newline/>
+
+    <label name="initial_general_amount"/>
+    <field name="initial_general_amount"/>
+    <label name="social_fund_amount"/>
+    <field name="social_fund_amount"/>
+
+    <label name="adjusted_general_amount"/>
+    <field name="adjusted_general_amount"/>
+    <label name="cultural_fund_amount"/>
+    <field name="cultural_fund_amount"/>
+
+    <label name="initial_distribution_amount"/>
+    <field name="initial_distribution_amount"/>
+    <label name="reserve_fund_amount"/>
+    <field name="reserve_fund_amount"/>
+
+    <label name="adjusted_distribution_amount"/>
+    <field name="adjusted_distribution_amount"/>
+    <label name="funds_account_move"/>
+    <field name="funds_account_move"/>
 
     <notebook colspan="4">
+        <page string="Total" id="licenser_invoices">
+            <field name="licenser_invoices"/>
+        </page>
+        <page string="Unposted" id="licenser_invoices_unposted">
+            <field name="licenser_invoices_unposted"/>
+        </page>
+        <page string="Posted" id="licenser_invoices_posted">
+            <field name="licenser_invoices_posted"/>
+        </page>
+        <page string="Paid" id="licenser_invoices_paid">
+            <field name="licenser_invoices_paid"/>
+        </page>
         <page string="Allocations" id="allocations">
             <field name="allocations"/>
-        </page>
-        <page string="Utilisations" id="utilisations">
-            <field name="utilisations"/>
         </page>
     </notebook>
 </form>

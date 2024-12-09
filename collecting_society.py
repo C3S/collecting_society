@@ -771,7 +771,7 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 # --- Collection --------------------------------------------------------------
 
-class Collection(ModelSQL, ModelView):
+class Collection(ModelSQL, ModelView, CurrencyDigits):
     """
     represents a number of allocations on an administrational level
     """
@@ -779,19 +779,52 @@ class Collection(ModelSQL, ModelView):
 
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the allocation')
-    # TODO: function field 'state' -> min allocation state
 
     start = fields.DateTime(
         'Start', states={'required': True},
         help='Start of the collection')
     end = fields.DateTime(
         'End', help='End of the collection')
+
     utilisations = fields.One2Many(
         'utilisation', 'collection', 'Utilisations',
         help='The collected utilisations')
+
     allocations = fields.One2Many(
-        'allocation', 'collection', 'Allocations',
-        help='The collected allocations')
+        'allocation', 'collection', 'Total Allocations',
+        help='The generated allocations')
+    allocations_processing = fields.Function(
+        fields.One2Many(
+            'allocation', None, 'Processing Allocations',
+            help="Allocations in state 'created' or 'calculated'"),
+        'get_allocations_with_state')
+    allocations_unposted = fields.Function(
+        fields.One2Many(
+            'allocation', None, 'Unposted Allocations',
+            help="Allocations with drafted/validated invoices"),
+        'get_allocations_with_state')
+    allocations_posted = fields.Function(
+        fields.One2Many(
+            'allocation', None, 'Posted Allocations',
+            help="Allocations with posted invoices"),
+        'get_allocations_with_state')
+    allocations_paid = fields.Function(
+        fields.One2Many(
+            'allocation', None, 'Paid Allocations',
+            help="Allocations with paid invoices"),
+        'get_allocations_with_state')
+    allocations_distributed = fields.Function(
+        fields.One2Many(
+            'allocation', None, 'Distributed Allocations',
+            help="Allocations in state 'distributed'"),
+        'get_allocations_with_state')
+
+    invoice_amount = fields.Function(
+        fields.Numeric(
+            'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
+            depends=['currency_digits'],
+            help='The amount to collect'),
+        'get_invoice_amount')
 
     entity_origin = fields.Selection(
         [
@@ -820,6 +853,37 @@ class Collection(ModelSQL, ModelView):
     @staticmethod
     def default_uuid():
         return str(uuid.uuid4())
+
+    def get_allocations_with_state(self, name):
+        state = name.split("_")[-1]
+        if state == 'processing':
+            return [allocation
+                    for allocation in self.allocations
+                    if allocation.state in ['created', 'calculated']]
+        elif state == 'unposted':
+            return [allocation
+                    for allocation in self.allocations
+                    if allocation.invoice.state in ['draft', 'validated']]
+        elif state == 'posted':
+            return [allocation
+                    for allocation in self.allocations
+                    if allocation.invoice.state == 'posted']
+        elif state == 'paid':
+            return [allocation
+                    for allocation in self.allocations
+                    if allocation.state != 'distributed'
+                    and allocation.invoice.state == 'paid']
+        elif state == 'distributed':
+            return [allocation
+                    for allocation in self.allocations
+                    if allocation.state == 'distributed']
+        return []
+
+    def get_invoice_amount(self, name):
+        return sum([
+            allocation.invoice_amount
+            for allocation in self.allocations
+        ])
 
     def create_allocations(self):
         # sanity checks
@@ -1144,16 +1208,13 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
 
     uuid = fields.Char(
         'UUID', required=True, help='The uuid of the allocation')
-    # TODO: function field 'state' -> min allocation state
 
     start = fields.DateTime(
         'Start', states={'required': True},
         help='Start of the collection')
     end = fields.DateTime(
         'End', help='End of the collection')
-    utilisations = fields.One2Many(
-        'utilisation', 'distribution', 'Utilisations',
-        help='The distributed utilisations')
+
     allocations = fields.One2Many(
         'allocation', 'distribution', 'Allocations',
         help='The distributed allocations')
@@ -1169,19 +1230,19 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
         'res.user', 'Entity Creator', states={'required': True})
 
     invoice_amount = fields.Numeric(
-        'General Amount', digits=(16, Eval('currency_digits', 2)),
+        'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The invoice amount for the distribution')
     initial_general_amount = fields.Numeric(
-        'General Amount', digits=(16, Eval('currency_digits', 2)),
+        'Initial General Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The initial general amount for the distribution')
     initial_distribution_amount = fields.Numeric(
-        'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
+        'Initial Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The initial distribution amount for the distribution')
     adjusted_general_amount = fields.Numeric(
-        'Adjusted General Amount', digits=(16, Eval('currency_digits', 2)),
+        'General Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
         help='The adjusted general amount for the distribution')
     adjusted_distribution_amount = fields.Numeric(
@@ -1205,9 +1266,25 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
         'distribution-account.move', 'distribution', 'move',
         'Funds Account Move',
         help='The account move for the funds')
+
     licenser_invoices = fields.One2Many(
-        'account.invoice', 'distribution', 'Licenser Invoices',
+        'account.invoice', 'distribution', 'Total Invoices',
         help='The invoices for the distribution')
+    licenser_invoices_unposted = fields.Function(
+        fields.One2Many(
+            'account.invoice', None, 'Unposted Invoices',
+            help="Drafted/Validated invoices"),
+        'get_licenser_invoices_with_state')
+    licenser_invoices_posted = fields.Function(
+        fields.One2Many(
+            'account.invoice', None, 'Posted Invoices',
+            help="Posted invoices"),
+        'get_licenser_invoices_with_state')
+    licenser_invoices_paid = fields.Function(
+        fields.One2Many(
+            'account.invoice', None, 'Paid Invoices',
+            help="Paid invoices"),
+        'get_licenser_invoices_with_state')
 
     @classmethod
     def __setup__(cls):
@@ -1227,6 +1304,22 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
     @staticmethod
     def default_start():
         return datetime.datetime.now()
+
+    def get_licenser_invoices_with_state(self, name):
+        state = name.split("_")[-1]
+        if state == 'unposted':
+            return [invoice
+                    for invoice in self.licenser_invoices
+                    if invoice.state in ['draft', 'validated']]
+        elif state == 'posted':
+            return [invoice
+                    for invoice in self.licenser_invoices
+                    if invoice.state == 'posted']
+        elif state == 'paid':
+            return [invoice
+                    for invoice in self.licenser_invoices
+                    if invoice.state == 'paid']
+        return []
 
     def distribute_allocations(self):
         # sanity checks
