@@ -948,7 +948,7 @@
                 id="act_distribution_distribute_keyword1">
             <field name="action" ref="act_distribution_distribute"/>
             <field name="keyword">form_action</field>
-            <field name="model">distribution,-1</field>
+            <field name="model">allocation,-1</field>
         </record>
         <record model="ir.ui.view"
                 id="distribution_distribute_start_view_form">
