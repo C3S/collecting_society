@@ -3,12 +3,18 @@
      Repository: https://github.com/C3S/collecting_society -->
 <form col="4">
     <label name="start"/>
-    <field name="start"/>
+    <group col="-1" colspan="1" id="start">
+        <field name="start" widget="date"/>
+        <field name="start" widget="time"/>
+    </group>
     <label name="entity_origin"/>
     <field name="entity_origin"/>
 
     <label name="end"/>
-    <field name="end"/>
+    <group col="-1" colspan="1" id="end">
+        <field name="end" widget="date"/>
+        <field name="end" widget="time"/>
+    </group>
     <label name="entity_creator"/>
     <field name="entity_creator"/>
 

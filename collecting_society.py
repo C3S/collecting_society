@@ -479,6 +479,10 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
             ('version',) + tuple(clause[1:]),
         ]
 
+    def get_rec_name(self, name):
+        rec_name = f"v{self.version}"
+        return rec_name
+
 
 class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff Category'
@@ -552,6 +556,10 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
             ('code',) + tuple(clause[1:]),
         ]
 
+    def get_rec_name(self, name):
+        rec_name = f"{self.name}"
+        return rec_name
+
 
 class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
     'Tariff Adjustment Category'
@@ -619,7 +627,16 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
         help='The approval status of the adjustment')
     value = fields.Numeric(
         'Value', digits=(3, 6),
-        required=True, help='The value of the adjustment')
+        required=True,
+        domain=[
+            ['OR',
+                ('category', '=', None),
+                ('category.value_min', '<', Eval('value')),],
+            ['OR',
+                ('category', '=', None),
+                ('category.value_max', '>', Eval('value')),],
+            ],
+        help='The value of the adjustment')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
     deviation_reason = fields.Text(
@@ -632,6 +649,15 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
     utilisation_indicators = fields.Many2One(
         'utilisation.indicators', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff adjustment')
+
+    @fields.depends('category')
+    def on_change_category(self):
+        if self.category:
+            self.value = self.category.value_default
+
+    @staticmethod
+    def default_status():
+        return 'on_approval'
 
 
 class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
@@ -715,6 +741,11 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
             rec_name += " *"
         return rec_name
 
+    @fields.depends('category')
+    def on_change_category(self):
+        if self.category:
+            self.value = self.category.value_default
+
 
 class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     'Tariff'
@@ -767,6 +798,10 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
     def get_fee_formula(self):
         version = utils.convert_version(self.system.version)
         return getattr(collection, f"tariff_fee__{version}")
+
+    def get_rec_name(self, name):
+        rec_name = self.category.code + self.system.version
+        return rec_name
 
 
 # --- Collection --------------------------------------------------------------
@@ -1729,6 +1764,10 @@ class DistributionPlan(ModelSQL, ModelView):
             ('version',) + tuple(clause[1:]),
         ]
 
+    def get_rec_name(self, name):
+        rec_name = f"v{self.version}"
+        return rec_name
+
 
 class DistributeStart(ModelView):
     'Distribute Start'
@@ -2019,27 +2058,43 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
             return None
         return self.invoice_amount - self.administration_fee
 
-    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
-    def on_change_adjustments(self):
-        samples = ['estimated', 'confirmed']
-        for sample in samples:
-            for utilisation in getattr(self, f'{sample}_utilisations', []):
-                setattr(utilisation, f'{sample}_indicators', self)
-                self.invoice_amount = \
-                    utilisation.calculate_invoice_amount(sample)
-                self.administration_fee = \
-                    utilisation.calculate_administration_fee(sample)
+    def get_rec_name(self, name):
+        sample = None
+        utilisation = None
+        if self.confirmed_utilisations:
+            utilisation = self.confirmed_utilisations[0]
+            sample = "Confirmed"
+        elif self.estimated_utilisations:
+            utilisation = self.estimated_utilisations[0]
+            sample = "Estimated"
+        if not utilisation:
+            return None
+        declaration = utilisation.declaration
+        rec_name = (f"{sample} Indicators of Declaration "
+                    f"{declaration.get_rec_name('')}")
+        return rec_name
 
-    @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
-    def on_change_relevance(self):
-        samples = ['estimated', 'confirmed']
-        for sample in samples:
-            for utilisation in getattr(self, f'{sample}_utilisations', []):
-                setattr(utilisation, f'{sample}_indicators', self)
-                self.invoice_amount = \
-                    utilisation.calculate_invoice_amount(sample)
-                self.administration_fee = \
-                    utilisation.calculate_administration_fee(sample)
+    # @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    # def on_change_adjustments(self):
+    #     samples = ['estimated', 'confirmed']
+    #     for sample in samples:
+    #         for utilisation in getattr(self, f'{sample}_utilisations', []):
+    #             setattr(utilisation, f'{sample}_indicators', self)
+    #             self.invoice_amount = \
+    #                 utilisation.calculate_invoice_amount(sample)
+    #             self.administration_fee = \
+    #                 utilisation.calculate_administration_fee(sample)
+    #
+    # @fields.depends('adjustments', 'invoice_amount', 'administration_fee')
+    # def on_change_relevance(self):
+    #     samples = ['estimated', 'confirmed']
+    #     for sample in samples:
+    #         for utilisation in getattr(self, f'{sample}_utilisations', []):
+    #             setattr(utilisation, f'{sample}_indicators', self)
+    #             self.invoice_amount = \
+    #                 utilisation.calculate_invoice_amount(sample)
+    #             self.administration_fee = \
+    #                 utilisation.calculate_administration_fee(sample)
 
 
 class IndicatorsMeta(ModelMeta):
@@ -5117,6 +5172,10 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             utilisation.distribution_plan = most_recent_distribution_plan[0].id
             utilisation.save()
         return elist
+
+    def get_rec_name(self, name):
+        rec_name = f"{self.context.rec_name}"
+        return rec_name
 
 
 class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):

@@ -1,26 +1,52 @@
 <?xml version="1.0"?>
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
-<form col="2">
+<form col="6">
     <label name="start"/>
-    <field name="start"/>
+    <group col="2" colspan="1" id="start">
+        <field name="start" widget="date"/>
+        <field name="start" widget="time"/>
+    </group>
+    <newline/>
     <label name="end"/>
-    <field name="end"/>
+    <group col="2" colspan="1" id="end">
+        <field name="end" widget="date"/>
+        <field name="end" widget="time"/>
+    </group>
+    <newline/>
     <label name="attendants"/>
     <field name="attendants"/>
+    <newline/>
     <label name="max_attendants"/>
     <field name="max_attendants"/>
+    <newline/>
     <label name="max_admission"/>
     <field name="max_admission"/>
+    <newline/>
     <label name="turnover_tickets"/>
     <field name="turnover_tickets"/>
+    <newline/>
     <label name="turnover_benefit"/>
     <field name="turnover_benefit"/>
+    <newline/>
     <label name="expenses_musicians"/>
     <field name="expenses_musicians"/>
+    <newline/>
     <label name="expenses_production"/>
     <field name="expenses_production"/>
+    
+    
+    <group col="3" colspan="1" id="xxdfzgfjgxxxxx">
+    </group>
+    <group col="4" colspan="1" id="xxxdrtgxxxx">
+    </group>
+    <group col="5" colspan="1" id="xxxhjkhxxxx">
+    </group>
+    <group col="6" colspan="1" id="xxxkghjkxxxx">
+    </group>
 
-    <field name="estimated_events" colspan="2"/>
-    <field name="confirmed_events" colspan="2"/>
+    <newline/>
+
+    <field name="estimated_events" colspan="4"/>
+    <field name="confirmed_events" colspan="4"/>
 </form>
