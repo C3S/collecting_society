@@ -631,10 +631,10 @@ class TariffAdjustment(ModelSQL, ModelView, PublicApi):
         domain=[
             ['OR',
                 ('category', '=', None),
-                ('category.value_min', '<', Eval('value')),],
+                ('category.value_min', '<=', Eval('value')),],
             ['OR',
                 ('category', '=', None),
-                ('category.value_max', '>', Eval('value')),],
+                ('category.value_max', '>=', Eval('value')),],
             ],
         help='The value of the adjustment')
     deviation = fields.Boolean(
