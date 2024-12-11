@@ -9,8 +9,8 @@ from decimal import Decimal as D
 
 development_versions = [
     '0.1',
-    '0.2',
-    '0.3',
+    # '0.2',
+    # '0.3',
 ]
 
 base_values = [

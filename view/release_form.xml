@@ -48,7 +48,7 @@
             <newline/>
             <label name="production_date"/>
             <field name="production_date"/>
-            <field name="producers" colspan="6"/>
+            <!--  <field name="producers" colspan="6"/> -->
         </page>
         <page string="Distribution" id="distribution" col="4">
             <label name="release_date"/>
@@ -66,7 +66,7 @@
             <label name="publisher"/>
             <field name="publisher"/>
             <newline/>
-            <field name="neighbouring_rights_societies" colspan="4"/>
+            <!-- <field name="neighbouring_rights_societies" colspan="4"/> -->
         </page>
         <page string="Indicators" id="indicators" col="2">
             <separator string="Confirmed" id="confirmed" colspan="2"/>
