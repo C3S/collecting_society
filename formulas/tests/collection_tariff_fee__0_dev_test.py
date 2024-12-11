@@ -4,6 +4,7 @@
 import pytest
 from decimal import Decimal as D
 
+import utils
 import collection
 from tests.fixtures import (
     development_versions,
@@ -32,7 +33,7 @@ fixtures_fee = [
 @pytest.mark.parametrize(
     "total", total_values)
 def test_tariff_fee(version, total):
-    version = collection.convert_version(version)
+    version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_fee__{version}")
     assert formula(total=total) == total * D('0.1')
 
@@ -47,7 +48,7 @@ def test_tariff_fee(version, total):
         D('-0.000001'),
     ])
 def test_tariff_fee_total_exception(version, total):
-    version = collection.convert_version(version)
+    version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_fee__{version}")
     with pytest.raises(AssertionError):
         formula(total=total)
@@ -58,6 +59,6 @@ def test_tariff_fee_total_exception(version, total):
 @pytest.mark.parametrize(
     "fixture", fixtures_fee)
 def test_tariff_fee_fixtures(version, fixture):
-    version = collection.convert_version(version)
+    version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_fee__{version}")
     assert formula(total=fixture['total']) == fixture['result']

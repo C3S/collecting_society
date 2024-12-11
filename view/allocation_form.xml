@@ -31,5 +31,4 @@
 
     <newline/>
     <field name="utilisations" colspan="4"/>
-    <field name="move_lines" colspan="4"/>
 </form>

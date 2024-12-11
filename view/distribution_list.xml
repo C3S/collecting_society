@@ -2,9 +2,23 @@
 <!-- For copyright / license terms, see COPYRIGHT.rst (top level of repository)
      Repository: https://github.com/C3S/collecting_society -->
 <tree>
-    <field name="code"/>
-    <field name="date"/>
-    <field name="from_date"/>
-    <field name="thru_date"/>
+    <field name="uuid" expand="1"/>
+
+    <field name="start" widget="date"/>
+    <field name="start" widget="time"/>
+    <field name="end" widget="date"/>
+    <field name="end" widget="time"/>
+
+    <field name="invoice_amount"/>
+    <field name="adjusted_distribution_amount"/>
+    <field name="adjusted_general_amount"/>
+
     <field name="allocations"/>
+
+    <field name="licenser_invoices"/>
+    <field name="licenser_invoices_unposted"/>
+    <field name="licenser_invoices_posted"/>
+    <field name="licenser_invoices_paid"/>
+
+    <field name="entity_origin"/>
 </tree>

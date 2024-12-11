@@ -8,9 +8,16 @@
     <field name="start" widget="time"/>
     <field name="end" widget="date"/>
     <field name="end" widget="time"/>
+    <field name="invoice_amount"/>
 
     <field name="utilisations"/>
+
     <field name="allocations"/>
+    <field name="allocations_processing"/>
+    <field name="allocations_unposted"/>
+    <field name="allocations_posted"/>
+    <field name="allocations_paid"/>
+    <field name="allocations_distributed"/>
 
     <field name="entity_origin"/>
 </tree>

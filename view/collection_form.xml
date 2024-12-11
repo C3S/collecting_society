@@ -20,11 +20,27 @@
 
     <label name="uuid"/>
     <field name="uuid"/>
-    <newline/>
+    <label name="invoice_amount"/>
+    <field name="invoice_amount"/>
 
     <notebook colspan="4">
-        <page string="Allocations" id="allocations">
+        <page string="Total" id="allocations">
             <field name="allocations"/>
+        </page>
+        <page string="Processing" id="allocations_processing">
+            <field name="allocations_processing"/>
+        </page>
+        <page string="Unposted" id="allocations_unposted">
+            <field name="allocations_unposted"/>
+        </page>
+        <page string="Posted" id="allocations_posted">
+            <field name="allocations_posted"/>
+        </page>
+        <page string="Paid" id="allocations_paid">
+            <field name="allocations_paid"/>
+        </page>
+        <page string="Distributed" id="allocations_distributed">
+            <field name="allocations_distributed"/>
         </page>
         <page string="Utilisations" id="utilisations">
             <field name="utilisations"/>
