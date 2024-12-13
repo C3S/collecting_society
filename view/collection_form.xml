@@ -23,6 +23,10 @@
     <label name="invoice_amount"/>
     <field name="invoice_amount"/>
 
+    <label name="code"/>
+    <field name="code"/>
+
+    <newline/>
     <notebook colspan="4">
         <page string="Total" id="allocations">
             <field name="allocations"/>

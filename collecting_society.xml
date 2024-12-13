@@ -88,6 +88,22 @@
             <field name="padding">10</field>
         </record>
 
+        <!-- Sequence: Distribution Plan -->
+        <record model="ir.sequence.type" id="sequence_type_distribution_plan">
+            <field name="name">Distribution Plan</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+                id="sequence_type_distribution_plan_group_admin">
+            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_distribution_plan">
+            <field name="name">Distribution Plan</field>
+            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
+            <field name="prefix">P</field>
+            <field name="padding">10</field>
+        </record>
+
         <!-- Sequence: Declaration -->
         <record model="ir.sequence.type" id="sequence_type_declaration">
             <field name="name">Declaration</field>
@@ -120,6 +136,22 @@
             <field name="padding">10</field>
         </record>
 
+        <!-- Sequence: Collection -->
+        <record model="ir.sequence.type" id="sequence_type_collection">
+            <field name="name">Collection</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+                id="sequence_type_collection_group_admin">
+            <field name="sequence_type" ref="sequence_type_collection"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence" id="sequence_collection">
+            <field name="name">Collection</field>
+            <field name="sequence_type" ref="sequence_type_collection"/>
+            <field name="prefix">COLL</field>
+            <field name="padding">10</field>
+        </record>
+
         <!-- Sequence: Distribution -->
         <record model="ir.sequence.type" id="sequence_type_distribution">
             <field name="name">Distribution</field>
@@ -133,22 +165,6 @@
             <field name="name">Distribution</field>
             <field name="sequence_type" ref="sequence_type_distribution"/>
             <field name="prefix">DIST</field>
-            <field name="padding">10</field>
-        </record>
-
-        <!-- Sequence: Distribution Plan -->
-        <record model="ir.sequence.type" id="sequence_type_distribution_plan">
-            <field name="name">Distribution Plan</field>
-        </record>
-        <record model="ir.sequence.type-res.group"
-                id="sequence_type_distribution_plan_group_admin">
-            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
-            <field name="group" ref="res.group_admin"/>
-        </record>
-        <record model="ir.sequence" id="sequence_distribution_plan">
-            <field name="name">Distribution Plan</field>
-            <field name="sequence_type" ref="sequence_type_distribution_plan"/>
-            <field name="prefix">P</field>
             <field name="padding">10</field>
         </record>
 
