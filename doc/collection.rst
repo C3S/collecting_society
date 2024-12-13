@@ -26,7 +26,7 @@ Live
     create participant Declaration as declaration
     licensee --> declaration : new
 
-    hnote over declaration <<State>> : created
+    hnote over declaration <<State>> : submitted
 
     create participant Utilisation as utilisation
     declaration --> utilisation : new
@@ -131,3 +131,6 @@ Live
     allocation --> invoice
     hnote over invoice <<State>> : paid
 
+    invoice --> declaration : finishes declaration (oneshot)
+
+    hnote over declaration <<State>> : finished

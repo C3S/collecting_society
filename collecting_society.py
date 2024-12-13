@@ -4892,9 +4892,8 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         help="The licensee of the declaration")
     state = fields.Selection(
         [
-            ('created', 'Created'),
-            ('rejected', 'Rejected'),
-            ('deleted', 'Deleted'),
+            ('submitted', 'Submitted'),
+            ('finished', 'Finished'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The state of the declaration')
@@ -4935,6 +4934,10 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         states=STATES, depends=DEPENDS,
         help='The utilisations created for the declaration')
 
+    @staticmethod
+    def default_state():
+        return 'submitted'
+
     @classmethod
     def create(cls, vlist):
         DistributionPlan = Pool().get('distribution.plan')
@@ -4947,14 +4950,15 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         elist = super(Declaration, cls).create(vlist)
         Utilisation = Pool().get('utilisation')
         for entry in elist:
-            utilisation = Utilisation()
-            utilisation.declaration = entry
-            utilisation.licensee = entry.licensee
-            utilisation.state = entry.state
-            utilisation.start = entry.creation_time
-            utilisation.tariff = entry.tariff
-            utilisation.context = entry.context
-            utilisation.distribution_plan = most_recent_distribution_plan[0].id
+            utilisation = Utilisation(
+                declaration=entry,
+                licensee=entry.licensee,
+                state='created',
+                start=entry.creation_time,
+                tariff=entry.tariff,
+                context=entry.context,
+                distribution_plan=most_recent_distribution_plan[0].id
+            )
             utilisation.save()
         return elist
 
