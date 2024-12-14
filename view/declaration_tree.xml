@@ -9,5 +9,6 @@
     <field name="tariff" expand="1"/>
     <field name="context" expand="1"/>
     <field name="state"/>
+    <field name="next_step"/>
     <field name="active"/>
 </tree>

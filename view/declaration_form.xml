@@ -27,6 +27,8 @@
 
     <label name="code"/>
     <field name="code"/>
+    <label name="next_step"/>
+    <field name="next_step"/>
 
     <newline/>
     <notebook colspan="8">

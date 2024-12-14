@@ -11,6 +11,7 @@ import math
 from decimal import Decimal
 from typing import Protocol, Any
 from sql import Table
+from sql.conditionals import Case
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -4890,6 +4891,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help="The licensee of the declaration")
+
     state = fields.Selection(
         [
             ('submitted', 'Submitted'),
@@ -4897,6 +4899,16 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The state of the declaration')
+    next_step = fields.Function(
+        fields.Selection([
+            (None, 'None'),
+            ('utilisation', 'Utilisation'),
+            ('estimation', 'Estimation'),
+            ('confirmation', 'Confirmation'),
+            ('finalization', 'Finalization'),
+            ('processing', 'Processing'),
+            ('payment', 'Payment'),
+        ], 'Awaiting'), 'get_next_step')
 
     creation_time = fields.DateTime(
         'Creation Time', states={
@@ -4907,11 +4919,11 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     template = fields.Boolean(
         'Template', help='Is this declaration a template?')
     period = fields.Selection(
-        [
-            ('onetime', 'Onetime'),
-            ('monthly', 'Monthly'),
-            ('quarterly', 'Quarterly'),
+        [  # in descending order
             ('yearly', 'Yearly'),
+            ('quarterly', 'Quarterly'),
+            ('monthly', 'Monthly'),
+            ('onetime', 'Onetime'),
         ], 'Period', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The period of a recurring declaration.')
@@ -4937,6 +4949,14 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     @staticmethod
     def default_state():
         return 'submitted'
+
+    @classmethod
+    def order_period(cls, tables):
+        table, _ = tables[None]
+        order = [period for period, _ in cls.period.selection]
+        whens = [(table.period == period, index)
+                 for index, period in enumerate(order)]
+        return [Case(*whens, else_=len(order))]
 
     @classmethod
     def create(cls, vlist):
@@ -4965,6 +4985,51 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     def get_rec_name(self, name):
         rec_name = f"{self.context.rec_name}"
         return rec_name
+
+    def permissions(self, web_user, valid_codes=[], derive=False):
+        permissions = []
+        if web_user == self.licensee.web_user:
+            permissions += [
+                'show_declaration',
+                'edit_declaration',
+                'delete_declaration',
+            ]
+        if valid_codes:
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
+
+    def get_next_step(self, name):
+        # TODO: implement for other tariffs
+        if self.period != 'onetime':
+            return None
+        if self.tariff.category.code != 'L':
+            return None
+
+        utilisation = self.utilisations[0]
+        event = utilisation.context
+        if event.end > datetime.datetime.now():
+            return 'utilisation'
+        if utilisation.state == 'created':
+            return 'estimation'
+        if utilisation.state == 'estimated':
+            return 'confirmation'
+        if utilisation.state == 'confirmed':
+            playlists = [perf.playlist for perf in event.performances]
+            if not playlists or not all(playlists):
+                return 'finalization'
+            return 'processing'
+        if utilisation.state == 'finalized':
+            return 'processing'
+        if utilisation.state == 'allocated':
+            allocation = utilisation.allocation
+            if not allocation or not allocation.invoice:
+                return 'processing'
+            if allocation.invoice.state == 'posted':
+                return 'payment'
+            if allocation.invoice.state == 'paid':
+                return None
+            return 'processing'
+        return None
 
 
 class DeclarationGroup(PublicApi, ModelSQL, ModelView, CurrentState):
