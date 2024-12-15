@@ -13,13 +13,20 @@
 
     <label name="tariff_system_sequence"/>
     <field name="tariff_system_sequence"/>
+    <label name="distribution_plan_sequence"/>
+    <field name="distribution_plan_sequence"/>
+
+    <label name="declaration_sequence"/>
+    <field name="declaration_sequence"/>
+    <label name="utilisation_sequence"/>
+    <field name="utilisation_sequence"/>
+    <label name="collection_sequence"/>
+    <field name="collection_sequence"/>
+    <label name="distribution_sequence"/>
+    <field name="distribution_sequence"/>
 
     <label name="harddisk_label_sequence"/>
     <field name="harddisk_label_sequence"/>
     <label name="filesystem_label_sequence"/>
     <field name="filesystem_label_sequence"/>
-    <label name="utilisation_sequence"/>
-    <field name="utilisation_sequence"/>
-    <label name="distribution_sequence"/>
-    <field name="distribution_sequence"/>
 </form>

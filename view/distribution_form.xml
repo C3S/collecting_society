@@ -14,8 +14,8 @@
 
     <label name="invoice_amount"/>
     <field name="invoice_amount"/>
-    <label name="uuid"/>
-    <field name="uuid"/>
+    <label name="code"/>
+    <field name="code"/>
 
     <label name="initial_general_amount"/>
     <field name="initial_general_amount"/>

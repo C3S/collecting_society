@@ -11,6 +11,7 @@ import math
 from decimal import Decimal
 from typing import Protocol, Any
 from sql import Table
+from sql.conditionals import Case
 from sql.functions import CharLength
 import hurry.filesize
 
@@ -31,14 +32,19 @@ from .formulas import utils, collection, distribution
 __all__ = [
 
     # Mixins
-    'MixinRight',
-    'MixinIdentifier',
+    'UUID',
+    'Code',
+    'CodeSequence',
+    'PublicApi',
+    'CurrentState',
     'ClaimState',
     'CommitState',
     'EntityOrigin',
-    'PublicApi',
     'CurrencyDigits',
     'AccessControlList',
+    'MixinRight',
+    'MixinIdentifier',
+    'MixinIdentifierHelper',
 
     # Collecting Society
     'CollectingSociety',
@@ -176,6 +182,300 @@ DEFAULT_ACCESS_ROLES = ['Administrator', 'Stakeholder']
 ##############################################################################
 
 
+class UUID:
+    'Mixin to add a machine readable uuid field for internal use'
+    __slots__ = ()
+
+    uuid = fields.Char(
+        'UUID', required=True,
+        help='The machine readable UUID for the record for internal use.')
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        table = cls.__table__()
+        cls._sql_constraints += [
+            ('uuid_uniq', Unique(table, table.uuid),
+             f'The UUID of the {cls.__name__} must be unique.'),
+        ]
+
+    @staticmethod
+    def default_uuid():
+        return str(uuid.uuid4())
+
+    @classmethod
+    def create(cls, vlist):
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                values['uuid'] = cls.default_uuid()
+        return super().create(vlist)
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['uuid'] = None
+        return super().copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [('uuid',) + tuple(clause[1:])]
+
+
+class PublicApiProtocol(Protocol):
+    def __setup__(self) -> None: ...
+    def __table__(self) -> Table: ...
+    _sql_constraints: list[tuple[str, Any, str]]
+
+
+class Code:
+    'Mixin to add a free code field for technical use and public reference'
+    __slots__ = ()
+
+    code = fields.Char(
+        'Code', required=True,
+        help='The code for technical use and public reference.')
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        table = cls.__table__()
+        cls._sql_constraints += [
+            ('code_uniq', Unique(table, table.code),
+             f'The code of the {cls.__name__} must be unique.'),
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super().copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [('code',) + tuple(clause[1:])]
+
+
+class CodeSequence:
+    'Mixin to add a human readable sequence code field for public reference'
+    __slots__ = ()
+
+    # name of sequence field in collecting_society.configuration
+    _code_sequence = ''
+
+    code = fields.Char(
+        'Code', required=True, states={
+            'readonly': True,
+        }, help="The official public sequence code of the "
+                f"{_code_sequence.replace('_', ' ')}")
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        table = cls.__table__()
+        cls._sql_constraints = [
+            ('code_uniq', Unique(table, table.code),
+             f"The code of the {cls._code_sequence.replace('_', ' ')} "
+             "must be unique."),
+        ]
+
+    @staticmethod
+    def order_code(tables):
+        table, _ = tables[None]
+        return [CharLength(table.code), table.code]
+
+    @classmethod
+    def create(cls, vlist):
+        Configuration = Pool().get('collecting_society.configuration')
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                config = Configuration(1)
+                sequence = getattr(config, cls._code_sequence)
+                values['code'] = sequence.get()
+        return super().create(vlist)
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['code'] = None
+        return super().copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [('code',) + tuple(clause[1:])]
+
+
+class PublicApi:
+    'Mixin to add a machine readable oid field for public use'
+    __slots__ = ()
+
+    oid = fields.Char(
+        'OID', required=True,
+        help='A unique object identifier used in the public web api to avoid'
+             'exposure of implementation details to the users.')
+
+    @classmethod
+    def __setup__(cls: PublicApiProtocol):
+        super().__setup__()
+        table = cls.__table__()
+        cls._sql_constraints += [
+            ('oid_uniq', Unique(table, table.oid),
+             f'The OID of the {cls.__name__} must be unique.'),
+        ]
+
+    @staticmethod
+    def default_oid():
+        return str(uuid.uuid4())
+
+    @classmethod
+    def create(cls, vlist):
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('code'):
+                values['oid'] = cls.default_oid()
+        return super().create(vlist)
+
+    @classmethod
+    def copy(cls, vlist, default=None):
+        if default is None:
+            default = {}
+        default = default.copy()
+        default['oid'] = None
+        return super().copy(vlist, default=default)
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        return [('oid',) + tuple(clause[1:])]
+
+
+class CurrentState:
+    'Mixin for the active state'
+    __slots__ = ()
+    active = fields.Boolean('Active')
+
+    @staticmethod
+    def default_active():
+        return True
+
+
+class ClaimState:
+    'Mixin for the claim workflow'
+    __slots__ = ()
+    claim_state = fields.Selection(
+        [
+            ('unclaimed', 'Unclaimed'),
+            ('claimed', 'Claimed'),
+            ('revised', 'Revised'),
+        ], 'Claim', states={'required': True}, sort=False,
+        help='The state in a claim process.\n\n'
+        '*Unclaimed*: Object is not yet claimed or a claim was cancelled.\n'
+        '*Claimed*: Someone claimed this object but it was not revised yet.\n'
+        '*Revised*: The claim was confirmed by administration')
+
+    @staticmethod
+    def default_claim_state():
+        return "unclaimed"
+
+
+class CommitState:
+    'Mixin for the commit workflow'
+    __slots__ = ()
+    commit_state = fields.Selection(
+        [
+            ('uncommited', 'Uncommited'),
+            ('commited', 'Commited'),
+            ('revised', 'Revised'),
+            ('rejected', 'Rejected'),
+            ('deleted', 'Deleted'),
+        ], 'Commit', states={'required': True}, sort=False,
+        help='The state in a commit process.\n\n'
+        '*Uncommited*: The object was freshly created.\n'
+        '*Commited*: The object was commited by the web user.\n'
+        '*Revised*: The commit was revised by administration.\n'
+        '*Rejected*: The commit was rejected by administration.\n'
+        '*Deleted*: The rejeted object was deleted.\n')
+
+    @staticmethod
+    def default_commit_state():
+        return 'uncommited'
+
+
+class CurrencyDigits:
+    'Mixin to provide the currency digit configuration'
+    __slots__ = ()
+    currency_digits = fields.Function(
+        fields.Integer('Currency Digits'), 'get_currency_digits')
+
+    def get_currency_digits(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency.digits
+        return 2
+
+
+class AccessControlList:
+    'Mixin to add an Access Control List'
+    __slots__ = ()
+    acl = fields.One2Many(
+        'ace', 'entity', 'Access Control List',
+        states=STATES, depends=DEPENDS,
+        help='A list of acces control entries with object permissions.')
+
+    def permits(self, web_user, code, derive=True):
+        for ace in self.acl:
+            if ace.web_user != web_user:
+                continue
+            for role in ace.roles:
+                for permission in role.permissions:
+                    if permission.code == code:
+                        return True
+        return False
+
+    def permissions(self, web_user, valid_codes=[], derive=True):
+        permissions = set()
+        for ace in self.acl:
+            if ace.web_user != web_user:
+                continue
+            permissions.update([
+                permission.code
+                for role in ace.roles
+                for permission in role.permissions])
+        if valid_codes:
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
+
+
+class EntityOrigin:
+    'Mixin to track the origin of the entity'
+    __slots__ = ()
+    entity_origin = fields.Selection(
+        [
+            ('direct', 'Direct'),
+            ('indirect', 'Indirect'),
+        ], 'Entity Origin', states={'required': True}, sort=False,
+        help='Defines, if an object was created as foreign object (indirect) '
+             'or not.')
+    entity_creator = fields.Many2One(
+        'party.party', 'Entity Creator', states={'required': True})
+
+    @staticmethod
+    def default_entity_origin():
+        return "direct"
+
+
 class MixinRight:
     'Mixin for the right a rightsholder claims on an rights object'
     __slots__ = ()
@@ -245,155 +545,11 @@ class MixinIdentifierHelper:
                 space=space, id_code=id_code)
 
 
-class CurrentState:
-    'Mixin for the active state'
-    __slots__ = ()
-    active = fields.Boolean('Active')
-
-    @staticmethod
-    def default_active():
-        return True
-
-
-class ClaimState:
-    'Mixin for the claim workflow'
-    __slots__ = ()
-    claim_state = fields.Selection(
-        [
-            ('unclaimed', 'Unclaimed'),
-            ('claimed', 'Claimed'),
-            ('revised', 'Revised'),
-        ], 'Claim', states={'required': True}, sort=False,
-        help='The state in a claim process.\n\n'
-        '*Unclaimed*: Object is not yet claimed or a claim was cancelled.\n'
-        '*Claimed*: Someone claimed this object but it was not revised yet.\n'
-        '*Revised*: The claim was confirmed by administration')
-
-    @staticmethod
-    def default_claim_state():
-        return "unclaimed"
-
-
-class CommitState:
-    'Mixin for the commit workflow'
-    __slots__ = ()
-    commit_state = fields.Selection(
-        [
-            ('uncommited', 'Uncommited'),
-            ('commited', 'Commited'),
-            ('revised', 'Revised'),
-            ('rejected', 'Rejected'),
-            ('deleted', 'Deleted'),
-        ], 'Commit', states={'required': True}, sort=False,
-        help='The state in a commit process.\n\n'
-        '*Uncommited*: The object was freshly created.\n'
-        '*Commited*: The object was commited by the web user.\n'
-        '*Revised*: The commit was revised by administration.\n'
-        '*Rejected*: The commit was rejected by administration.\n'
-        '*Deleted*: The rejeted object was deleted.\n')
-
-    @staticmethod
-    def default_commit_state():
-        return 'uncommited'
-
-
-class EntityOrigin:
-    'Mixin to track the origin of the entity'
-    __slots__ = ()
-    entity_origin = fields.Selection(
-        [
-            ('direct', 'Direct'),
-            ('indirect', 'Indirect'),
-        ], 'Entity Origin', states={'required': True}, sort=False,
-        help='Defines, if an object was created as foreign object (indirect) '
-             'or not.')
-    entity_creator = fields.Many2One(
-        'party.party', 'Entity Creator', states={'required': True})
-
-    @staticmethod
-    def default_entity_origin():
-        return "direct"
-
-
-class PublicApiProtocol(Protocol):
-    def __setup__(self) -> None: ...
-    def __table__(self) -> Table: ...
-    _sql_constraints: list[tuple[str, Any, str]]
-
-
-class PublicApi:
-    'Mixin to add an unique identifier for public use'
-    __slots__ = ()
-    oid = fields.Char(
-        'OID', required=True,
-        help='A unique object identifier used in the public web api to avoid'
-             'exposure of implementation details to the users.')
-
-    @classmethod
-    def __setup__(cls: PublicApiProtocol):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints += [
-            ('oid_uniq', Unique(table, table.oid),
-             'The OID of the object must be unique.'),
-        ]
-
-    @staticmethod
-    def default_oid():
-        return str(uuid.uuid4())
-
-
-class CurrencyDigits:
-    'Mixin to provide the currency digit configuration'
-    __slots__ = ()
-    currency_digits = fields.Function(
-        fields.Integer('Currency Digits'), 'get_currency_digits')
-
-    def get_currency_digits(self, name):
-        Company = Pool().get('company.company')
-        if Transaction().context.get('company'):
-            company = Company(Transaction().context['company'])
-            return company.currency.digits
-        return 2
-
-
-class AccessControlList:
-    'Mixin to add an Access Control List'
-    __slots__ = ()
-    acl = fields.One2Many(
-        'ace', 'entity', 'Access Control List',
-        states=STATES, depends=DEPENDS,
-        help='A list of acces control entries with object permissions.')
-
-    def permits(self, web_user, code, derive=True):
-        for ace in self.acl:
-            if ace.web_user != web_user:
-                continue
-            for role in ace.roles:
-                for permission in role.permissions:
-                    if permission.code == code:
-                        return True
-        return False
-
-    def permissions(self, web_user, valid_codes=[], derive=True):
-        permissions = set()
-        for ace in self.acl:
-            if ace.web_user != web_user:
-                continue
-            permissions.update([
-                permission.code
-                for role in ace.roles
-                for permission in role.permissions])
-        if valid_codes:
-            permissions = permissions.intersection(valid_codes)
-        return tuple(permissions)
-
-
 ##############################################################################
 # Collecting Society
 ##############################################################################
 
-class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
+class CollectingSociety(PublicApi, ModelSQL, ModelView, CurrentState):
     'Collecting Society'
     __name__ = 'collecting_society'
     _history = True
@@ -413,14 +569,13 @@ class CollectingSociety(ModelSQL, ModelView, PublicApi, CurrentState):
 
 # --- Tariffs -----------------------------------------------------------------
 
-class TariffSystem(ModelSQL, ModelView, CurrentState):
+class TariffSystem(CodeSequence, ModelSQL, ModelView, CurrentState):
     'Tariff System'
     __name__ = 'tariff_system'
     _history = True
     _rec_name = 'version'
+    _code_sequence = 'tariff_system_sequence'
 
-    code = fields.Char(
-        'Code', required=True, states={'readonly': True})
     version = fields.Char(
         'Version', required=True, states=STATES, depends=DEPENDS)
     valid_from = fields.Date(
@@ -441,35 +596,9 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the tariff system must be unique.'),
             ('version_uniq', Unique(table, table.version),
              'The version of the tariff system must be unique.')
         ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.tariff_system_sequence.get()
-        return super().create(vlist)
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -484,15 +613,13 @@ class TariffSystem(ModelSQL, ModelView, CurrentState):
         return rec_name
 
 
-class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+class TariffCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
     'Tariff Category'
     __name__ = 'tariff_system.category'
     _history = True
 
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS)
-    code = fields.Char(
-        'Code', required=True, states=STATES, depends=DEPENDS)
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the tariff category.')
@@ -522,32 +649,6 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         help="The product which represents the distribution amount of the "
         "tariff.")
 
-    # creations = fields.Many2Many(
-    #     'creation-tariff_category', 'category', 'Creations',
-    #     help='The creations in this tariff category.')
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
-
     @classmethod
     def search_rec_name(cls, name, clause):
         return [
@@ -561,7 +662,7 @@ class TariffCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         return rec_name
 
 
-class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
+class TariffAdjustmentCategory(Code, ModelSQL, ModelView, CurrentState):
     'Tariff Adjustment Category'
     __name__ = 'tariff_system.tariff.adjustment.category'
     _history = True
@@ -569,8 +670,6 @@ class TariffAdjustmentCategory(ModelSQL, ModelView, CurrentState):
     name = fields.Char(
         'Name', states={'required': True}, depends=DEPENDS,
         help='The name of the category')
-    code = fields.Char(
-        'Code', required=True, states={'readonly': True})
     value_min = fields.Numeric(
         'Minimum', digits=(3, 6), states={
             'required': True,
@@ -610,7 +709,7 @@ class TariffCategoryTariffAdjustmentCategory(ModelSQL):
         required=True, ondelete='CASCADE')
 
 
-class TariffAdjustment(ModelSQL, ModelView, PublicApi):
+class TariffAdjustment(PublicApi, ModelSQL, ModelView):
     'Tariff Adjustment'
     __name__ = 'tariff_system.tariff.adjustment'
     _history = True
@@ -709,7 +808,7 @@ class TariffCategoryTariffRelevanceCategory(ModelSQL):
         required=True, ondelete='CASCADE')
 
 
-class TariffRelevance(ModelSQL, ModelView, PublicApi):
+class TariffRelevance(PublicApi, ModelSQL, ModelView):
     'Tariff Relevance'
     __name__ = 'tariff_system.tariff.relevance'
     _history = True
@@ -747,7 +846,7 @@ class TariffRelevance(ModelSQL, ModelView, PublicApi):
             self.value = self.category.value_default
 
 
-class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
+class Tariff(PublicApi, ModelSQL, ModelView, CurrentState):
     'Tariff'
     __name__ = 'tariff_system.tariff'
     _history = True
@@ -806,14 +905,12 @@ class Tariff(ModelSQL, ModelView, CurrentState, PublicApi):
 
 # --- Collection --------------------------------------------------------------
 
-class Collection(ModelSQL, ModelView, CurrencyDigits):
+class Collection(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
     """
     represents a number of allocations on an administrational level
     """
     __name__ = 'collection'
-
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the allocation')
+    _code_sequence = 'collection_sequence'
 
     start = fields.DateTime(
         'Start', states={'required': True},
@@ -875,19 +972,9 @@ class Collection(ModelSQL, ModelView, CurrencyDigits):
     def __setup__(cls):
         super().__setup__()
         cls._order.insert(1, ('start', 'ASC'))
-        # Write email on collision to congratulate the uuid issuer
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the allocation must be unique.'),
-        ]
         # TODO:
         # - ensure allocations have the same origin (db level & tryton level)
         # - ensure allocations have the same licensee (db level & tryton level)
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
 
     def get_allocations_with_state(self, name):
         state = name.split("_")[-1]
@@ -1041,12 +1128,10 @@ class Collect(Wizard):
         return 'end'
 
 
-class Allocation(ModelSQL, ModelView, CurrencyDigits):
+class Allocation(UUID, ModelSQL, ModelView, CurrencyDigits):
     'Allocation'
     __name__ = 'allocation'
 
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the allocation')
     state = fields.Selection(
         [
             ('created', 'Created'),
@@ -1104,20 +1189,10 @@ class Allocation(ModelSQL, ModelView, CurrencyDigits):
     def __setup__(cls):
         super().__setup__()
         cls._order.insert(1, ('collection.start', 'ASC'))
-        # Write email on collision to congratulate the uuid issuer
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the allocation must be unique.'),
-        ]
 
     @staticmethod
     def default_company():
         return Transaction().context.get('company') or 1
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
 
     @fields.depends('invoice_amount', 'administration_fee')
     def on_change_with_distribution_amount(self, name=None):
@@ -1237,12 +1312,10 @@ class AllocationInvoice(Wizard):
 
 # --- Distribution ------------------------------------------------------------
 
-class Distribution(ModelSQL, ModelView, CurrencyDigits):
+class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
     'Distribution'
     __name__ = 'distribution'
-
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the allocation')
+    _code_sequence = 'distribution_sequence'
 
     start = fields.DateTime(
         'Start', states={'required': True},
@@ -1325,16 +1398,6 @@ class Distribution(ModelSQL, ModelView, CurrencyDigits):
     def __setup__(cls):
         super().__setup__()
         cls._order.insert(1, ('start', 'ASC'))
-        # Write email on collision to congratulate the uuid issuer
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the allocation must be unique.'),
-        ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
 
     @staticmethod
     def default_start():
@@ -1700,13 +1763,12 @@ class DistributionAccountMove(ModelSQL):
         'account.move', 'Move', required=True, ondelete='CASCADE')
 
 
-class DistributionPlan(ModelSQL, ModelView):
+class DistributionPlan(CodeSequence, ModelSQL, ModelView):
     'Distribution Plan'
     __name__ = 'distribution.plan'
     _history = True
+    _code_sequence = 'distribution_plan_sequence'
 
-    code = fields.Char(
-        'Code', required=True, states={'readonly': True})
     version = fields.Char(
         'Version', required=True)
     valid_from = fields.Date(
@@ -1726,35 +1788,9 @@ class DistributionPlan(ModelSQL, ModelView):
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the distribution plan must be unique.'),
             ('version_uniq', Unique(table, table.version),
              'The version of the distribution plan must be unique.')
         ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.distribution_plan_sequence.get()
-        return super().create(vlist)
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -1916,7 +1952,7 @@ class LocationIndicators(ModelSQL, ModelView, CurrencyDigits):
         return duration
 
 
-class LocationIndicatorsPeriod(ModelSQL, ModelView, PublicApi):
+class LocationIndicatorsPeriod(PublicApi, ModelSQL, ModelView):
     'Location Indicators Period'
     __name__ = 'location.indicators.period'
     _history = True
@@ -2362,12 +2398,12 @@ class IndicatorsMeta(ModelMeta):
 # Licenser
 ##############################################################################
 
-class License(ModelSQL, ModelView, CurrentState, PublicApi):
+class License(Code, PublicApi, ModelSQL, ModelView, CurrentState):
     'License'
     __name__ = 'license'
     _history = True
+
     name = fields.Char('Name', required=True)
-    code = fields.Char('Code', required=True)
     billable = fields.Boolean('Billable')
     freedom_rank = fields.Integer('Freedom Rank')
     version = fields.Char('Version', required=True)
@@ -2377,25 +2413,7 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
         cls._order.insert(1, ('freedom_rank', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, licenses, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(licenses, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -2406,17 +2424,16 @@ class License(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-             CurrentState, ClaimState, CommitState, MixinIdentifierHelper):
+class Artist(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
+             AccessControlList, CurrentState, MixinIdentifierHelper,
+             ClaimState, CommitState):
     'Artist'
     __name__ = 'artist'
     _history = True
+    _code_sequence = 'artist_sequence'
+
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS)
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The unique code of the artist')
     party = fields.Many2One(
         'party.party', 'Party', states=STATES, depends=DEPENDS,
         help='The legal person or organization acting the artist')
@@ -2540,17 +2557,9 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the Artist must be unique.'),
             ('invitation_token_uniq', Unique(table, table.invitation_token),
              'The invitation token of the artist must be unique.'),
         ]
-        # cls._error_messages.update(
-        #     {
-        #         'wrong_name': (
-        #             'Invalid Artist name "%%s": You can not use '
-        #             '"%s" in name field.' % SEPARATOR),
-        #     })
         cls._order.insert(1, ('name', 'ASC'))
 
     @staticmethod
@@ -2566,11 +2575,6 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     def check_name(self):
         if SEPARATOR in self.name:
             self.raise_user_error('wrong_name', (self.name,))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
 
     @classmethod
     def get_access_parties(cls, artists, name):
@@ -2626,17 +2630,9 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     @classmethod
     def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
         default_roles = [('add', [
             r.id for r in
             AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            # autocreate sequence
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.artist_sequence.get()
 
         acls = {}
         elist = super().create(vlist)
@@ -2672,14 +2668,6 @@ class Artist(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         AccessControlEntry.create(list(acls.values()))
 
         return elist
-
-    @classmethod
-    def copy(cls, artists, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(artists, default=default)
 
     @classmethod
     def write(cls, *args):
@@ -2801,7 +2789,7 @@ class ArtistIdentifierSpace(ModelSQL, ModelView):
     version = fields.Char('Version')
 
 
-class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
+class ArtistPlaylist(PublicApi, ModelSQL, ModelView, EntityOrigin):
     'Artist Playlist'
     __name__ = 'artist.playlist'
     artist = fields.Many2One(
@@ -2819,7 +2807,7 @@ class ArtistPlaylist(ModelSQL, ModelView, PublicApi, EntityOrigin):
         help='The items in the playlist')
 
 
-class ArtistPlaylistItem(ModelSQL, ModelView, PublicApi, EntityOrigin):
+class ArtistPlaylistItem(PublicApi, ModelSQL, ModelView, EntityOrigin):
     'Artist Playlist Item'
     __name__ = 'artist.playlist.item'
     playlist = fields.Many2One(
@@ -2833,19 +2821,18 @@ class ArtistPlaylistItem(ModelSQL, ModelView, PublicApi, EntityOrigin):
         help='The sequence number of the item')
 
 
-class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-               CurrentState, ClaimState, CommitState):
+class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
+               AccessControlList, CurrentState,
+               ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
     _history = True
+    _code_sequence = 'creation_sequence'
+
     title = fields.Char(
         'Title', required=True, states=STATES, depends=DEPENDS,
         help='The abstract title of the creation, needed to identify '
         'it later as a track within a release, for example.')
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The identification code for the creation')
     artist = fields.Many2One(
         'artist', 'Artist', states=STATES, depends=DEPENDS, help='The named '
         'artist for the creation')
@@ -2917,20 +2904,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         for tariff_category in self.tariff_categories:
             tariff_categories += '%s, ' % tariff_category.category.code
         return tariff_categories.rstrip(', ')
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the creation must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
 
     def get_rec_name(self, name):
         result = '[%s] %s' % (
@@ -3014,16 +2987,9 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     @classmethod
     def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
         default_roles = [('add', [
             r.id for r in
             AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.creation_sequence.get()
 
         acls = {}
         elist = super().create(vlist)
@@ -3040,14 +3006,6 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         AccessControlEntry.create(list(acls.values()))
 
         return elist
-
-    @classmethod
-    def copy(cls, creations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(creations, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -3129,7 +3087,7 @@ class Creation(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         return tuple(permissions)
 
 
-class CreationDerivative(ModelSQL, ModelView, PublicApi):
+class CreationDerivative(PublicApi, ModelSQL, ModelView):
     'Creation - Original - Derivative'
     __name__ = 'creation.original.derivative'
     _history = True
@@ -3154,7 +3112,7 @@ class CreationDerivative(ModelSQL, ModelView, PublicApi):
         '*Remix*: \n')
 
 
-class CreationRole(ModelSQL, ModelView, EntityOrigin, PublicApi):
+class CreationRole(PublicApi, ModelSQL, ModelView, EntityOrigin):
     'Creation Role'
     __name__ = 'creation.role'
     _history = True
@@ -3165,7 +3123,7 @@ class CreationRole(ModelSQL, ModelView, EntityOrigin, PublicApi):
         'Description', translate=True, help='The description of the role')
 
 
-class CreationTariffCategory(ModelSQL, ModelView, PublicApi):
+class CreationTariffCategory(PublicApi, ModelSQL, ModelView):
     'Creation - Tariff Category'
     __name__ = 'creation-tariff_category'
     _history = True
@@ -3200,7 +3158,7 @@ class CreationIdentifierSpace(ModelSQL, ModelView):
     version = fields.Char('Version')
 
 
-class CreationRight(ModelSQL, ModelView, MixinRight, PublicApi):
+class CreationRight(PublicApi, ModelSQL, ModelView, MixinRight):
     'Creation Rights'
     __name__ = 'creation.right'
     _history = True
@@ -3254,13 +3212,14 @@ class CreationRightCreationRight(ModelSQL):
         'creation.right', 'Successor', required=True, ondelete='CASCADE')
 
 
-class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-              CurrentState, ClaimState, CommitState, MixinIdentifierHelper,
-              metaclass=IndicatorsMeta):
+class Release(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
+              AccessControlList, CurrentState, MixinIdentifierHelper,
+              ClaimState, CommitState, metaclass=IndicatorsMeta):
     'Release'
     __name__ = 'release'
     _history = True
     _rec_name = 'title'
+    _code_sequence = 'release_sequence'
 
     # Note: The metaclass adds relations to indicators and shortcut function
     #       fields to their attributes to this class (see metaclass docstring)
@@ -3301,10 +3260,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     # metadata
     title = fields.Char('Title')
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The identification code for the release')
     picture_data = fields.Binary(
         'Picture Data', states=STATES, depends=DEPENDS,
         help='Picture data of a photograph or logo')
@@ -3372,30 +3327,13 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the release must be unique.')
-        ]
         cls._order.insert(1, ('title', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
 
     @classmethod
     def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
         default_roles = [('add', [
             r.id for r in
             AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.release_sequence.get()
 
         acls = {}
         elist = super().create(vlist)
@@ -3412,14 +3350,6 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         AccessControlEntry.create(list(acls.values()))
 
         return elist
-
-    @classmethod
-    def copy(cls, releases, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(releases, default=default)
 
     @classmethod
     def delete(cls, records):
@@ -3521,7 +3451,7 @@ class Release(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         return tuple(permissions)
 
 
-class ReleaseTrack(ModelSQL, ModelView, PublicApi):
+class ReleaseTrack(ModelSQL, ModelView):
     'Release Track'
     __name__ = 'release.track'
     _history = True
@@ -3622,7 +3552,7 @@ class ReleaseRightReleaseRight(ModelSQL):
         ondelete='CASCADE')
 
 
-class Instrument(ModelSQL, ModelView, PublicApi):
+class Instrument(PublicApi, ModelSQL, ModelView):
     'Instrument'
     __name__ = 'instrument'
     _history = True
@@ -3646,7 +3576,7 @@ class CreationRightInstrument(ModelSQL):
         ondelete='CASCADE')
 
 
-class Genre(ModelSQL, ModelView, PublicApi):
+class Genre(PublicApi, ModelSQL, ModelView):
     'Genre'
     __name__ = 'genre'
     _history = True
@@ -3656,7 +3586,7 @@ class Genre(ModelSQL, ModelView, PublicApi):
         'Description', help='The description of the genre.')
 
 
-class Style(ModelSQL, ModelView, PublicApi):
+class Style(PublicApi, ModelSQL, ModelView):
     'Style'
     __name__ = 'style'
     _history = True
@@ -3666,7 +3596,7 @@ class Style(ModelSQL, ModelView, PublicApi):
         'Description', help='The description of the style.')
 
 
-class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
+class Label(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
     'Label'
     __name__ = 'label'
     _history = True
@@ -3679,7 +3609,7 @@ class Label(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
+class Publisher(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
     'Publisher'
     __name__ = 'publisher'
     _history = True
@@ -3695,7 +3625,7 @@ class Publisher(ModelSQL, ModelView, EntityOrigin, PublicApi, CurrentState):
 
 # --- Real World Objects -----------------------------------------------------
 
-class Event(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
+class Event(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
             metaclass=IndicatorsMeta):
     'Event'
     __name__ = 'event'
@@ -3752,7 +3682,7 @@ class Event(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
         return None
 
 
-class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
+class EventPerformance(PublicApi, ModelSQL, ModelView, CurrentState):
     'Event Performance'
     __name__ = 'event.performance'
     _history = True
@@ -3782,7 +3712,7 @@ class EventPerformance(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The playlist of the performance')
 
 
-class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
+class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
                EntityOrigin, metaclass=IndicatorsMeta):
     'Location'
     __name__ = 'location'
@@ -3829,7 +3759,7 @@ class Location(ModelSQL, ModelView, CurrencyDigits, CurrentState, PublicApi,
         help='The spaces associated with the location')
 
 
-class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+class LocationCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
     'Location Category'
     __name__ = 'location.category'
     _history = True
@@ -3837,9 +3767,6 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS,
         help="The name of the location category")
-    code = fields.Char(
-        'Code', required=True, states=STATES, depends=DEPENDS,
-        help="The machine readable code for the location category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the location category.')
@@ -3850,28 +3777,6 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The locations within the category')
 
     @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
-
-    @classmethod
     def search_rec_name(cls, name, clause):
         return [
             'OR',
@@ -3880,7 +3785,7 @@ class LocationCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi,
+class LocationSpace(PublicApi, ModelSQL, ModelView, CurrentState,
                     metaclass=IndicatorsMeta):
     'Location Space'
     __name__ = 'location.space'
@@ -3968,7 +3873,8 @@ class LocationSpace(ModelSQL, ModelView, CurrentState, PublicApi,
         return self.get_message_content('fingerprint')
 
 
-class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+class LocationSpaceCategory(Code, PublicApi, ModelSQL, ModelView,
+                            CurrentState):
     'Location Space Category'
     __name__ = 'location.space.category'
     _history = True
@@ -3976,9 +3882,6 @@ class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS,
         help="The name of the location space category")
-    code = fields.Char(
-        'Code', required=True, states=STATES, depends=DEPENDS,
-        help="The machine readable code for the location space category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the location space category.')
@@ -3986,28 +3889,6 @@ class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     spaces = fields.One2Many(
         'location.space', 'category', 'Spaces', states=STATES, depends=DEPENDS,
         help='The location spaces within the category')
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -4018,7 +3899,7 @@ class LocationSpaceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class Website(ModelSQL, ModelView, CurrentState, PublicApi):
+class Website(PublicApi, ModelSQL, ModelView, CurrentState):
     'Website'
     __name__ = 'website'
     _history = True
@@ -4071,7 +3952,7 @@ class Website(ModelSQL, ModelView, CurrentState, PublicApi):
         return devices
 
 
-class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+class WebsiteCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
     'Website Category'
     __name__ = 'website.category'
     _history = True
@@ -4079,9 +3960,6 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS,
         help='The name of the website category')
-    code = fields.Char(
-        'Code', required=True, states=STATES, depends=DEPENDS,
-        help="The machine readable code for the website category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the website category.')
@@ -4099,28 +3977,6 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         help='The websites within the category')
 
     @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
-
-    @classmethod
     def search_rec_name(cls, name, clause):
         return [
             'OR',
@@ -4129,8 +3985,8 @@ class WebsiteCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         ]
 
 
-class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
-                      PublicApi):
+class WebsiteResource(UUID, PublicApi, ModelSQL, ModelView, CurrencyDigits,
+                      CurrentState):
     'Website Resource'
     __name__ = 'website.resource'
     _history = True
@@ -4141,9 +3997,6 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The name of the resource')
-    uuid = fields.Char(
-        'UUID', required=True, states=STATES, depends=DEPENDS,
-        help='The uuid of the resource')
     website = fields.Many2One(
         'website', 'Website', states={
             'required': True,
@@ -4184,19 +4037,6 @@ class WebsiteResource(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         states=STATES, depends=DEPENDS,
         help='The utilisation creation lists of the website resource')
 
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the resource must be unique.'),
-        ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
-
     def get_message_content(self, category):
         contents = []
         for message in self.messages:
@@ -4224,7 +4064,8 @@ class WebsiteResourceCreation(ModelSQL):
         ondelete='CASCADE')
 
 
-class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
+class WebsiteResourceCategory(Code, PublicApi, ModelSQL, ModelView,
+                              CurrentState):
     'Website Resource Category'
     __name__ = 'website.resource.category'
     _history = True
@@ -4232,9 +4073,6 @@ class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
     name = fields.Char(
         'Name', required=True, states=STATES, depends=DEPENDS,
         help='The name of the resource category')
-    code = fields.Char(
-        'Code', required=True, states=STATES, depends=DEPENDS,
-        help="The machine readable code for the resource category")
     description = fields.Text(
         'Description', states=STATES, depends=DEPENDS,
         help='A description of the resource category.')
@@ -4250,28 +4088,6 @@ class WebsiteResourceCategory(ModelSQL, ModelView, CurrentState, PublicApi):
         'website.resource', 'category', 'Resources',
         states=STATES, depends=DEPENDS,
         help='The resources within the category')
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the license must be unique.')
-        ]
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def copy(cls, vlist, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(vlist, default=default)
 
     @classmethod
     def search_rec_name(cls, name, clause):
@@ -4297,15 +4113,12 @@ class WebsiteCategoryWebsiteResourceCategory(ModelSQL):
 
 # --- Devices ----------------------------------------------------------------
 
-class Device(ModelSQL, ModelView, CurrentState, PublicApi):
+class Device(UUID, PublicApi, ModelSQL, ModelView, CurrentState):
     'Device'
     __name__ = 'device'
     _history = True
     _rec_name = 'uuid'
 
-    uuid = fields.Char(
-        'UUID', required=True, states=STATES, depends=DEPENDS,
-        help='The uuid of the device')
     web_user = fields.Many2One(
         'web.user', 'Web User', required=True, states=STATES, depends=DEPENDS,
         help='The web user of the device')
@@ -4341,19 +4154,6 @@ class Device(ModelSQL, ModelView, CurrentState, PublicApi):
         'Software Vendor', states=STATES, depends=DEPENDS,
         help='Vendor of the software on the device')
 
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the device must be unique.'),
-        ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
-
 
 class DeviceAssignment(ModelSQL, ModelView):
     'Device Assignment'
@@ -4374,7 +4174,7 @@ class DeviceAssignment(ModelSQL, ModelView):
         'End', help='End time of the assignment')
 
 
-class DeviceMessage(ModelSQL, ModelView):
+class DeviceMessage(UUID, ModelSQL, ModelView):
     'Device Message'
     __name__ = 'device.message'
     _history = True
@@ -4383,8 +4183,6 @@ class DeviceMessage(ModelSQL, ModelView):
         'device', 'Device', states={'required': True},
         help='The device of the message')
 
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the message')
     timestamp = fields.DateTime(
         'Timestamp', states={'required': True},
         help='The point in time, when the message arrived or was sent.')
@@ -4449,15 +4247,6 @@ class DeviceMessage(ModelSQL, ModelView):
         'Content', 'selection_content', help='The message content')
 
     @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the device must be unique.'),
-        ]
-
-    @classmethod
     def search_rec_name(cls, name, clause):
         return [
             'OR',
@@ -4470,10 +4259,6 @@ class DeviceMessage(ModelSQL, ModelView):
         return [
             ('id',) + tuple(clause[1:])
         ]
-
-    @staticmethod
-    def default_uuid():
-        return str(uuid.uuid4())
 
     @fields.depends('category')
     def selection_content(self):
@@ -4931,8 +4716,8 @@ class DeviceMessageFingerprintMerge(Wizard):
         return 'end'
 
 
-class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
-                                           PublicApi):
+class DeviceMessageFingerprintCreationlist(PublicApi, ModelSQL, ModelView,
+                                           CurrentState):
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
@@ -5011,7 +4796,7 @@ class DeviceMessageFingerprintCreationlist(ModelSQL, ModelView, CurrentState,
         return Decimal(100.00) - self.identified_percentage
 
 
-class DeviceMessageFingerprintCreationlistItem(ModelSQL, ModelView, PublicApi):
+class DeviceMessageFingerprintCreationlistItem(PublicApi, ModelSQL, ModelView):
     'Device Message: Fingerprint Creationlist Item'
     __name__ = 'device.message.fingerprint.creationlist.item'
     _history = True
@@ -5094,10 +4879,11 @@ context_list = [
 ]
 
 
-class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
+class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     'Declaration'
     __name__ = 'declaration'
     _history = True
+    _code_sequence = 'declaration_sequence'
 
     licensee = fields.Many2One(
         'party.party', 'Licensee', states={
@@ -5105,14 +4891,29 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help="The licensee of the declaration")
+
     state = fields.Selection(
         [
-            ('created', 'Created'),
-            ('rejected', 'Rejected'),
-            ('deleted', 'Deleted'),
+            ('submitted', 'Submitted'),
+            ('finished', 'Finished'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The state of the declaration')
+    next_step = fields.Function(
+        fields.Selection([
+            (None, 'None'),
+            ('utilisation', 'Utilisation'),
+            ('estimation', 'Estimation'),
+            ('confirmation', 'Confirmation'),
+            ('finalization', 'Finalization'),
+            ('processing', 'Processing'),
+            ('payment', 'Payment'),
+        ], 'Awaiting'), 'get_next_step')
+    next_step_deadline = fields.Function(
+        fields.DateTime(
+            'Awaiting Deadline',
+            help="Deadline for the next step"),
+        'get_next_step_deadline')
 
     creation_time = fields.DateTime(
         'Creation Time', states={
@@ -5123,11 +4924,11 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
     template = fields.Boolean(
         'Template', help='Is this declaration a template?')
     period = fields.Selection(
-        [
-            ('onetime', 'Onetime'),
-            ('monthly', 'Monthly'),
-            ('quarterly', 'Quarterly'),
+        [  # in descending order
             ('yearly', 'Yearly'),
+            ('quarterly', 'Quarterly'),
+            ('monthly', 'Monthly'),
+            ('onetime', 'Onetime'),
         ], 'Period', required=True, sort=False,
         states=STATES, depends=DEPENDS,
         help='The period of a recurring declaration.')
@@ -5150,6 +4951,18 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         states=STATES, depends=DEPENDS,
         help='The utilisations created for the declaration')
 
+    @staticmethod
+    def default_state():
+        return 'submitted'
+
+    @classmethod
+    def order_period(cls, tables):
+        table, _ = tables[None]
+        order = [period for period, _ in cls.period.selection]
+        whens = [(table.period == period, index)
+                 for index, period in enumerate(order)]
+        return [Case(*whens, else_=len(order))]
+
     @classmethod
     def create(cls, vlist):
         DistributionPlan = Pool().get('distribution.plan')
@@ -5162,14 +4975,15 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         elist = super(Declaration, cls).create(vlist)
         Utilisation = Pool().get('utilisation')
         for entry in elist:
-            utilisation = Utilisation()
-            utilisation.declaration = entry
-            utilisation.licensee = entry.licensee
-            utilisation.state = entry.state
-            utilisation.start = entry.creation_time
-            utilisation.tariff = entry.tariff
-            utilisation.context = entry.context
-            utilisation.distribution_plan = most_recent_distribution_plan[0].id
+            utilisation = Utilisation(
+                declaration=entry,
+                licensee=entry.licensee,
+                state='created',
+                start=entry.creation_time,
+                tariff=entry.tariff,
+                context=entry.context,
+                distribution_plan=most_recent_distribution_plan[0].id
+            )
             utilisation.save()
         return elist
 
@@ -5177,8 +4991,67 @@ class Declaration(ModelSQL, ModelView, CurrentState, PublicApi):
         rec_name = f"{self.context.rec_name}"
         return rec_name
 
+    def get_next_step(self, name):
+        # TODO: implement for other tariffs
+        if self.period != 'onetime':
+            return None
+        if self.tariff.category.code != 'L':
+            return None
 
-class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
+        utilisation = self.utilisations[0]
+        event = utilisation.context
+        if event.end > datetime.datetime.now():
+            return 'utilisation'
+        if utilisation.state == 'created':
+            return 'estimation'
+        if utilisation.state == 'estimated':
+            return 'confirmation'
+        if utilisation.state == 'confirmed':
+            playlists = [perf.playlist for perf in event.performances]
+            if not playlists or not all(playlists):
+                return 'finalization'
+            return 'processing'
+        if utilisation.state == 'finalized':
+            return 'processing'
+        if utilisation.state == 'allocated':
+            allocation = utilisation.allocation
+            if not allocation or not allocation.invoice:
+                return 'processing'
+            if allocation.invoice.state == 'posted':
+                return 'payment'
+            if allocation.invoice.state == 'paid':
+                return None
+            return 'processing'
+        return None
+
+    def get_next_step_deadline(self, name):
+        # TODO: implement for other tariffs
+        if self.period != 'onetime':
+            return None
+        if self.tariff.category.code != 'L':
+            return None
+
+        utilisation = self.utilisations[0]
+        event = utilisation.context
+        if self.next_step in ['confirmation', 'finalization']:
+            return event.end + datetime.timedelta(
+                days=UtilisationFinalize.grace_period_days)
+        return None
+
+    def permissions(self, web_user, valid_codes=[], derive=False):
+        permissions = set()
+        if web_user == self.licensee.web_user:
+            permissions.update([
+                'view_declaration',
+                'edit_declaration',
+                'delete_declaration',
+            ])
+        if valid_codes:
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
+
+
+class DeclarationGroup(PublicApi, ModelSQL, ModelView, CurrentState):
     'Declaration Group'
     __name__ = 'declaration.group'
     _history = True
@@ -5196,21 +5069,18 @@ class DeclarationGroup(ModelSQL, ModelView, CurrentState, PublicApi):
 
 # --- Utilisation ------------------------------------------------------------
 
-class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
-                  PublicApi, metaclass=IndicatorsMeta):
+class Utilisation(CodeSequence, PublicApi, ModelSQL, ModelView, CurrencyDigits,
+                  CurrentState, metaclass=IndicatorsMeta):
     'Utilisation'
     __name__ = 'utilisation'
     _history = True
+    _code_sequence = 'utilisation_sequence'
 
     # Note: The metaclass adds relations to indicators and shortcut function
     #       fields to their attributes to this class (see metaclass docstring)
     __indicators__ = 'utilisation.indicators'
     __samples__ = ['estimated', 'confirmed']
 
-    code = fields.Char(
-        'Code', required=True,
-        states={'required': True, 'readonly': True},
-        help='Sequential code number of the utilisation')
     state = fields.Selection(
         [
             ('created', 'Created'),
@@ -5252,9 +5122,6 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         ], 'Confirmation', sort=False,
         states=STATES, depends=DEPENDS,
         help='The confirmation state of the utilisation')
-    locked = fields.Boolean(
-        'Locked', states={'readonly': True},
-        help='Locked state for processing purposes')
 
     declaration = fields.Many2One(
         'declaration', 'Declaration', states={
@@ -5314,42 +5181,9 @@ class Utilisation(ModelSQL, ModelView, CurrencyDigits, CurrentState,
         # TODO: visible and required only for context Location
         help='The confirmed location space indicators')
 
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the utilisation must be unique.')
-        ]
-
     @staticmethod
     def default_state():
         return 'created'
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.utilisation_sequence.get()
-        return super().create(vlist)
-
-    @classmethod
-    def copy(cls, utilisations, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(utilisations, default=default)
 
     @classmethod
     def set_start(cls, utilisations, name, start):
@@ -6018,14 +5852,11 @@ class UtilisationCreationlistItem(ModelSQL, ModelView):
 # Archive
 ##############################################################################
 
-class Storehouse(ModelSQL, ModelView, CurrentState):
+class Storehouse(Code, ModelSQL, ModelView, CurrentState):
     'Storehouse'
     __name__ = 'storehouse'
     _rec_name = 'code'
     _history = True
-    code = fields.Char(
-        'Code', required=True,
-        help='The Code of the Storehouse.')
     details = fields.Text(
         'Details', help='Details of the Storehouse.')
     user = fields.Many2One(
@@ -6036,42 +5867,16 @@ class Storehouse(ModelSQL, ModelView, CurrentState):
         help='The harddisks in the Storehouse.')
 
 
-class HarddiskLabel(ModelSQL, ModelView, CurrentState):
+class HarddiskLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
     'Harddisk Label'
     __name__ = 'harddisk.label'
     _rec_name = 'code'
     _history = True
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The Label code for the Harddisk.')
+    _code_sequence = 'harddisk_label_sequence'
+
     harddisks = fields.One2Many(
         'harddisk', 'label', 'Harddisks',
         help='The harddisks in the Storehouse.')
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.harddisk_label_sequence.get()
-        return super().create(vlist)
-
-    @classmethod
-    def copy(cls, harddisk_labels, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(harddisk_labels, default=default)
 
 
 class Harddisk(ModelSQL, ModelView, CurrentState):
@@ -6162,45 +5967,19 @@ class HarddiskTest(ModelSQL, ModelView):
         return self.harddisk.uuid_harddisk + "@" + str(self.timestamp)
 
 
-class FilesystemLabel(ModelSQL, ModelView, CurrentState):
+class FilesystemLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
     'Filesystem Label'
     __name__ = 'harddisk.filesystem.label'
     _rec_name = 'code'
     _history = True
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The Label code for the Filesystem.')
+    _code_sequence = 'filesystem_label_sequence'
+
     filesystems = fields.One2Many(
         'harddisk.filesystem', 'label', 'Filesystems',
         help='The Filesystems of the Filesystem Label.')
     contents = fields.One2Many(
         'content', 'filesystem_label', 'Contents',
         help='The Contents of the Filesystem Label.')
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
-
-    @classmethod
-    def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.filesystem_label_sequence.get()
-        return super().create(vlist)
-
-    @classmethod
-    def copy(cls, filesystem_labels, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(filesystem_labels, default=default)
 
 
 class Filesystem(ModelSQL, ModelView, CurrentState):
@@ -6263,19 +6042,14 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
         }, help='The Checksum of the Filesystem.')
 
 
-class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
-              CurrentState, CommitState):
+class Content(CodeSequence, UUID, PublicApi, ModelSQL, ModelView, EntityOrigin,
+              AccessControlList, CurrentState, CommitState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
     _history = True
+    _code_sequence = 'content_sequence'
 
-    code = fields.Char(
-        'Code', required=True, states={
-            'readonly': True,
-        }, help='The unique code of the content')
-    uuid = fields.Char(
-        'UUID', required=True, help='The uuid of the Content.')
     category = fields.Selection(
         [
             ('audio', 'Audio'),
@@ -6471,19 +6245,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the Content must be unique.'),
-            ('uuid_uniq', Unique(table, table.uuid),
-             'The UUID of the content must be unique.'),
-        ]
         cls._order.insert(1, ('name', 'ASC'))
-
-    @staticmethod
-    def order_code(tables):
-        table, _ = tables[None]
-        return [CharLength(table.code), table.code]
 
     @staticmethod
     def default_category():
@@ -6508,16 +6270,9 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
 
     @classmethod
     def create(cls, vlist):
-        Configuration = Pool().get('collecting_society.configuration')
         default_roles = [('add', [
             r.id for r in
             AccessRole.search([('name', 'in', DEFAULT_ACCESS_ROLES)])])]
-
-        vlist = [x.copy() for x in vlist]
-        for values in vlist:
-            if not values.get('code'):
-                config = Configuration(1)
-                values['code'] = config.content_sequence.get()
 
         acls = {}
         elist = super().create(vlist)
@@ -6534,14 +6289,6 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
         AccessControlEntry.create(list(acls.values()))
 
         return elist
-
-    @classmethod
-    def copy(cls, contents, default=None):
-        if default is None:
-            default = {}
-        default = default.copy()
-        default['code'] = None
-        return super().copy(contents, default=default)
 
     def get_rec_name(self, name):
         result = '%s: %s %s %s %sHz %sBit' % (
@@ -6602,7 +6349,7 @@ class Content(ModelSQL, ModelView, EntityOrigin, AccessControlList, PublicApi,
             'edit_artist_content':   'edit_content',
             'delete_artist_content': 'delete_content',
         }
-        if not set([valid_codes]).intersection(set(derivation.values())):
+        if not set(valid_codes).intersection(set(derivation.values())):
             return direct_permissions
         permissions = set(direct_permissions)
         if self.creation and self.creation.artist:
@@ -6773,14 +6520,11 @@ class AccessRolePermission(ModelSQL, ModelView):
         required=True, ondelete='CASCADE')
 
 
-class AccessPermission(ModelSQL, ModelView):
+class AccessPermission(Code, ModelSQL, ModelView):
     'Access Permission'
     __name__ = 'ace.permission'
     _history = True
 
-    code = fields.Char(
-        'Code', required=True, states={'readonly': True},
-        help='The internal code for the permission.')
     entity = fields.Selection(
         acl_objects, 'Object', required=True, states={'readonly': True},
         help='The object to grant the permission for.')
@@ -6790,15 +6534,6 @@ class AccessPermission(ModelSQL, ModelView):
     description = fields.Text(
         'Description', states={'readonly': True},
         help='The description of the permission.')
-
-    @classmethod
-    def __setup__(cls):
-        super().__setup__()
-        table = cls.__table__()
-        cls._sql_constraints = [
-            ('code_uniq', Unique(table, table.code),
-             'The code of the permission must be unique.'),
-        ]
 
 
 ##############################################################################

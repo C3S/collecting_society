@@ -23,10 +23,18 @@ class Invoice(metaclass=PoolMeta):
         # TODO: atomic transaction context
         super(Invoice, cls).paid(invoices)
         for invoice in invoices:
+            # licenser invoice
             if not invoice.allocation:
                 continue
+            # licensee invoice
             invoice.allocation.state = 'collected'
             invoice.allocation.save()
+            # finish declarations
+            for utilisation in invoice.allocation.utilisations:
+                declaration = utilisation.declaration
+                if declaration.period == 'onetime':
+                    declaration.state = 'finished'
+                    declaration.save()
 
 
 class InvoiceLine(metaclass=PoolMeta):

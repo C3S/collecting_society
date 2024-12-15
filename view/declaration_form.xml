@@ -25,8 +25,14 @@
     <label name="context"/>
     <field name="context"/>
 
-    <newline/>
+    <label name="code"/>
+    <field name="code"/>
+    <label name="next_step"/>
+    <field name="next_step"/>
+    <label name="next_step_deadline"/>
+    <field name="next_step_deadline"/>
 
+    <newline/>
     <notebook colspan="8">
         <page string="Utilisations" id="utilisations" col="1">
             <field name="utilisations"/>
