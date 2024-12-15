@@ -4909,6 +4909,11 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
             ('processing', 'Processing'),
             ('payment', 'Payment'),
         ], 'Awaiting'), 'get_next_step')
+    next_step_deadline = fields.Function(
+        fields.DateTime(
+            'Awaiting Deadline',
+            help="Deadline for the next step"),
+        'get_next_step_deadline')
 
     creation_time = fields.DateTime(
         'Creation Time', states={
@@ -4986,18 +4991,6 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         rec_name = f"{self.context.rec_name}"
         return rec_name
 
-    def permissions(self, web_user, valid_codes=[], derive=False):
-        permissions = []
-        if web_user == self.licensee.web_user:
-            permissions += [
-                'show_declaration',
-                'edit_declaration',
-                'delete_declaration',
-            ]
-        if valid_codes:
-            permissions = permissions.intersection(valid_codes)
-        return tuple(permissions)
-
     def get_next_step(self, name):
         # TODO: implement for other tariffs
         if self.period != 'onetime':
@@ -5030,6 +5023,32 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
                 return None
             return 'processing'
         return None
+
+    def get_next_step_deadline(self, name):
+        # TODO: implement for other tariffs
+        if self.period != 'onetime':
+            return None
+        if self.tariff.category.code != 'L':
+            return None
+
+        utilisation = self.utilisations[0]
+        event = utilisation.context
+        if self.next_step in ['confirmation', 'finalization']:
+            return event.end + datetime.timedelta(
+                days=UtilisationFinalize.grace_period_days)
+        return None
+
+    def permissions(self, web_user, valid_codes=[], derive=False):
+        permissions = set()
+        if web_user == self.licensee.web_user:
+            permissions.update([
+                'view_declaration',
+                'edit_declaration',
+                'delete_declaration',
+            ])
+        if valid_codes:
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
 
 
 class DeclarationGroup(PublicApi, ModelSQL, ModelView, CurrentState):
