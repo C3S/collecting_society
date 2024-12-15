@@ -6349,7 +6349,7 @@ class Content(CodeSequence, UUID, PublicApi, ModelSQL, ModelView, EntityOrigin,
             'edit_artist_content':   'edit_content',
             'delete_artist_content': 'delete_content',
         }
-        if not set([valid_codes]).intersection(set(derivation.values())):
+        if not set(valid_codes).intersection(set(derivation.values())):
             return direct_permissions
         permissions = set(direct_permissions)
         if self.creation and self.creation.artist:
