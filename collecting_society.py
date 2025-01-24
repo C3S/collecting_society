@@ -755,11 +755,15 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
             self.value = self.category.value_default
 
     @staticmethod
+    def default_deviation():
+        return False
+
+    @staticmethod
     def default_status():
         return 'on_approval'
 
 
-class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
+class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView, CurrentState):
     'Tariff Relevance Category'
     __name__ = 'tariff_system.tariff.relevance.category'
     _history = True
@@ -833,6 +837,10 @@ class TariffRelevance(PublicApi, ModelSQL, ModelView):
     utilisation_indicators = fields.One2Many(
         'utilisation.indicators', 'relevance', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff relevance')
+
+    @staticmethod
+    def default_deviation():
+        return False
 
     def get_rec_name(self, name):
         rec_name = f"{self.category.name}: {self.value:.2f}"
@@ -3737,7 +3745,6 @@ class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         help='The category of the location')
     party = fields.Many2One(
         'party.party', 'Party', states={
-            'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The party responsible for the location')
@@ -3746,6 +3753,10 @@ class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'Public', states=STATES, depends=DEPENDS,
         help='Visibility for other frontend users')
 
+    street = fields.Text("Street")
+    postal_code = fields.Char("Postal Code")
+    city = fields.Char("City")
+    country = fields.Many2One('country.country', "Country")
     latitude = fields.Float(
         'Latitude', states=STATES, depends=DEPENDS,
         help='The latitude of the geographical location')
@@ -4955,6 +4966,14 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     def default_state():
         return 'submitted'
 
+    @staticmethod
+    def default_creation_time():
+        return datetime.datetime.now()
+
+    @staticmethod
+    def default_template():
+        return False
+
     @classmethod
     def order_period(cls, tables):
         table, _ = tables[None]
@@ -4975,6 +4994,8 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         elist = super(Declaration, cls).create(vlist)
         Utilisation = Pool().get('utilisation')
         for entry in elist:
+            if entry.utilisations:
+                continue
             utilisation = Utilisation(
                 declaration=entry,
                 licensee=entry.licensee,
