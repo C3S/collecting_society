@@ -3746,6 +3746,10 @@ class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         'Public', states=STATES, depends=DEPENDS,
         help='Visibility for other frontend users')
 
+    street = fields.Text("Street")
+    postal_code = fields.Char("Postal Code")
+    city = fields.Char("City")
+    country = fields.Many2One('country.country', "Country")
     latitude = fields.Float(
         'Latitude', states=STATES, depends=DEPENDS,
         help='The latitude of the geographical location')
