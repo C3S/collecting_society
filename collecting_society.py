@@ -755,11 +755,15 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
             self.value = self.category.value_default
 
     @staticmethod
+    def default_deviation():
+        return False
+
+    @staticmethod
     def default_status():
         return 'on_approval'
 
 
-class TariffRelevanceCategory(ModelSQL, ModelView, CurrentState):
+class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView, CurrentState):
     'Tariff Relevance Category'
     __name__ = 'tariff_system.tariff.relevance.category'
     _history = True
@@ -833,6 +837,10 @@ class TariffRelevance(PublicApi, ModelSQL, ModelView):
     utilisation_indicators = fields.One2Many(
         'utilisation.indicators', 'relevance', 'Indicators Utilisation',
         help='The set of utilisation indicators of the tariff relevance')
+
+    @staticmethod
+    def default_deviation():
+        return False
 
     def get_rec_name(self, name):
         rec_name = f"{self.category.name}: {self.value:.2f}"
@@ -4958,6 +4966,14 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     @staticmethod
     def default_state():
         return 'submitted'
+
+    @staticmethod
+    def default_creation_time():
+        return datetime.datetime.now()
+
+    @staticmethod
+    def default_template():
+        return False
 
     @classmethod
     def order_period(cls, tables):
