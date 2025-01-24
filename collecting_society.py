@@ -3745,7 +3745,6 @@ class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         help='The category of the location')
     party = fields.Many2One(
         'party.party', 'Party', states={
-            'required': True,
             'readonly': ~Eval('active'),
         }, depends=DEPENDS,
         help='The party responsible for the location')
