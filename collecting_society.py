@@ -4994,6 +4994,8 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         elist = super(Declaration, cls).create(vlist)
         Utilisation = Pool().get('utilisation')
         for entry in elist:
+            if entry.utilisations:
+                continue
             utilisation = Utilisation(
                 declaration=entry,
                 licensee=entry.licensee,
