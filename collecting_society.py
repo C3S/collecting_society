@@ -3721,7 +3721,7 @@ class EventPerformance(PublicApi, ModelSQL, ModelView, CurrentState):
 
 
 class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
-               EntityOrigin, metaclass=IndicatorsMeta):
+               ClaimState, EntityOrigin, metaclass=IndicatorsMeta):
     'Location'
     __name__ = 'location'
     _history = True
@@ -5064,7 +5064,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         if web_user == self.licensee.web_user:
             permissions.update([
                 'view_declaration',
-                'edit_declaration',
+                'confirm_declaration',
                 'delete_declaration',
             ])
         if valid_codes:
@@ -5629,7 +5629,8 @@ class UtilisationFinalize(Wizard):
         performances = self.record.context.performances
         playlist_missing = (
             not performances
-            and not any([performance.playlist for performance in performances])
+            or not any([getattr(performance.playlist, 'items', [])
+                        for performance in performances])
         )
         if playlist_missing:
             # wait until the grace period is over
@@ -5796,6 +5797,8 @@ class UtilisationCreationlist(ModelSQL, ModelView, CurrencyDigits,
             items = {}
             performances = utilisation.context.performances
             for performance in performances:
+                if not performance.playlist:
+                    continue
                 for playlist_item in performance.playlist.items:
                     creation_id = playlist_item.creation.id
                     if creation_id not in items:
