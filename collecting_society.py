@@ -2812,7 +2812,7 @@ class ArtistPlaylist(PublicApi, ModelSQL, ModelView, EntityOrigin):
         help='The performance, where the playlist was used')
     items = fields.One2Many(
         'artist.playlist.item', 'playlist', 'Items',
-        help='The items in the playlist')
+        order=[('position', 'ASC')], help='The items in the playlist')
 
 
 class ArtistPlaylistItem(PublicApi, ModelSQL, ModelView, EntityOrigin):
@@ -5028,10 +5028,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         if utilisation.state == 'estimated':
             return 'confirmation'
         if utilisation.state == 'confirmed':
-            playlists = [perf.playlist for perf in event.performances]
-            if not playlists or not all(playlists):
-                return 'finalization'
-            return 'processing'
+            return 'finalization'
         if utilisation.state == 'finalized':
             return 'processing'
         if utilisation.state == 'allocated':
@@ -5065,7 +5062,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
             permissions.update([
                 'view_declaration',
                 'confirm_declaration',
-                'delete_declaration',
+                'finalize_declaration',
             ])
         if valid_codes:
             permissions = permissions.intersection(valid_codes)
