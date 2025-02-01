@@ -4906,6 +4906,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     state = fields.Selection(
         [
             ('submitted', 'Submitted'),
+            ('canceled', 'Canceled'),
             ('finished', 'Finished'),
         ], 'State', required=True, sort=False,
         states=STATES, depends=DEPENDS,
@@ -5013,6 +5014,9 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         return rec_name
 
     def get_next_step(self, name):
+        if self.state in ['canceled', 'finished']:
+            return None
+
         # TODO: implement for other tariffs
         if self.period != 'onetime':
             return None
@@ -5063,6 +5067,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
                 'view_declaration',
                 'confirm_declaration',
                 'finalize_declaration',
+                'cancel_declaration',
             ])
         if valid_codes:
             permissions = permissions.intersection(valid_codes)
