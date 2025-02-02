@@ -36,6 +36,17 @@ class Invoice(metaclass=PoolMeta):
                     declaration.state = 'finished'
                     declaration.save()
 
+    def permissions(self, web_user, valid_codes=[], derive=False):
+        permissions = set()
+        if web_user.party == self.party:
+            permissions.update([
+                'view_invoice',
+                'download_invoice',
+            ])
+        if valid_codes:
+            permissions = permissions.intersection(valid_codes)
+        return tuple(permissions)
+
 
 class InvoiceLine(metaclass=PoolMeta):
     __name__ = 'account.invoice.line'
