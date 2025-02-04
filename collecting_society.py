@@ -6425,7 +6425,7 @@ class Fingerprintlog(ModelSQL, ModelView, EntityOrigin):
     __name__ = 'content.fingerprintlog'
     _history = True
     content = fields.Many2One(
-        'content', 'Content', required=True,
+        'content', 'Content', required=True, ondelete='CASCADE',
         help='The fingerprinted content.')
     user = fields.Many2One(
         'res.user', 'User', states={'required': True},
