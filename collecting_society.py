@@ -469,7 +469,9 @@ class EntityOrigin:
         help='Defines, if an object was created as foreign object (indirect) '
              'or not.')
     entity_creator = fields.Many2One(
-        'party.party', 'Entity Creator', states={'required': True})
+        'party.party', 'Entity Creator',
+        states={'required': Eval('entity_origin') == 'indirect'},
+        depends=['entity_origin'])
 
     @staticmethod
     def default_entity_origin():
@@ -510,6 +512,23 @@ class MixinRight:
     @property
     def successor(self):
         raise NotImplementedError("Subclasses should implement this")
+
+    @staticmethod
+    def default_country():
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.party.address_get('country').country
+        Country = Pool().get('country.country')
+        country = Country.search(['code', '=', 'DE'])
+        if country:
+            return country[0]
+        country = Country.search(['name', '=', 'None'])
+        if country:
+            return country[0]
+        country = Country(name='None')
+        country.save()
+        return country
 
 
 class MixinIdentifier:
@@ -2836,6 +2855,12 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
     __name__ = 'creation'
     _history = True
     _code_sequence = 'creation_sequence'
+    distribution_type_selection = [
+        ('original', 'Original'),
+        ('cover', 'Cover'),
+        ('adaption', 'Adaption'),
+        ('remix', 'Remix'),
+    ]
 
     title = fields.Char(
         'Title', required=True, states=STATES, depends=DEPENDS,
@@ -2898,13 +2923,17 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         'website.resource-creation', 'creation', 'resource'
         'Website Resource',
         help='The website resources, in which the creation was used')
+    distribution_type_override = fields.Selection([
+            (None, 'None'),
+            *distribution_type_selection,
+        ], 'Distribution Type', states={
+            'invisible': Eval('distribution_type_override') is not None,
+        }, help='The derivation type of the creation')
     distribution_type = fields.Function(
-        fields.Selection([
-            ('original', 'Original'),
-            ('cover', 'Cover'),
-            ('adaption', 'Adaption'),
-            ('remix', 'Remix'),
-        ], 'Creation Type'), 'get_distribution_type')
+        fields.Selection(
+            distribution_type_selection, 'Distribution Type',
+            states={'invisible': Eval('distribution_type_override') is None}),
+        'get_distribution_type', 'set_distribution_type')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -3023,7 +3052,13 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
             ('title',) + tuple(clause[1:]),
         ]
 
+    @staticmethod
+    def default_distribution_type_override():
+        return 'original'
+
     def get_distribution_type(self, name):
+        if self.distribution_type_override:
+            return self.distribution_type_override
         if not self.original_relations:
             return 'original'
         originals = self.original_relations
@@ -3038,6 +3073,24 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
                    for original in originals):
                 return "remix"
         raise f"Can't derive the distribution type from creation: {self}"
+
+    @classmethod
+    def set_distribution_type(cls, creations, name, value):
+        for creation in creations:
+            creation.distribution_type_override = value
+            creation.save()
+
+    def get_rights(self, right_type, contribution=None):
+        if contribution:
+            return [
+                right for right in self.rights
+                if right.type_of_right == right_type
+                and right.contribution == contribution
+            ]
+        return [
+            right for right in self.rights
+            if right.type_of_right == right_type
+        ]
 
     def get_rightsholders(self, right_type, contribution):
         return [
@@ -3112,7 +3165,7 @@ class CreationDerivative(PublicApi, ModelSQL, ModelView):
             ('adaption', 'Adaption'),
             ('cover', 'Cover'),
             ('remix', 'Remix'),
-        ], 'Allocation Type', required=True, sort=False,
+        ], 'Allocation Type', sort=False,
         help='The allocation type of the actual creation in the relation '
         'from its origins or towards its derivatives\n'
         '*Adaption*: \n'

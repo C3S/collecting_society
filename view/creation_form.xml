@@ -26,7 +26,10 @@
         <page string="IDs" id="identifiers">
             <field name="cs_identifiers" string="Identifiers"/>
         </page>
-        <page string="Derivatives" id="derivatives" col="1">
+        <page string="Derivation" id="derivatives" col="1">
+            <label name="distribution_type"/>
+            <field name="distribution_type" string="Type"/>
+            <field name="distribution_type_override" string="Type"/>
             <field name="original_relations" string="Originals"/>
             <field name="derivative_relations" string="Derivatives"/>
         </page>

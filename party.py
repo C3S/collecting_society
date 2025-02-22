@@ -1,11 +1,15 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
 
-import uuid
 from trytond.model import ModelView, ModelSQL, fields, Unique
 from trytond.pool import PoolMeta, Pool
 from trytond.transaction import Transaction
-from .collecting_society import MixinIdentifier
+from .collecting_society import (
+    MixinIdentifier,
+    EntityOrigin,
+    PublicApi,
+    ClaimState,
+)
 
 __all__ = [
     'Party',
@@ -18,7 +22,7 @@ __all__ = [
 ]
 
 
-class Party(metaclass=PoolMeta):
+class Party(EntityOrigin, PublicApi, ClaimState, metaclass=PoolMeta):
     __name__ = 'party.party'
     _history = True
 
@@ -27,19 +31,12 @@ class Party(metaclass=PoolMeta):
         help='The web user of the party')
     member_c3s = fields.Boolean('Member of C3S')
     member_c3s_token = fields.Char('C3S Membership Token')
-    artists = fields.One2Many('artist', 'party', 'Artists')
-    default_solo_artist = fields.Many2One(
-        'artist', 'Default Solo Artist',
-        help='The default solo artist of this party')
+
     firstname = fields.Char('Firstname')
     lastname = fields.Char('Lastname')
     birthdate = fields.Date('Birth Date')
     repertoire_terms_accepted = fields.Boolean(
         'Terms of Service Acceptance for Repertoire')
-    oid = fields.Char(
-        'OID', required=True,
-        help='A unique object identifier used in the public web api to avoid'
-             'exposure of implementation details to the users.')
     cs_identifiers = fields.One2Many(
         'party.cs_identifier', 'party', '3rd-Party Identifier',
         help='The identifiers of the party')
@@ -52,6 +49,22 @@ class Party(metaclass=PoolMeta):
             ('rejected', 'Rejected'),
         ], 'Common Public Interest', required=True, sort=False)
 
+    # backlinks
+    collecting_societies = fields.One2Many(
+        'collecting_society', 'party', 'Collecting Societies')
+    labels = fields.One2Many(
+        'label', 'party', 'Labels')
+    publishers = fields.One2Many(
+        'publisher', 'party', 'Publishers')
+    creation_rights = fields.One2Many(
+        'creation.right', 'rightsholder', 'Creation Rightsholder')
+    release_rights = fields.One2Many(
+        'release.right', 'rightsholder', 'Release Rightsholder')
+    artists = fields.One2Many('artist', 'party', 'Artists')
+    default_solo_artist = fields.Many2One(
+        'artist', 'Default Solo Artist',
+        help='The default solo artist of this party')
+
     @classmethod
     def __setup__(cls):
         super(Party, cls).__setup__()
@@ -60,10 +73,6 @@ class Party(metaclass=PoolMeta):
             ('uuid_oid', Unique(table, table.oid),
              'The OID of the client must be unique.'),
         ]
-
-    @staticmethod
-    def default_oid():
-        return str(uuid.uuid4())
 
     @staticmethod
     def default_common_public_interest():
