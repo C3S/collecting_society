@@ -3512,7 +3512,7 @@ class Release(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         return tuple(permissions)
 
 
-class ReleaseTrack(ModelSQL, ModelView):
+class ReleaseTrack(ModelSQL, ModelView, PublicApi):
     'Release Track'
     __name__ = 'release.track'
     _history = True
