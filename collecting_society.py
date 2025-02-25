@@ -560,8 +560,14 @@ class MixinIdentifierHelper:
                 identifier.save()
                 replaced = True
         if not replaced:
-            self.cs_identifiers.new(
-                space=space, id_code=id_code)
+            pool = Pool()
+            Id = pool.get(self._fields['cs_identifiers'].model_name)
+            Space = pool.get(Id._fields['space'].model_name)
+            space = Space.search(['name', '=', space])
+            if not space:
+                return
+            identifier = Id(space=space[0], id_code=id_code)
+            self.cs_identifiers = [*self.cs_identifiers, identifier]
 
 
 ##############################################################################
