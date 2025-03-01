@@ -4986,12 +4986,12 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
             help="Deadline for the next step"),
         'get_next_step_deadline')
 
-    creation_time = fields.DateTime(
-        'Creation Time', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='The point in time, when the declaration was created')
+    # creation_time = fields.DateTime(
+    #     'Creation Time', states={
+    #         'required': True,
+    #         'readonly': ~Eval('active'),
+    #     }, depends=DEPENDS,
+    #     help='The point in time, when the declaration was created')
     template = fields.Boolean(
         'Template', help='Is this declaration a template?')
     period = fields.Selection(
@@ -5026,9 +5026,9 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
     def default_state():
         return 'submitted'
 
-    @staticmethod
-    def default_creation_time():
-        return datetime.datetime.now()
+    # @staticmethod
+    # def default_creation_time():
+    #     return datetime.datetime.now()
 
     @staticmethod
     def default_template():
@@ -5060,7 +5060,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
                 declaration=entry,
                 licensee=entry.licensee,
                 state='created',
-                start=entry.creation_time,
+                start=entry.create_date,
                 tariff=entry.tariff,
                 context=entry.context,
                 distribution_plan=most_recent_distribution_plan[0].id

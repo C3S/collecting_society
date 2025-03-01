@@ -18,8 +18,8 @@
 
     <label name="tariff"/>
     <field name="tariff"/>
-    <label name="creation_time"/>
-    <field name="creation_time"/>
+    <label name="create_date"/>
+    <field name="create_date"/>
     <label name="period"/>
     <field name="period"/>
     <label name="context"/>
