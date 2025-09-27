@@ -6,8 +6,6 @@
     <field name="code"/>
 
     <group col="20" colspan="2" id="checkboxes">
-        <label name="locked"/>
-        <field name="locked" xexpand="0" width="25"/>
         <label name="active"/>
         <field name="active" xexpand="0" width="25"/>
     </group>

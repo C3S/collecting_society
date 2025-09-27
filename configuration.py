@@ -28,11 +28,18 @@ content_sequence = fields.Many2One(
         ('sequence_type', '=',
             Id('collecting_society', 'sequence_type_content')),
         ])
+
 tariff_system_sequence = fields.Many2One(
     'ir.sequence', 'Tariff System Sequence', domain=[
         ('sequence_type', '=',
             Id('collecting_society', 'sequence_type_tariff_system')),
         ])
+distribution_plan_sequence = fields.Many2One(
+    'ir.sequence', 'Distribution Plan Sequence', domain=[
+        ('sequence_type', '=',
+            Id('collecting_society', 'sequence_type_distribution_plan')),
+        ])
+
 declaration_sequence = fields.Many2One(
     'ir.sequence', 'Declaration Sequence', domain=[
         ('sequence_type', '=',
@@ -43,16 +50,17 @@ utilisation_sequence = fields.Many2One(
         ('sequence_type', '=',
             Id('collecting_society', 'sequence_type_utilisation')),
         ])
+collection_sequence = fields.Many2One(
+    'ir.sequence', 'Collection Sequence', domain=[
+        ('sequence_type', '=',
+            Id('collecting_society', 'sequence_type_collection')),
+        ])
 distribution_sequence = fields.Many2One(
     'ir.sequence', 'Distribution Sequence', domain=[
         ('sequence_type', '=',
             Id('collecting_society', 'sequence_type_distribution')),
         ])
-distribution_plan_sequence = fields.Many2One(
-    'ir.sequence', 'Distribution Plan Sequence', domain=[
-        ('sequence_type', '=',
-            Id('collecting_society', 'sequence_type_distribution_plan')),
-        ])
+
 harddisk_label_sequence = fields.Many2One(
     'ir.sequence', 'Harddisk Label Sequence', domain=[
         ('sequence_type', '=',
@@ -73,11 +81,15 @@ class Configuration(ModelSingleton, ModelSQL, ModelView, MultiValueMixin):
     release_sequence = fields.MultiValue(release_sequence)
     creation_sequence = fields.MultiValue(creation_sequence)
     content_sequence = fields.MultiValue(content_sequence)
+
     tariff_system_sequence = fields.MultiValue(tariff_system_sequence)
+    distribution_plan_sequence = fields.MultiValue(distribution_plan_sequence)
+
     declaration_sequence = fields.MultiValue(declaration_sequence)
     utilisation_sequence = fields.MultiValue(utilisation_sequence)
+    collection_sequence = fields.MultiValue(collection_sequence)
     distribution_sequence = fields.MultiValue(distribution_sequence)
-    distribution_plan_sequence = fields.MultiValue(distribution_plan_sequence)
+
     harddisk_label_sequence = fields.MultiValue(harddisk_label_sequence)
     filesystem_label_sequence = fields.MultiValue(filesystem_label_sequence)
 
@@ -128,6 +140,16 @@ class Configuration(ModelSingleton, ModelSQL, ModelView, MultiValueMixin):
             return None
 
     @classmethod
+    def default_distribution_plan_sequence(cls, **pattern):
+        pool = Pool()
+        ModelData = pool.get('ir.model.data')
+        try:
+            return ModelData.get_id(
+                'collecting_society', 'sequence_distribution_plan')
+        except KeyError:
+            return None
+
+    @classmethod
     def default_declaration_sequence(cls, **pattern):
         pool = Pool()
         ModelData = pool.get('ir.model.data')
@@ -148,22 +170,22 @@ class Configuration(ModelSingleton, ModelSQL, ModelView, MultiValueMixin):
             return None
 
     @classmethod
+    def default_collection_sequence(cls, **pattern):
+        pool = Pool()
+        ModelData = pool.get('ir.model.data')
+        try:
+            return ModelData.get_id(
+                'collecting_society', 'sequence_collection')
+        except KeyError:
+            return None
+
+    @classmethod
     def default_distribution_sequence(cls, **pattern):
         pool = Pool()
         ModelData = pool.get('ir.model.data')
         try:
             return ModelData.get_id(
                 'collecting_society', 'sequence_distribution')
-        except KeyError:
-            return None
-
-    @classmethod
-    def default_distribution_plan_sequence(cls, **pattern):
-        pool = Pool()
-        ModelData = pool.get('ir.model.data')
-        try:
-            return ModelData.get_id(
-                'collecting_society', 'sequence_distribution_plan')
         except KeyError:
             return None
 

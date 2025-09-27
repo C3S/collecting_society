@@ -1,13 +1,13 @@
 # For copyright and license terms, see COPYRIGHT.rst (top level of repository)
 # Repository: https://github.com/C3S/collecting_society
 from trytond.pool import Pool
-from .bank import *
-from .collecting_society import *
 from .account import *
 from .account_invoice import *
+from .bank import *
+from .collecting_society import *
+from .configuration import *
 from .party import *
 from .web_user import *
-from .configuration import *
 
 
 def register():
