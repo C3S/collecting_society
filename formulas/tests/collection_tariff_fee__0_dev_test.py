@@ -50,7 +50,7 @@ def test_tariff_fee(version, total):
 def test_tariff_fee_total_exception(version, total):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_fee__{version}")
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match=r"invalid range of tariff total"):
         formula(total=total)
 
 
