@@ -319,7 +319,8 @@ def test_tariff_live_base_billable_ratio_exception(
         version, billable_ratio):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_base__L{version}")
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError,
+                       match=r"invalid range of tariff billable_ratio:"):
         formula(
             context={
                 'attendants': 0,
@@ -376,7 +377,7 @@ def test_tariff_live_relevance(version, relevance):
 def test_tariff_live_relevance_exception(version, relevance):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_relevance__L{version}")
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match=r"invalid range of relevance:"):
         assert formula(
             context={},
             relevance=relevance

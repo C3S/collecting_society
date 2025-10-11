@@ -49,9 +49,12 @@ class Event(TypedDict):
 
 def tariff_total__0_1(utilisation: Utilisation):
     # sanity checks
-    assert 0 <= utilisation['base']
-    assert 0 < utilisation['relevance'] <= 1
-    assert 0 <= utilisation['share'] <= 1
+    assert 0 <= utilisation['base'], \
+           f"base value is invalid: {utilisation['base']}"
+    assert 0 < utilisation['relevance'] <= 1, \
+           f"relevance value is invalid: {utilisation['relevance']}"
+    assert 0 <= utilisation['share'] <= 1, \
+           f"share value is invalid: {utilisation['share']}"
     # total
     return (
         utilisation['base']

@@ -94,7 +94,7 @@ def test_tariff_total(version, base, relevance, share, adjustments):
 def test_tariff_total_base_exception(version, base):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_total__{version}")
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="base value is invalid:"):
         formula(
             utilisation={
                 'base': base,
@@ -122,7 +122,7 @@ def test_tariff_total_base_exception(version, base):
 def test_tariff_total_relevance_exception(version, relevance):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_total__{version}")
-    with pytest.raises(AssertionError):
+    with pytest.raises(AssertionError, match="relevance value is invalid:"):
         formula(
             utilisation={
                 'base': D('1'),
@@ -149,7 +149,7 @@ def test_tariff_total_relevance_exception(version, relevance):
 def test_tariff_total_share_exception(version, share):
     version = utils.convert_version(version)
     formula = getattr(collection, f"tariff_total__{version}")
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="share value is invalid:"):
         formula(
             utilisation={
                 'base': D('1'),
