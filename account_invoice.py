@@ -17,6 +17,10 @@ class Invoice(metaclass=PoolMeta):
         'distribution', 'Distribution',
         help='The allocation of the invoice')
 
+    @property
+    def invoice_report_versioned(self):
+        return self.state in {'posted', 'paid'} and self.type in ['in', 'out']
+
     @classmethod
     @Workflow.transition('paid')
     def paid(cls, invoices):
@@ -36,13 +40,29 @@ class Invoice(metaclass=PoolMeta):
                     declaration.state = 'finished'
                     declaration.save()
 
+    @classmethod
+    def _post(cls, invoices):
+        super()._post(invoices)
+        to_print = []
+        for invoice in invoices:
+            if invoice.type == 'in':
+                to_print.append(invoice)
+        if to_print:
+            cls.__queue__.print_invoice(to_print)
+
     def permissions(self, web_user, valid_codes=[], derive=False):
         permissions = set()
         if web_user.party == self.party:
-            permissions.update([
-                'view_invoice',
-                'download_invoice',
-            ])
+            if self.type == 'out':
+                permissions.update([
+                    'view_invoice',
+                    'download_invoice',
+                ])
+            elif self.type == 'in':
+                permissions.update([
+                    'view_royalty',
+                    'download_royalty',
+                ])
         if valid_codes:
             permissions = permissions.intersection(valid_codes)
         return tuple(permissions)
