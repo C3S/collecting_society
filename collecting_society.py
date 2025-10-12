@@ -1511,7 +1511,7 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
             self.adjusted_general_amount = self.initial_general_amount
             self.adjusted_distribution_amount = 0
 
-            # caclulate fonds/reserve amounts
+            # caclulate funds/reserve amounts
             social_fund_amount = general_amount / Decimal(3)
             cultural_fund_amount = general_amount / Decimal(3)
             reserve_fund_amount = general_amount / Decimal(3)
@@ -1590,7 +1590,7 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
                                      for share in creation_shares])), (
                    "sum of share amounts is not close to distribution amount")
 
-            # caclulate fonds/reserve amounts
+            # caclulate funds/reserve amounts
             social_fund_amount = general_amount / Decimal(3)
             cultural_fund_amount = general_amount / Decimal(3)
             reserve_fund_amount = general_amount / Decimal(3)
@@ -1645,9 +1645,13 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
                     grouped_shares[licenser][tariff] = {
                         'distribution': self,
                         'tariff': tariff,
+                        'utilisations': [],
                         'amount': Decimal(0),
                     }
                 grouped_shares[licenser][tariff]['amount'] += share['amount']
+                if 'utilisation' in share:
+                    grouped_shares[licenser][tariff]['utilisations'].append(
+                        share['utilisation'])
 
             assert math.isclose(distribution_amount,
                                 sum([share['amount']
@@ -1655,7 +1659,7 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
                                      for share in tariffs.values()])), (
                    "sum of grouped shares is not close to distribution amount")
 
-        # post move for fonds
+        # post move for funds
         pool = Pool()
         Move = pool.get('account.move')
         Journal = pool.get('account.journal')
@@ -1760,11 +1764,19 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
         for tariff, share in tariffs.items():
             amount = share['amount'].quantize(Decimal('0.00'))
             total_amount += amount
+            utilisations = ""
+            deduplicated_utilisations = set(share['utilisations'])
+            for utilisation in deduplicated_utilisations:
+                if len(deduplicated_utilisations) == 1:
+                    utilisations = f" from '{utilisation.context.description}'"
+                else:
+                    utilisations += f"\n→ {utilisation.context.description}"
+            description = f"Royalties {share['tariff'].code}" + utilisations
             # royalties
             lines.append({
                 'account': account_royalties,
                 'type': 'line',
-                'description': f"Royalties {share['tariff'].code}",
+                'description': description,
                 'origin': share['distribution'],
                 'quantity': 1,
                 'unit_price': amount,
