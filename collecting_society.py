@@ -2889,7 +2889,7 @@ class ArtistPlaylistItem(PublicApi, ModelSQL, ModelView, EntityOrigin):
 
 
 class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
-               AccessControlList, CurrentState,
+               AccessControlList, CurrentState, MixinIdentifierHelper,
                ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
