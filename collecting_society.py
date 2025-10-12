@@ -752,14 +752,14 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
     value = fields.Numeric(
         'Value', digits=(3, 6),
         required=True,
-        domain=[
-            ['OR',
-                ('category', '=', None),
-                ('category.value_min', '<=', Eval('value')),],
-            ['OR',
-                ('category', '=', None),
-                ('category.value_max', '>=', Eval('value')),],
-            ],
+        # domain=[      using pre_validate() member instead
+        #     ['OR',
+        #         ('category', '=', None),
+        #         ('category.value_min', '<=', Eval('value')),],
+        #     ['OR',
+        #         ('category', '=', None),
+        #         ('category.value_max', '>=', Eval('value')),],
+        #     ],
         help='The value of the adjustment')
     deviation = fields.Boolean(
         'Deviation', help='Does the value deviate from the category standard?')
@@ -786,6 +786,17 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
     @staticmethod
     def default_status():
         return 'on_approval'
+
+    def pre_validate(self):
+        if (
+            self.value < self.category.value_min
+            or self.value > self.category.value_max
+        ):
+            raise UserError(
+                f"The value '{self.value}' needs to be in the range "
+                f"{self.category.value_min} to {self.category.value_max}."
+            )
+        super().pre_validate()
 
 
 class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView, CurrentState):
@@ -877,6 +888,17 @@ class TariffRelevance(PublicApi, ModelSQL, ModelView):
     def on_change_category(self):
         if self.category:
             self.value = self.category.value_default
+
+    def pre_validate(self):
+        if (
+            self.value < self.category.value_min
+            or self.value > self.category.value_max
+        ):
+            raise UserError(
+                f"The value '{self.value}' needs to be in the range "
+                f"{self.category.value_min} to {self.category.value_max}."
+            )
+        super().pre_validate()
 
 
 class Tariff(PublicApi, ModelSQL, ModelView, CurrentState):
