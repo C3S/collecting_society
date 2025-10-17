@@ -15,7 +15,8 @@ from sql.conditionals import Case
 from sql.functions import CharLength
 import hurry.filesize
 
-from trytond.model import Model, ModelView, ModelSQL, fields, Unique
+from trytond.model import Model, ModelView, ModelSQL, fields, Unique, \
+    DeactivableMixin
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
@@ -36,7 +37,6 @@ __all__ = [
     'Code',
     'CodeSequence',
     'PublicApi',
-    'CurrentState',
     'ClaimState',
     'CommitState',
     'EntityOrigin',
@@ -360,16 +360,6 @@ class PublicApi:
         return [('oid',) + tuple(clause[1:])]
 
 
-class CurrentState:
-    'Mixin for the active state'
-    __slots__ = ()
-    active = fields.Boolean('Active')
-
-    @staticmethod
-    def default_active():
-        return True
-
-
 class ClaimState:
     'Mixin for the claim workflow'
     __slots__ = ()
@@ -574,7 +564,7 @@ class MixinIdentifierHelper:
 # Collecting Society
 ##############################################################################
 
-class CollectingSociety(PublicApi, ModelSQL, ModelView, CurrentState):
+class CollectingSociety(PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Collecting Society'
     __name__ = 'collecting_society'
     _history = True
@@ -594,7 +584,7 @@ class CollectingSociety(PublicApi, ModelSQL, ModelView, CurrentState):
 
 # --- Tariffs -----------------------------------------------------------------
 
-class TariffSystem(CodeSequence, ModelSQL, ModelView, CurrentState):
+class TariffSystem(CodeSequence, ModelSQL, ModelView, DeactivableMixin):
     'Tariff System'
     __name__ = 'tariff_system'
     _history = True
@@ -638,7 +628,7 @@ class TariffSystem(CodeSequence, ModelSQL, ModelView, CurrentState):
         return rec_name
 
 
-class TariffCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
+class TariffCategory(Code, PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Tariff Category'
     __name__ = 'tariff_system.category'
     _history = True
@@ -687,7 +677,7 @@ class TariffCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
         return rec_name
 
 
-class TariffAdjustmentCategory(Code, ModelSQL, ModelView, CurrentState):
+class TariffAdjustmentCategory(Code, ModelSQL, ModelView, DeactivableMixin):
     'Tariff Adjustment Category'
     __name__ = 'tariff_system.tariff.adjustment.category'
     _history = True
@@ -799,7 +789,8 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
         super().pre_validate()
 
 
-class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView, CurrentState):
+class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView,
+                              DeactivableMixin):
     'Tariff Relevance Category'
     __name__ = 'tariff_system.tariff.relevance.category'
     _history = True
@@ -901,7 +892,7 @@ class TariffRelevance(PublicApi, ModelSQL, ModelView):
         super().pre_validate()
 
 
-class Tariff(PublicApi, ModelSQL, ModelView, CurrentState):
+class Tariff(PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Tariff'
     __name__ = 'tariff_system.tariff'
     _history = True
@@ -2465,7 +2456,7 @@ class IndicatorsMeta(ModelMeta):
 # Licenser
 ##############################################################################
 
-class License(Code, PublicApi, ModelSQL, ModelView, CurrentState):
+class License(Code, PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'License'
     __name__ = 'license'
     _history = True
@@ -2492,7 +2483,7 @@ class License(Code, PublicApi, ModelSQL, ModelView, CurrentState):
 
 
 class Artist(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
-             AccessControlList, CurrentState, MixinIdentifierHelper,
+             AccessControlList, DeactivableMixin, MixinIdentifierHelper,
              ClaimState, CommitState):
     'Artist'
     __name__ = 'artist'
@@ -2889,7 +2880,7 @@ class ArtistPlaylistItem(PublicApi, ModelSQL, ModelView, EntityOrigin):
 
 
 class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
-               AccessControlList, CurrentState, MixinIdentifierHelper,
+               AccessControlList, DeactivableMixin, MixinIdentifierHelper,
                ClaimState, CommitState):
     'Creation'
     __name__ = 'creation'
@@ -3314,7 +3305,7 @@ class CreationRightCreationRight(ModelSQL):
 
 
 class Release(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
-              AccessControlList, CurrentState, MixinIdentifierHelper,
+              AccessControlList, DeactivableMixin, MixinIdentifierHelper,
               ClaimState, CommitState, metaclass=IndicatorsMeta):
     'Release'
     __name__ = 'release'
@@ -3697,7 +3688,7 @@ class Style(PublicApi, ModelSQL, ModelView):
         'Description', help='The description of the style.')
 
 
-class Label(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
+class Label(PublicApi, ModelSQL, ModelView, EntityOrigin, DeactivableMixin):
     'Label'
     __name__ = 'label'
     _history = True
@@ -3710,7 +3701,8 @@ class Label(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
         '"Gesellschaft zur Verwertung von Leistungsschutzrechten" (GVL)')
 
 
-class Publisher(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
+class Publisher(PublicApi, ModelSQL, ModelView, EntityOrigin,
+                DeactivableMixin):
     'Publisher'
     __name__ = 'publisher'
     _history = True
@@ -3726,7 +3718,7 @@ class Publisher(PublicApi, ModelSQL, ModelView, EntityOrigin, CurrentState):
 
 # --- Real World Objects -----------------------------------------------------
 
-class Event(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
+class Event(PublicApi, ModelSQL, ModelView, CurrencyDigits, DeactivableMixin,
             metaclass=IndicatorsMeta):
     'Event'
     __name__ = 'event'
@@ -3783,7 +3775,7 @@ class Event(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         return None
 
 
-class EventPerformance(PublicApi, ModelSQL, ModelView, CurrentState):
+class EventPerformance(PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Event Performance'
     __name__ = 'event.performance'
     _history = True
@@ -3813,8 +3805,9 @@ class EventPerformance(PublicApi, ModelSQL, ModelView, CurrentState):
         help='The playlist of the performance')
 
 
-class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
-               ClaimState, EntityOrigin, metaclass=IndicatorsMeta):
+class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits,
+               DeactivableMixin, ClaimState, EntityOrigin,
+               metaclass=IndicatorsMeta):
     'Location'
     __name__ = 'location'
     _history = True
@@ -3863,7 +3856,7 @@ class Location(PublicApi, ModelSQL, ModelView, CurrencyDigits, CurrentState,
         help='The spaces associated with the location')
 
 
-class LocationCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
+class LocationCategory(Code, PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Location Category'
     __name__ = 'location.category'
     _history = True
@@ -3889,7 +3882,7 @@ class LocationCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
         ]
 
 
-class LocationSpace(PublicApi, ModelSQL, ModelView, CurrentState,
+class LocationSpace(PublicApi, ModelSQL, ModelView, DeactivableMixin,
                     metaclass=IndicatorsMeta):
     'Location Space'
     __name__ = 'location.space'
@@ -3978,7 +3971,7 @@ class LocationSpace(PublicApi, ModelSQL, ModelView, CurrentState,
 
 
 class LocationSpaceCategory(Code, PublicApi, ModelSQL, ModelView,
-                            CurrentState):
+                            DeactivableMixin):
     'Location Space Category'
     __name__ = 'location.space.category'
     _history = True
@@ -4003,7 +3996,7 @@ class LocationSpaceCategory(Code, PublicApi, ModelSQL, ModelView,
         ]
 
 
-class Website(PublicApi, ModelSQL, ModelView, CurrentState):
+class Website(PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Website'
     __name__ = 'website'
     _history = True
@@ -4056,7 +4049,7 @@ class Website(PublicApi, ModelSQL, ModelView, CurrentState):
         return devices
 
 
-class WebsiteCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
+class WebsiteCategory(Code, PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Website Category'
     __name__ = 'website.category'
     _history = True
@@ -4090,7 +4083,7 @@ class WebsiteCategory(Code, PublicApi, ModelSQL, ModelView, CurrentState):
 
 
 class WebsiteResource(UUID, PublicApi, ModelSQL, ModelView, CurrencyDigits,
-                      CurrentState):
+                      DeactivableMixin):
     'Website Resource'
     __name__ = 'website.resource'
     _history = True
@@ -4169,7 +4162,7 @@ class WebsiteResourceCreation(ModelSQL):
 
 
 class WebsiteResourceCategory(Code, PublicApi, ModelSQL, ModelView,
-                              CurrentState):
+                              DeactivableMixin):
     'Website Resource Category'
     __name__ = 'website.resource.category'
     _history = True
@@ -4217,7 +4210,7 @@ class WebsiteCategoryWebsiteResourceCategory(ModelSQL):
 
 # --- Devices ----------------------------------------------------------------
 
-class Device(UUID, PublicApi, ModelSQL, ModelView, CurrentState):
+class Device(UUID, PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Device'
     __name__ = 'device'
     _history = True
@@ -4821,7 +4814,7 @@ class DeviceMessageFingerprintMerge(Wizard):
 
 
 class DeviceMessageFingerprintCreationlist(PublicApi, ModelSQL, ModelView,
-                                           CurrentState):
+                                           DeactivableMixin):
     'Device Message: Fingerprint Creationlist'
     __name__ = 'device.message.fingerprint.creationlist'
     _history = True
@@ -4983,7 +4976,8 @@ context_list = [
 ]
 
 
-class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
+class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView,
+                  DeactivableMixin):
     'Declaration'
     __name__ = 'declaration'
     _history = True
@@ -5157,7 +5151,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView, CurrentState):
         return tuple(permissions)
 
 
-class DeclarationGroup(PublicApi, ModelSQL, ModelView, CurrentState):
+class DeclarationGroup(PublicApi, ModelSQL, ModelView, DeactivableMixin):
     'Declaration Group'
     __name__ = 'declaration.group'
     _history = True
@@ -5176,7 +5170,7 @@ class DeclarationGroup(PublicApi, ModelSQL, ModelView, CurrentState):
 # --- Utilisation ------------------------------------------------------------
 
 class Utilisation(CodeSequence, PublicApi, ModelSQL, ModelView, CurrencyDigits,
-                  CurrentState, metaclass=IndicatorsMeta):
+                  DeactivableMixin, metaclass=IndicatorsMeta):
     'Utilisation'
     __name__ = 'utilisation'
     _history = True
@@ -5961,7 +5955,7 @@ class UtilisationCreationlistItem(ModelSQL, ModelView):
 # Archive
 ##############################################################################
 
-class Storehouse(Code, ModelSQL, ModelView, CurrentState):
+class Storehouse(Code, ModelSQL, ModelView, DeactivableMixin):
     'Storehouse'
     __name__ = 'storehouse'
     _rec_name = 'code'
@@ -5976,7 +5970,7 @@ class Storehouse(Code, ModelSQL, ModelView, CurrentState):
         help='The harddisks in the Storehouse.')
 
 
-class HarddiskLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
+class HarddiskLabel(CodeSequence, ModelSQL, ModelView, DeactivableMixin):
     'Harddisk Label'
     __name__ = 'harddisk.label'
     _rec_name = 'code'
@@ -5988,7 +5982,7 @@ class HarddiskLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
         help='The harddisks in the Storehouse.')
 
 
-class Harddisk(ModelSQL, ModelView, CurrentState):
+class Harddisk(ModelSQL, ModelView, DeactivableMixin):
     'Harddisk'
     __name__ = 'harddisk'
     _rec_name = 'uuid_harddisk'
@@ -6076,7 +6070,7 @@ class HarddiskTest(ModelSQL, ModelView):
         return self.harddisk.uuid_harddisk + "@" + str(self.timestamp)
 
 
-class FilesystemLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
+class FilesystemLabel(CodeSequence, ModelSQL, ModelView, DeactivableMixin):
     'Filesystem Label'
     __name__ = 'harddisk.filesystem.label'
     _rec_name = 'code'
@@ -6091,7 +6085,7 @@ class FilesystemLabel(CodeSequence, ModelSQL, ModelView, CurrentState):
         help='The Contents of the Filesystem Label.')
 
 
-class Filesystem(ModelSQL, ModelView, CurrentState):
+class Filesystem(ModelSQL, ModelView, DeactivableMixin):
     'Filesystem'
     __name__ = 'harddisk.filesystem'
     _rec_name = 'uuid_filesystem'
@@ -6152,7 +6146,7 @@ class Filesystem(ModelSQL, ModelView, CurrentState):
 
 
 class Content(CodeSequence, UUID, PublicApi, ModelSQL, ModelView, EntityOrigin,
-              AccessControlList, CurrentState, CommitState):
+              AccessControlList, DeactivableMixin, CommitState):
     'Content'
     __name__ = 'content'
     _rec_name = 'uuid'
