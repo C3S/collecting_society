@@ -742,7 +742,7 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
     value = fields.Numeric(
         'Value', digits=(3, 6),
         required=True,
-        # domain=[      using pre_validate() member instead
+        # domain=[ using validate() instead to avoid cryptic error messages
         #     ['OR',
         #         ('category', '=', None),
         #         ('category.value_min', '<=', Eval('value')),],
@@ -777,16 +777,19 @@ class TariffAdjustment(PublicApi, ModelSQL, ModelView):
     def default_status():
         return 'on_approval'
 
-    def pre_validate(self):
-        if (
-            self.value < self.category.value_min
-            or self.value > self.category.value_max
-        ):
-            raise UserError(
-                f"The value '{self.value}' needs to be in the range "
-                f"{self.category.value_min} to {self.category.value_max}."
-            )
-        super().pre_validate()
+    @classmethod
+    def validate(cls, records):
+        super().validate(records)
+        for record in records:
+            if (
+                record.value < record.category.value_min
+                or record.value > record.category.value_max
+            ):
+                raise UserError(
+                    f"The value '{record.value}' needs to be in the range "
+                    f"{record.category.value_min} "
+                    f"to {record.category.value_max}."
+                )
 
 
 class TariffRelevanceCategory(PublicApi, ModelSQL, ModelView,
@@ -880,16 +883,19 @@ class TariffRelevance(PublicApi, ModelSQL, ModelView):
         if self.category:
             self.value = self.category.value_default
 
-    def pre_validate(self):
-        if (
-            self.value < self.category.value_min
-            or self.value > self.category.value_max
-        ):
-            raise UserError(
-                f"The value '{self.value}' needs to be in the range "
-                f"{self.category.value_min} to {self.category.value_max}."
-            )
-        super().pre_validate()
+    @classmethod
+    def validate(cls, records):
+        super().validate(records)
+        for record in records:
+            if (
+                record.value < record.category.value_min
+                or record.value > record.category.value_max
+            ):
+                raise UserError(
+                    f"The value '{record.value}' needs to be in the range "
+                    f"{record.category.value_min} "
+                    f"to {record.category.value_max}."
+                )
 
 
 class Tariff(PublicApi, ModelSQL, ModelView, DeactivableMixin):
