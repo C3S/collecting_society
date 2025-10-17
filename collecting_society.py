@@ -5336,6 +5336,25 @@ class Utilisation(CodeSequence, PublicApi, ModelSQL, ModelView, CurrencyDigits,
         # all other tariffs get the end date from a manually entered date
         return self.end_override
 
+    @classmethod
+    def validate(cls, utils):
+        super().validate(utils)
+        for util in utils:
+            for ec in [util.estimated_adjustments, util.confirmed_adjustments]:
+                already_occured = []
+                for adjustment in ec:
+                    if adjustment.category.id in already_occured:
+                        if ec == util.estimated_adjustments:
+                            ec_string = 'estimated adjustments'
+                        else:
+                            ec_string = 'confirmed adjustments'
+                        raise UserError(
+                            f"Adjustment category '{adjustment.category.name}'"
+                            f" has been added multiple times in {ec_string}.",
+                        )
+                    else:
+                        already_occured.append(adjustment.category.id)
+
     # --- collection ----------------------------------------------------------
 
     def context_indicators_as_dict(self, sample):
