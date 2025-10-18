@@ -3184,6 +3184,30 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
                 permissions = permissions.intersection(valid_codes)
         return tuple(permissions)
 
+    @classmethod
+    def validate(cls, records):
+        super().validate(records)
+        for record in records:
+            already_occured = []
+            for relation in record.original_relations:
+                if relation.original_creation.id in already_occured:
+                    raise UserError(
+                        "The same original "
+                        f"'{relation.original_creation.title}'"
+                        " has been added multiple times to the derivation "
+                        "relations."
+                    )
+                else:
+                    already_occured.append(relation.original_creation.id)
+            # only remixes may have multiple originals
+            if record.distribution_type != 'remix':
+                if len(record.original_relations) > 1:
+                    raise UserError(
+                        "Only remixes may have multiple original relations. "
+                        "Please select only one original for this "
+                        f"{record.distribution_type.lower()}."
+                    )
+
 
 class CreationDerivative(PublicApi, ModelSQL, ModelView):
     'Creation - Original - Derivative'
