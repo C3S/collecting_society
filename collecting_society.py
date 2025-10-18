@@ -2915,12 +2915,14 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
     license = fields.Function(
         fields.Many2One('license', 'Default License'),
         'get_license', searcher='search_license')
-    derivative_relations = fields.One2Many(
+    derivative_relations = fields.Many2Many(
         'creation.original.derivative', 'original_creation',
+        'derivative_creation',
         'Derived Relations', states=STATES, depends=DEPENDS,
         help='All creations deriving from the actual creation')
-    original_relations = fields.One2Many(
+    original_relations = fields.Many2Many(
         'creation.original.derivative', 'derivative_creation',
+        'original_creation',
         'Originating Relations', states=STATES, depends=DEPENDS,
         help='All creations originating the actual creation')
     releases = fields.One2Many(
@@ -2960,17 +2962,9 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         'website.resource-creation', 'creation', 'resource'
         'Website Resource',
         help='The website resources, in which the creation was used')
-    distribution_type_override = fields.Selection([
-            (None, 'None'),
-            *distribution_type_selection,
-        ], 'Distribution Type', states={
-            'invisible': Eval('distribution_type_override') is not None,
-        }, help='The derivation type of the creation')
-    distribution_type = fields.Function(
-        fields.Selection(
-            distribution_type_selection, 'Distribution Type',
-            states={'invisible': Eval('distribution_type_override') is None}),
-        'get_distribution_type', 'set_distribution_type')
+    distribution_type = fields.Selection(
+        distribution_type_selection, 'Distribution Type',
+        help='The derivation type of the creation')
 
     @fields.depends('tariff_categories')
     def on_change_with_tariff_categories_list(self, name=None):
@@ -3090,32 +3084,8 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         ]
 
     @staticmethod
-    def default_distribution_type_override():
+    def default_distribution_type():
         return 'original'
-
-    def get_distribution_type(self, name):
-        if self.distribution_type_override:
-            return self.distribution_type_override
-        if not self.original_relations:
-            return 'original'
-        originals = self.original_relations
-        if len(originals) == 1:
-            allocation_type = self.original_relations[0].allocation_type
-            if allocation_type == "cover":
-                return 'cover'
-            if allocation_type == "adaption":
-                return 'adaption'
-        else:
-            if all(original.allocation_type == "remix"
-                   for original in originals):
-                return "remix"
-        raise f"Can't derive the distribution type from creation: {self}"
-
-    @classmethod
-    def set_distribution_type(cls, creations, name, value):
-        for creation in creations:
-            creation.distribution_type_override = value
-            creation.save()
 
     def get_rights(self, right_type, contribution=None):
         if contribution:
@@ -3189,16 +3159,15 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         super().validate(records)
         for record in records:
             already_occured = []
-            for relation in record.original_relations:
-                if relation.original_creation.id in already_occured:
+            for creation in record.original_relations:
+                if creation.id in already_occured:
                     raise UserError(
-                        "The same original "
-                        f"'{relation.original_creation.title}'"
+                        f"The same original '{creation.title}'"
                         " has been added multiple times to the derivation "
                         "relations."
                     )
                 else:
-                    already_occured.append(relation.original_creation.id)
+                    already_occured.append(creation.id)
             # only remixes may have multiple originals
             if record.distribution_type != 'remix':
                 if len(record.original_relations) > 1:
@@ -3207,9 +3176,10 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
                         "Please select only one original for this "
                         f"{record.distribution_type.lower()}."
                     )
+            # TODO: further validation if < 1, except for original type
 
 
-class CreationDerivative(PublicApi, ModelSQL, ModelView):
+class CreationDerivative(ModelSQL):
     'Creation - Original - Derivative'
     __name__ = 'creation.original.derivative'
     _history = True
@@ -3220,18 +3190,6 @@ class CreationDerivative(PublicApi, ModelSQL, ModelView):
     derivative_creation = fields.Many2One(
         'creation', 'Derivative Creation', required=True,
         ondelete='CASCADE')
-    allocation_type = fields.Selection(
-        [
-            (None, ''),
-            ('adaption', 'Adaption'),
-            ('cover', 'Cover'),
-            ('remix', 'Remix'),
-        ], 'Allocation Type', sort=False,
-        help='The allocation type of the actual creation in the relation '
-        'from its origins or towards its derivatives\n'
-        '*Adaption*: \n'
-        '*Cover*: \n'
-        '*Remix*: \n')
 
 
 class CreationRole(PublicApi, ModelSQL, ModelView, EntityOrigin):

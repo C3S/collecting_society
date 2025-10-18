@@ -29,7 +29,6 @@
         <page string="Derivation" id="derivatives" col="2">
             <label name="distribution_type"/>
             <field name="distribution_type" string="Type"/>
-            <field name="distribution_type_override" string="Type" colspan="2"/>
             <field name="original_relations" string="Originals" colspan="2"/>
             <field name="derivative_relations" string="Derivatives" colspan="2"/>
         </page>

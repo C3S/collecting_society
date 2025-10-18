@@ -1549,38 +1549,6 @@
                   action="act_creation_tariff_category"
                   id="menu_creation_tariff_category"/>
 
-        <!-- Menue: Creations / Derivatives -->
-        <record model="ir.ui.view" id="creation_derivative_form">
-            <field name="model">creation.original.derivative</field>
-            <field name="type">form</field>
-            <field name="name">creation_derivative_form</field>
-        </record>
-        <record model="ir.ui.view" id="creation_derivative_list">
-            <field name="model">creation.original.derivative</field>
-            <field name="type">tree</field>
-            <field name="name">creation_derivative_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_creation_derivative">
-            <field name="name">Derivatives</field>
-            <field name="res_model">creation.original.derivative</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_derivative_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="creation_derivative_list"/>
-            <field name="act_window" ref="act_creation_derivative"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_creation_derivative_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="creation_derivative_form"/>
-            <field name="act_window" ref="act_creation_derivative"/>
-        </record>
-        <menuitem parent="menu_creation" sequence="40"
-                  action="act_creation_derivative"
-                  id="menu_creation_derivative"/>
-
         <!-- Menue: Licenses -->
         <record model="ir.ui.view" id="release_track_license_form">
             <field name="model">license</field>
