@@ -2915,12 +2915,12 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
     license = fields.Function(
         fields.Many2One('license', 'Default License'),
         'get_license', searcher='search_license')
-    derivative_relations = fields.Many2Many(
+    derivatives = fields.Many2Many(
         'creation.original.derivative', 'original_creation',
         'derivative_creation',
         'Derived Relations', states=STATES, depends=DEPENDS,
         help='All creations deriving from the actual creation')
-    original_relations = fields.Many2Many(
+    originals = fields.Many2Many(
         'creation.original.derivative', 'derivative_creation',
         'original_creation',
         'Originating Relations', states=STATES, depends=DEPENDS,
@@ -3159,7 +3159,7 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
         super().validate(records)
         for record in records:
             already_occured = []
-            for creation in record.original_relations:
+            for creation in record.originals:
                 if creation.id in already_occured:
                     raise UserError(
                         f"The same original '{creation.title}'"
@@ -3170,7 +3170,7 @@ class Creation(CodeSequence, PublicApi, ModelSQL, ModelView, EntityOrigin,
                     already_occured.append(creation.id)
             # only remixes may have multiple originals
             if record.distribution_type != 'remix':
-                if len(record.original_relations) > 1:
+                if len(record.originals) > 1:
                     raise UserError(
                         "Only remixes may have multiple original relations. "
                         "Please select only one original for this "

@@ -156,7 +156,7 @@ def roles__0_1(utilisation, creation):
 
     # split cover
     elif creation.distribution_type == 'cover':
-        original = creation.original_relations[0]
+        original = creation.originals[0]
         roles['type'] = 'original'
         roles['split'] = {
             'copyright': {
@@ -191,7 +191,7 @@ def roles__0_1(utilisation, creation):
 
     # split adaption
     elif creation.distribution_type == 'adaption':
-        original = creation.original_relations[0]
+        original = creation.originals[0]
         roles['split'] = {
             'copyright': {
                 'composition': {
@@ -234,7 +234,7 @@ def roles__0_1(utilisation, creation):
 
     # split remix
     elif creation.distribution_type == 'remix':
-        originals = creation.original_relations
+        originals = creation.originals
         roles['split'] = {
             'originals': [{
                 'plan': utilisation.distribution_plan.version,
