@@ -19,6 +19,7 @@ from trytond.model import Model, ModelView, ModelSQL, fields, Unique, \
     DeactivableMixin
 from trytond.model.model import ModelMeta
 from trytond.model.fields import Field
+from trytond.modules.currency.fields import Monetary
 from trytond.wizard import Wizard, StateView, Button, StateTransition,  \
     StateAction
 from trytond.exceptions import UserError, UserWarning
@@ -403,10 +404,16 @@ class CommitState:
 
 
 class CurrencyDigits:
-    'Mixin to provide the currency digit configuration'
+    """
+    Mixin to provide the currency digit configuration and
+    company currency to Monetary fields
+    """
     __slots__ = ()
     currency_digits = fields.Function(
         fields.Integer('Currency Digits'), 'get_currency_digits')
+
+    currency = fields.Function(
+        fields.Many2One('currency.currency', 'Currency'), 'get_currency')
 
     def get_currency_digits(self, name):
         Company = Pool().get('company.company')
@@ -414,6 +421,13 @@ class CurrencyDigits:
             company = Company(Transaction().context['company'])
             return company.currency.digits
         return 2
+
+    def get_currency(self, name):
+        Company = Pool().get('company.company')
+        if Transaction().context.get('company'):
+            company = Company(Transaction().context['company'])
+            return company.currency
+        return None
 
 
 class AccessControlList:
@@ -1004,9 +1018,9 @@ class Collection(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
         'get_allocations_with_state')
 
     invoice_amount = fields.Function(
-        fields.Numeric(
+        Monetary(
             'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
-            depends=['currency_digits'],
+            depends=['currency_digits'], currency="currency",
             help='The amount to collect'),
         'get_invoice_amount')
 
@@ -1208,19 +1222,19 @@ class Allocation(UUID, ModelSQL, ModelView, CurrencyDigits):
         'utilisation', 'allocation', 'Utilisations',
         help='The allocated utilisations')
 
-    invoice_amount = fields.Numeric(
+    invoice_amount = Monetary(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
+        depends=['currency_digits'], currency="currency",
         help='The sum of invoice amounts over all utilisations')
-    administration_fee = fields.Numeric(
+    administration_fee = Monetary(
         'Administration Fee', digits=(16, Eval('currency_digits', 2)),
-        depends=['currency_digits'],
+        depends=['currency_digits'], currency="currency",
         help='The sum of adminstration fees over all utilisations')
     distribution_amount = fields.Function(
-        fields.Numeric(
+        Monetary(
             'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
             states={'readonly': True}, depends=['currency_digits'],
-            help='The amount to distribute'),
+            currency="currency", help='The amount to distribute'),
         'on_change_with_distribution_amount')
 
     company = fields.Many2One(
@@ -1389,37 +1403,45 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
     entity_creator = fields.Many2One(
         'res.user', 'Entity Creator', states={'required': True})
 
-    invoice_amount = fields.Numeric(
+    invoice_amount = Monetary(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The invoice amount for the distribution')
-    initial_general_amount = fields.Numeric(
+    initial_general_amount = Monetary(
         'Initial General Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The initial general amount for the distribution')
-    initial_distribution_amount = fields.Numeric(
+    initial_distribution_amount = Monetary(
         'Initial Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The initial distribution amount for the distribution')
-    adjusted_general_amount = fields.Numeric(
+    adjusted_general_amount = Monetary(
         'General Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The adjusted general amount for the distribution')
-    adjusted_distribution_amount = fields.Numeric(
+    adjusted_distribution_amount = Monetary(
         'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The adjusted distribution amount for the distribution')
-    social_fund_amount = fields.Numeric(
+    social_fund_amount = Monetary(
         'Social Fund Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The social fund amount')
-    cultural_fund_amount = fields.Numeric(
+    cultural_fund_amount = Monetary(
         'Cultural Fund Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The cultural fund amount')
-    reserve_fund_amount = fields.Numeric(
+    reserve_fund_amount = Monetary(
         'Reserve Fund Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The reserve fund amount')
 
     funds_account_move = fields.One2One(
@@ -1958,25 +1980,25 @@ class EventIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Attendants', help='The number of attendants')
     max_attendants = fields.Integer(
         'Max Attendants', help='The maximum number of attendants')
-    max_admission = fields.Numeric(
+    max_admission = Monetary(
         'Max Admission', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        digits=(16, Eval('currency_digits', 2)), currency="currency",
         help='The maxiumum entrance fee')
-    turnover_tickets = fields.Numeric(
-        'Turnover Tickets', depends=['currency_digits'],
+    turnover_tickets = Monetary(
+        'Turnover Tickets', depends=['currency_digits'], currency="currency",
         digits=(16, Eval('currency_digits', 2)),
         help='The ticket related turnover')
-    turnover_benefit = fields.Numeric(
-        'Turnover Benefit', depends=['currency_digits'],
+    turnover_benefit = Monetary(
+        'Turnover Benefit', depends=['currency_digits'], currency="currency",
         digits=(16, Eval('currency_digits', 2)),
         help='The benefit related turnover')
-    expenses_musicians = fields.Numeric(
-        'Expenses Musicians', depends=['currency_digits'],
+    expenses_musicians = Monetary(
+        'Expenses Musicians', depends=['currency_digits'], currency="currency",
         digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the musicians')
-    expenses_production = fields.Numeric(
+    expenses_production = Monetary(
         'Expenses Production', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        currency="currency", digits=(16, Eval('currency_digits', 2)),
         help='The expenses for the production')
 
     @classmethod
@@ -2004,9 +2026,9 @@ class LocationIndicators(ModelSQL, ModelView, CurrencyDigits):
         help='The opening hours of the location')
     opening_hours_duration = fields.Function(
         fields.Integer('Opening Hours Duration'), 'get_opening_hours_duration')
-    turnover_gastronomy = fields.Numeric(
+    turnover_gastronomy = Monetary(
         'Turnover Gastronomy', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        digits=(16, Eval('currency_digits', 2)), currency="currency",
         help='The gastronomy related turnover (e.g. food, drinks)')
 
     def get_opening_hours_duration(self, name):
@@ -2101,12 +2123,12 @@ class WebsiteResourceIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Streams', help='The number of streams')
     downloads = fields.Integer(
         'Downloads', help='The number of downloads')
-    turnover_ads = fields.Numeric(
+    turnover_ads = Monetary(
         'Turnover Ads', depends=['currency_digits'],
-        digits=(16, Eval('currency_digits', 2)),
+        digits=(16, Eval('currency_digits', 2)), currency="currency",
         help='The ads related turnover')
-    turnover_sale = fields.Numeric(
-        'Turnover Sale', depends=['currency_digits'],
+    turnover_sale = Monetary(
+        'Turnover Sale', depends=['currency_digits'], currency="currency",
         digits=(16, Eval('currency_digits', 2)),
         help='The sale related turnover')
 
@@ -2125,10 +2147,10 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
     __name__ = 'utilisation.indicators'
     _history = True
 
-    base = fields.Numeric(
+    base = Monetary(
         'Base', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
-        help='The base value')
+        currency="currency", help='The base value')
     relevance = fields.Many2One(
         'tariff_system.tariff.relevance', 'Relevance',
         help='The relevance')
@@ -2137,19 +2159,21 @@ class UtilisationIndicators(ModelSQL, ModelView, CurrencyDigits):
         'Adjustments',
         help='The adjustments')
 
-    invoice_amount = fields.Numeric(
+    invoice_amount = Monetary(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The amount to invoice')
-    administration_fee = fields.Numeric(
+    administration_fee = Monetary(
         'Administration Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
+        currency="currency",
         help='The fee for administration')
     distribution_amount = fields.Function(
-        fields.Numeric(
+        Monetary(
             'Distribution Amount', digits=(16, Eval('currency_digits', 2)),
             states={'readonly': True}, depends=['currency_digits'],
-            help='The amount to distribute'),
+            currency="currency", help='The amount to distribute'),
         'on_change_with_distribution_amount')
 
     @fields.depends('invoice_amount', 'administration_fee')
