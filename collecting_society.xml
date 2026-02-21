@@ -622,165 +622,6 @@
                   action="act_collecting_society"
                   id="menu_collecting_society_society"/>
 
-        <!-- Menue: Tariff -->
-        <record model="ir.ui.view" id="tariff_form">
-            <field name="model">tariff_system.tariff</field>
-            <field name="type">form</field>
-            <field name="name">tariff_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_list">
-            <field name="model">tariff_system.tariff</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff">
-            <field name="name">Tariffs</field>
-            <field name="res_model">tariff_system.tariff</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_list"/>
-            <field name="act_window" ref="act_tariff"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_form"/>
-            <field name="act_window" ref="act_tariff"/>
-        </record>
-        <menuitem parent="menu_collecting_society" sequence="20"
-                  action="act_tariff"
-                  id="menu_tariff"/>
-
-        <!-- Menue: Tariff / System -->
-        <record model="ir.ui.view" id="tariff_system_form">
-            <field name="model">tariff_system</field>
-            <field name="type">form</field>
-            <field name="name">tariff_system_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_system_list">
-            <field name="model">tariff_system</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_system_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff_system">
-            <field name="name">Systems</field>
-            <field name="res_model">tariff_system</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view" id="act_tariff_system_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_system_list"/>
-            <field name="act_window" ref="act_tariff_system"/>
-        </record>
-        <record model="ir.action.act_window.view" id="act_tariff_system_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_system_form"/>
-            <field name="act_window" ref="act_tariff_system"/>
-        </record>
-        <menuitem parent="menu_tariff" sequence="10"
-                  action="act_tariff_system"
-                  id="menu_tariff_system"/>
-
-        <!-- Menue: Tariff / Category -->
-        <record model="ir.ui.view" id="tariff_category_form">
-            <field name="model">tariff_system.category</field>
-            <field name="type">form</field>
-            <field name="name">tariff_category_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_category_list">
-            <field name="model">tariff_system.category</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_category_list</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff_category">
-            <field name="name">Categories</field>
-            <field name="res_model">tariff_system.category</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_category_list">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_category_list"/>
-            <field name="act_window" ref="act_tariff_category"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_category_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_category_form"/>
-            <field name="act_window" ref="act_tariff_category"/>
-        </record>
-        <menuitem parent="menu_tariff" sequence="20"
-                  action="act_tariff_category"
-                  id="menu_tariff_category"/>
-
-        <!-- Menue: Tariff / Adjustments -->
-        <record model="ir.ui.view" id="tariff_adjustment_form">
-            <field name="model">tariff_system.tariff.adjustment.category</field>
-            <field name="type">form</field>
-            <field name="name">tariff_adjustment_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_adjustment_tree">
-            <field name="model">tariff_system.tariff.adjustment.category</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_adjustment_tree</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff_adjustment">
-            <field name="name">Adjustments</field>
-            <field name="res_model">tariff_system.tariff.adjustment.category</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_adjustment_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_adjustment_tree"/>
-            <field name="act_window" ref="act_tariff_adjustment"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_adjustment_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_adjustment_form"/>
-            <field name="act_window" ref="act_tariff_adjustment"/>
-        </record>
-        <menuitem parent="menu_tariff" sequence="30"
-                  action="act_tariff_adjustment"
-                  id="menu_tariff_adjustment"/>
-
-        <!-- Menue: Tariff / Relevances -->
-        <record model="ir.ui.view" id="tariff_relevance_form">
-            <field name="model">tariff_system.tariff.relevance.category</field>
-            <field name="type">form</field>
-            <field name="name">tariff_relevance_form</field>
-        </record>
-        <record model="ir.ui.view" id="tariff_relevance_tree">
-            <field name="model">tariff_system.tariff.relevance.category</field>
-            <field name="type">tree</field>
-            <field name="name">tariff_relevance_tree</field>
-        </record>
-        <record model="ir.action.act_window" id="act_tariff_relevance">
-            <field name="name">Relevances</field>
-            <field name="res_model">tariff_system.tariff.relevance.category</field>
-            <field name="search_value">[]</field>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_relevance_tree">
-            <field name="sequence" eval="10"/>
-            <field name="view" ref="tariff_relevance_tree"/>
-            <field name="act_window" ref="act_tariff_relevance"/>
-        </record>
-        <record model="ir.action.act_window.view"
-                id="act_tariff_relevance_form">
-            <field name="sequence" eval="20"/>
-            <field name="view" ref="tariff_relevance_form"/>
-            <field name="act_window" ref="act_tariff_relevance"/>
-        </record>
-        <menuitem parent="menu_tariff" sequence="40"
-                  action="act_tariff_relevance"
-                  id="menu_tariff_relevance"/>
-
-
         <!-- Menue: Collection -->
         <record model="ir.ui.view" id="collection_form">
             <field name="model">collection</field>
@@ -812,6 +653,166 @@
         <menuitem parent="menu_collecting_society" sequence="45"
                   action="act_collection"
                   id="menu_collection"/>
+
+
+
+        <!-- Menue: Collection / Tariff -->
+        <record model="ir.ui.view" id="tariff_form">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">form</field>
+            <field name="name">tariff_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_list">
+            <field name="model">tariff_system.tariff</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff">
+            <field name="name">Tariffs</field>
+            <field name="res_model">tariff_system.tariff</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_list"/>
+            <field name="act_window" ref="act_tariff"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_form"/>
+            <field name="act_window" ref="act_tariff"/>
+        </record>
+        <menuitem parent="menu_collection" sequence="20"
+                  action="act_tariff"
+                  id="menu_tariff"/>
+
+        <!-- Menue: Collection / Tariff / System -->
+        <record model="ir.ui.view" id="tariff_system_form">
+            <field name="model">tariff_system</field>
+            <field name="type">form</field>
+            <field name="name">tariff_system_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_system_list">
+            <field name="model">tariff_system</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_system_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_system">
+            <field name="name">Systems</field>
+            <field name="res_model">tariff_system</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_tariff_system_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_system_list"/>
+            <field name="act_window" ref="act_tariff_system"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_tariff_system_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_system_form"/>
+            <field name="act_window" ref="act_tariff_system"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="10"
+                  action="act_tariff_system"
+                  id="menu_tariff_system"/>
+
+        <!-- Menue: Collection / Tariff / Category -->
+        <record model="ir.ui.view" id="tariff_category_form">
+            <field name="model">tariff_system.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_category_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_category_list">
+            <field name="model">tariff_system.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_category_list</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_category">
+            <field name="name">Categories</field>
+            <field name="res_model">tariff_system.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_category_list">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_category_list"/>
+            <field name="act_window" ref="act_tariff_category"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_category_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_category_form"/>
+            <field name="act_window" ref="act_tariff_category"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="20"
+                  action="act_tariff_category"
+                  id="menu_tariff_category"/>
+
+        <!-- Menue: Collection / Tariff / Adjustments -->
+        <record model="ir.ui.view" id="tariff_adjustment_form">
+            <field name="model">tariff_system.tariff.adjustment.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_adjustment_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_adjustment_tree">
+            <field name="model">tariff_system.tariff.adjustment.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_adjustment_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_adjustment">
+            <field name="name">Adjustments</field>
+            <field name="res_model">tariff_system.tariff.adjustment.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_adjustment_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_adjustment_tree"/>
+            <field name="act_window" ref="act_tariff_adjustment"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_adjustment_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_adjustment_form"/>
+            <field name="act_window" ref="act_tariff_adjustment"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="30"
+                  action="act_tariff_adjustment"
+                  id="menu_tariff_adjustment"/>
+
+        <!-- Menue: Collection / Tariff / Relevances -->
+        <record model="ir.ui.view" id="tariff_relevance_form">
+            <field name="model">tariff_system.tariff.relevance.category</field>
+            <field name="type">form</field>
+            <field name="name">tariff_relevance_form</field>
+        </record>
+        <record model="ir.ui.view" id="tariff_relevance_tree">
+            <field name="model">tariff_system.tariff.relevance.category</field>
+            <field name="type">tree</field>
+            <field name="name">tariff_relevance_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_tariff_relevance">
+            <field name="name">Relevances</field>
+            <field name="res_model">tariff_system.tariff.relevance.category</field>
+            <field name="search_value">[]</field>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_relevance_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="tariff_relevance_tree"/>
+            <field name="act_window" ref="act_tariff_relevance"/>
+        </record>
+        <record model="ir.action.act_window.view"
+                id="act_tariff_relevance_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="tariff_relevance_form"/>
+            <field name="act_window" ref="act_tariff_relevance"/>
+        </record>
+        <menuitem parent="menu_tariff" sequence="40"
+                  action="act_tariff_relevance"
+                  id="menu_tariff_relevance"/>
 
         <!-- Menue: Collection / Allocation -->
         <record model="ir.ui.view" id="allocation_form">
@@ -1787,9 +1788,9 @@
             <field name="view" ref="event_indicators_form"/>
             <field name="act_window" ref="act_event_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_event" sequence="20"
+        <!--menuitem name="Indicators" parent="menu_event" sequence="20"
                   action="act_event_indicators"
-                  id="menu_event_indicators"/>
+                  id="menu_event_indicators"/-->
 
         <!-- Menue: Locations -->
         <record model="ir.ui.view" id="location_form">
@@ -1937,9 +1938,9 @@
             <field name="view" ref="location_space_indicators_form"/>
             <field name="act_window" ref="act_location_space_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_location_space" sequence="20"
+        <!--menuitem name="Indicators" parent="menu_location_space" sequence="20"
                   action="act_location_space_indicators"
-                  id="menu_location_space_indicators"/>
+                  id="menu_location_space_indicators"/-->
 
         <!-- Menue: Locations / Indicators -->
         <record model="ir.ui.view" id="location_indicators_form">
@@ -1967,9 +1968,9 @@
             <field name="view" ref="location_indicators_form"/>
             <field name="act_window" ref="act_location_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_location" sequence="30"
+        <!--menuitem name="Indicators" parent="menu_location" sequence="30"
                   action="act_location_indicators"
-                  id="menu_location_indicators"/>
+                  id="menu_location_indicators"/-->
 
         <!-- Menue: Locations / Indicators / Periods -->
         <record model="ir.ui.view" id="location_indicators_period_form">
@@ -1999,9 +2000,9 @@
             <field name="view" ref="location_indicators_period_form"/>
             <field name="act_window" ref="act_location_indicators_period"/>
         </record>
-        <menuitem parent="menu_location_indicators" sequence="10"
+        <!--menuitem parent="menu_location_indicators" sequence="10"
                   action="act_location_indicators_period"
-                  id="menu_location_indicators_period"/>
+                  id="menu_location_indicators_period"/-->
 
         <!-- Menue: Websites -->
         <record model="ir.ui.view" id="website_form">
@@ -2149,9 +2150,9 @@
             <field name="view" ref="website_resource_indicators_form"/>
             <field name="act_window" ref="act_website_resource_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_website_resource" sequence="20"
+        <!--menuitem name="Indicators" parent="menu_website_resource" sequence="20"
                   action="act_website_resource_indicators"
-                  id="menu_website_resource_indicators"/>
+                  id="menu_website_resource_indicators"/-->
 
         <!-- Menue: Releases -->
         <record model="ir.action.act_window" id="act_licensee_release">
@@ -2201,9 +2202,9 @@
             <field name="view" ref="release_indicators_form"/>
             <field name="act_window" ref="act_release_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_licensee_release" sequence="10"
+        <!--menuitem name="Indicators" parent="menu_licensee_release" sequence="10"
                   action="act_release_indicators"
-                  id="menu_release_indicators"/>
+                  id="menu_release_indicators"/-->
 
         <!-- Menue: Devices -->
         <record model="ir.ui.view" id="device_form">
@@ -2670,9 +2671,9 @@
             <field name="view" ref="utilisation_indicators_form"/>
             <field name="act_window" ref="act_utilisation_indicators"/>
         </record>
-        <menuitem name="Indicators" parent="menu_utilisation" sequence="20"
+        <!--menuitem name="Indicators" parent="menu_utilisation" sequence="20"
                   action="act_utilisation_indicators"
-                  id="menu_utilisation_indicators"/>
+                  id="menu_utilisation_indicators"/-->
 
         <!-- Menue: Utilisations / Indicators / Adjustments -->
         <record model="ir.ui.view" id="utilisation_indicators_adjustment_form">
@@ -2700,9 +2701,9 @@
             <field name="view" ref="utilisation_indicators_adjustment_form"/>
             <field name="act_window" ref="act_utilisation_indicators_adjustment"/>
         </record>
-        <menuitem parent="menu_utilisation_indicators" sequence="10"
+        <!--menuitem parent="menu_utilisation_indicators" sequence="10"
                   action="act_utilisation_indicators_adjustment"
-                  id="menu_utilisation_indicators_adjustment"/>
+                  id="menu_utilisation_indicators_adjustment"/-->
 
         <!-- Menue: Utilisations / Indicators / Relevance -->
         <record model="ir.ui.view" id="utilisation_indicators_relevance_form">
@@ -2730,9 +2731,9 @@
             <field name="view" ref="utilisation_indicators_relevance_form"/>
             <field name="act_window" ref="act_utilisation_indicators_relevance"/>
         </record>
-        <menuitem parent="menu_utilisation_indicators" sequence="20"
+        <!--menuitem parent="menu_utilisation_indicators" sequence="20"
                   action="act_utilisation_indicators_relevance"
-                  id="menu_utilisation_indicators_relevance"/>
+                  id="menu_utilisation_indicators_relevance"/-->
 
 
         <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
