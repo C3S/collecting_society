@@ -4,8 +4,6 @@
 <form col="6">
     <label name="artist"/>
     <field name="artist"/>
-    <label name="performance"/>
-    <field name="performance"/>
 
     <group col="20" colspan="2" id="checkboxes">
         <label name="template"/>
@@ -17,6 +15,9 @@
     <notebook colspan="6">
         <page string="Items" id="items" col="1">
             <field name="items"/>
+        </page>
+        <page string="Performances" id="performance" col="1">
+            <field name="performance"/>
         </page>
         <page string="Access" id="access" col="6">
             <label name="entity_origin"/>
