@@ -1,0 +1,19 @@
+#
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "model:ir.action,name:account_invoice.act_invoice_in_form"
+msgid "Supplier Invoices"
+msgstr "Lizenzgeber-Rechnungen"
+
+msgctxt "model:ir.action,name:account_invoice.act_invoice_out_form"
+msgid "Customer Invoices"
+msgstr "Lizenznehmer-Rechnungen"
+
+msgctxt "model:ir.ui.menu,name:account_invoice.menu_invoice_in_form"
+msgid "Supplier Invoices"
+msgstr "Lizenzgeber-Rechnungen"
+
+msgctxt "model:ir.ui.menu,name:account_invoice.menu_invoice_out_form"
+msgid "Customer Invoices"
+msgstr "Lizenznehmer-Rechnungen"
