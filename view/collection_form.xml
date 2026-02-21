@@ -49,5 +49,8 @@
         <page string="Utilisations" id="utilisations">
             <field name="utilisations"/>
         </page>
+        <page string="Invoices" id="invoices">
+            <field name="invoices"/>
+        </page>
     </notebook>
 </form>

@@ -1017,6 +1017,11 @@ class Collection(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
             help="Allocations in state 'distributed'"),
         'get_allocations_with_state')
 
+    invoices = fields.Function(
+        fields.One2Many(
+            'account.invoice', None, 'Invoices',
+            help="Invoices for Collection"),
+        'get_invoices')
     invoice_amount = fields.Function(
         Monetary(
             'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
@@ -1072,6 +1077,9 @@ class Collection(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
             allocation.invoice_amount
             for allocation in self.allocations
         ])
+
+    def get_invoices(self, name):
+        return [allocation.invoice for allocation in self.allocations]
 
     def create_allocations(self):
         # sanity checks
