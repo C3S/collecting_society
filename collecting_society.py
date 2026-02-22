@@ -1411,6 +1411,9 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
     entity_creator = fields.Many2One(
         'res.user', 'Entity Creator', states={'required': True})
 
+    distribution_plan = fields.Many2One(
+        'distribution.plan', 'Distribution Plan', states={'readonly': True},
+        help='The distribution plan the utilisation run was done with')
     invoice_amount = Monetary(
         'Invoice Amount', digits=(16, Eval('currency_digits', 2)),
         states={'readonly': True}, depends=['currency_digits'],
@@ -1526,7 +1529,7 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
                             'date. Please check the distribution plans and '
                             'their validity dates. There can only be one '
                             'distribution plan valid for a given date.')
-        return first_match[0].version
+        return first_match[0]
 
     def distribute_allocations(self):
         # sanity checks
@@ -1536,7 +1539,9 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
         ]), f"not all allocations in {self} have the state 'collected'"
 
         # determine distribution plan version
-        version = utils.convert_version(self.match_version())
+        plan = self.match_version()
+        self.distribution_plan = plan
+        version = utils.convert_version(plan.version)  # replace '.' with '_'
 
         # amounts
         invoice_amount = Decimal('0')
@@ -5110,13 +5115,6 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView,
 
     @classmethod
     def create(cls, vlist):
-        DistributionPlan = Pool().get('distribution.plan')
-        most_recent_distribution_plan = DistributionPlan.search(
-            [], 0, 1, [('id', 'DESC')])
-        if not most_recent_distribution_plan:
-            raise UserError('no_distribution_plan',
-                            'No distribution plan available for utilisation.')
-
         elist = super(Declaration, cls).create(vlist)
         Utilisation = Pool().get('utilisation')
         for entry in elist:
@@ -5128,8 +5126,7 @@ class Declaration(PublicApi, CodeSequence, ModelSQL, ModelView,
                 state='created',
                 start=entry.create_date,
                 tariff=entry.tariff,
-                context=entry.context,
-                distribution_plan=most_recent_distribution_plan[0].id
+                context=entry.context
             )
             utilisation.save()
         return elist
@@ -5298,12 +5295,6 @@ class Utilisation(CodeSequence, PublicApi, ModelSQL, ModelView, CurrencyDigits,
         'utilisation.creationlist', 'Creationlist',
         states=STATES, depends=DEPENDS,
         help='The creation list for the distribution process')
-    distribution_plan = fields.Many2One(
-        'distribution.plan', 'Distribution Plan', states={
-            'required': True,
-            'readonly': ~Eval('active'),
-        }, depends=DEPENDS,
-        help='The distribution plan for the utilisation')
     collection = fields.Many2One(
         'collection', 'Collection',
         states=STATES, depends=DEPENDS,

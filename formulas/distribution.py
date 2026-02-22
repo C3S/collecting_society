@@ -114,7 +114,7 @@ def roles__0_1(utilisation, creation):
 
     # distribution
     roles = {
-        'plan': utilisation.distribution_plan.version,
+        'plan': '0.1',
         'type': creation.distribution_type,
         'creation': creation.code,
         'utilisation': utilisation,
@@ -237,7 +237,7 @@ def roles__0_1(utilisation, creation):
         originals = creation.originals
         roles['split'] = {
             'originals': [{
-                'plan': utilisation.distribution_plan.version,
+                'plan': roles['plan'],
                 'type': 'original',
                 'creation': creation.code,
                 'utilisation': utilisation,
@@ -314,8 +314,16 @@ def roles__0_1(utilisation, creation):
     return [roles]
 
 
-roles__0_2 = roles__0_1
-roles__0_3 = roles__0_1
+def roles__0_2(creation, utilisation):
+    roles = roles__0_1(creation, utilisation)
+    roles[0]['plan'] = '0.2'
+    return roles
+
+
+def roles__0_3(creation, utilisation):
+    roles = roles__0_1(creation, utilisation)
+    roles[0]['plan'] = '0.3'
+    return roles
 
 
 # --- Split -------------------------------------------------------------------
@@ -561,7 +569,7 @@ class Split():
         all information needed to pick the right fractions.
 
         Distribution Node:
-            plan (str): the distribution plan verion
+            plan (str): the distribution plan version
             type (str): the distribution type for the split
             creation (str): arbitrary identifier for the creation
             meta (dict): arbitrary meta infos passed to the returned share list
@@ -576,7 +584,7 @@ class Split():
                     '<ROLENAME>': [...],
                 }
 
-            - Only 'rightsholders' defined for leave nodes
+            - Only 'rightsholders' defined for leaf nodes
 
                 {
                     'rightsholders': [

@@ -37,6 +37,9 @@
     <label name="funds_account_move"/>
     <field name="funds_account_move"/>
 
+    <label name="distribution_plan"/>
+    <field name="distribution_plan"/>
+
     <notebook colspan="4">
         <page string="Total" id="licenser_invoices">
             <field name="licenser_invoices"/>
