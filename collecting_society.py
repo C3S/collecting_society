@@ -1501,12 +1501,42 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
                     if invoice.state == 'paid']
         return []
 
+    @staticmethod
+    def match_version():
+        today = datetime.date.today()
+        DistributionPlan = Pool().get('distribution.plan')
+        first_match = DistributionPlan.search(
+            [
+                ('OR',
+                    ('valid_from', '<=', today),
+                    ('valid_from', '=', None),
+                 ),  # valid from is in the past or not set
+                ('OR',
+                    ('valid_through', '>=', today),
+                    ('valid_through', '=', None),
+                 ),  # valid through is in the future or not set
+            ],
+        )
+        if not first_match:
+            raise UserError('No Distribution Plan Available',
+                            'No distribution plan matches the current date')
+        if len(first_match) > 1:
+            raise UserError('Ambiguous Distribution Plan Validity',
+                            'Multiple distribution plans match the current '
+                            'date. Please check the distribution plans and '
+                            'their validity dates. There can only be one '
+                            'distribution plan valid for a given date.')
+        return first_match[0].version
+
     def distribute_allocations(self):
         # sanity checks
         assert all([
             allocation.state == 'collected'
             for allocation in self.allocations
         ]), f"not all allocations in {self} have the state 'collected'"
+
+        # determine distribution plan version
+        version = utils.convert_version(self.match_version())
 
         # amounts
         invoice_amount = Decimal('0')
@@ -1638,8 +1668,6 @@ class Distribution(CodeSequence, UUID, ModelSQL, ModelView, CurrencyDigits):
             # generate list of licenser share amounts
             licenser_shares = []
             for share in creation_shares:
-                version = utils.convert_version(
-                    utilisation.distribution_plan.version)
                 get_roles = getattr(distribution, f'roles__{version}')
                 roles = get_roles(utilisation, share['creation'])
                 split = distribution.Split(roles)
